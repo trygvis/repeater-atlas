@@ -25,7 +25,7 @@ avoids exhaustive field listings; the authoritative details live in the database
 - Identity: callsign, name/label.
 - Technical settings: band, RX/TX frequencies, offset, tones.
 - Status: active/offline/planned, last updated.
-- Location: coordinates, region, country, coverage.
+- Location: coordinates, region, country.
 - Metadata: description (freeform), changelog, timestamps, provenance.
 
 ### Modes (one or more)
@@ -71,4 +71,3 @@ avoids exhaustive field listings; the authoritative details live in the database
 - Metadata: timestamp (can be historical/backdated), public by default.
 
 ## Open Decisions
-- Coverage representation: radius (km) vs polygon.

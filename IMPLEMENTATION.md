@@ -36,7 +36,7 @@
 - Identity: callsign, name/label.
 - Technical: bands, frequencies, tones, one or more modes.
 - Status: active/offline/planned/seasonal.
-- Location: coordinates, region, country, coverage.
+- Location: coordinates, region, country.
 - Metadata: description, timestamps, club ownership.
 
 ### User
@@ -102,5 +102,5 @@
 - Enumerations: allowed bands, modes, statuses, regions/countries.
 - Admin permissions: editor scope (all club repeaters vs only created).
 - SEO specifics: structured data and canonical URL patterns.
-- Map behavior: clustering, default center/zoom, polygon support.
+- Map behavior: clustering, default center/zoom.
 - Ops basics: backups, secrets management, migration flow.
