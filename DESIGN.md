@@ -9,6 +9,7 @@ direction before implementation.
 - Provide a public, mobile-friendly repeater directory with map and detail views.
 - Enable repeater owners/admins to maintain accurate listings via authenticated access.
 - Make data discoverable by search engines.
+- Support club-branded read-only views via custom domains and embeddable pages.
 
 ## Non-Goals
 - Full feature set beyond the first release.
@@ -42,6 +43,7 @@ able to access the data without logins.
 ## Assumptions and Constraints
 - Web-only UI; no native apps in the initial release.
 - English is the primary language; translations can be added later.
+- Single global instance; clubs use CNAMEs for branded read-only views.
 
 ## High-Level Architecture
 Describe the components and their interactions. Initial strawman:
@@ -60,6 +62,7 @@ Describe the components and their interactions. Initial strawman:
 ## Interfaces
 - External APIs: Not in MVP; consider public read endpoints later.
 - Internal interfaces: Admin UI to backend.
+ - Club views: CNAME-based virtual hosts and embeddable read-only pages.
 - Protocols/transport: HTTPS/JSON.
 
 ## Operational Considerations

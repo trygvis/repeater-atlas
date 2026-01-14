@@ -5,6 +5,8 @@
 - Public repeater listing page with search and filters.
 - Repeater detail page with full settings and location.
 - Map view for repeaters.
+- Club-scoped read-only views (via custom domains).
+- Embeddable read-only views with minimal chrome.
 - Admin login and role-based access (manual role assignment).
 - Admin CRUD for repeaters.
 - SEO-friendly markup for public pages.
@@ -63,6 +65,7 @@
 - `/` home/overview with search entry point.
 - `/repeaters` list with filters and map toggle.
 - `/repeaters/:id` detail page.
+- `/embed/club/:id` embeddable club-scoped list/detail (minimal layout).
 
 ### Admin
 - `/admin/login` login form.
@@ -84,6 +87,11 @@
 - Create/edit repeater entries with validation.
 - Role-based access: club admins manage all club repeaters; editors can edit assigned entries.
 
+### Club Views
+- CNAME-based virtual host resolves to a club-scoped read-only view.
+- Embeddable view uses semantic HTML and omits global header/footer.
+- Admin/editing only on the main site domain.
+
 ## Validation Rules (MVP)
 - callsign: required, uppercase, length <= 10.
 - frequencies: numeric, >= 0.
@@ -103,4 +111,5 @@
 - Admin permissions: editor scope (all club repeaters vs only created).
 - SEO specifics: structured data and canonical URL patterns.
 - Map behavior: clustering, default center/zoom.
+- Club view domain mapping strategy and canonical URL rules.
 - Ops basics: backups, secrets management, migration flow.
