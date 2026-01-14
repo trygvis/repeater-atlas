@@ -25,6 +25,7 @@
 - Map provider: OpenStreetMap public tiles (Leaflet), swappable later.
 - Hosting: Containers (Docker/OCI).
 - Auth: Session cookies (signed/encrypted), Argon2 password hashing.
+- Migrations: Diesel migrations.
 
 ## Core Attributes
 - Single-instance service; no web-scale or horizontal scaling in MVP.
