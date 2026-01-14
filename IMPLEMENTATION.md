@@ -1,4 +1,4 @@
-# Implementation Spec: NRRL Relæ (Web)
+# Implementation Spec: NRRL Repeater Atlas (Web)
 
 ## Scope (MVP)
 ### In

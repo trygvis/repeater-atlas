@@ -1,4 +1,4 @@
-# Testing Strategy: NRRL Relæ
+# Testing Strategy: NRRL Repeater Atlas
 
 ## Goals
 - Catch regressions in SSR pages, filtering, and admin flows.

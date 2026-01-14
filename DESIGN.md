@@ -1,7 +1,7 @@
-# Design Document: NRRL Relæ
+# Design Document: NRRL Repeater Atlas
 
 ## Overview
-NRRL Relæ is a new project with an initial design to be defined. This document captures
+NRRL Repeater Atlas is a new project with an initial design to be defined. This document captures
 the intended purpose, scope, requirements, and a starting architecture to align on
 direction before implementation.
 
