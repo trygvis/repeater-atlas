@@ -14,6 +14,9 @@
 - Auth: signed/encrypted session cookies; in-memory session store.
 - Map: Leaflet + OSM tiles (provider swappable).
 
+## Conventions
+- Generate migrations via `diesel migration generate`, not by hand.
+
 ## Documentation
 - `docs/DESIGN.md`
 - `docs/IMPLEMENTATION.md`
