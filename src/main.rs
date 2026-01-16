@@ -2,12 +2,19 @@ use std::net::SocketAddr;
 
 use axum::Router;
 use axum_extra::routing::RouterExt;
+use tracing_subscriber::EnvFilter;
 
 use repeater_atlas::web::index;
 use repeater_atlas::web::AppState;
 
 #[tokio::main]
 async fn main() {
+    tracing_subscriber::fmt()
+        .with_env_filter(
+            EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info")),
+        )
+        .init();
+
     let pool = repeater_atlas::init().await;
 
     let state = AppState { pool };
