@@ -36,3 +36,29 @@ pub async fn select(conn: &mut AsyncPgConnection) -> QueryResult<Vec<Repeater>> 
         .get_results(conn)
         .await
 }
+
+pub async fn get(
+    conn: &mut AsyncPgConnection,
+    repeater_id: i64,
+) -> QueryResult<Repeater> {
+    use crate::schema::repeater::dsl as r;
+
+    r::repeater
+        .filter(r::id.eq(repeater_id))
+        .select(Repeater::as_select())
+        .first(conn)
+        .await
+}
+
+pub async fn get_by_call_sign(
+    conn: &mut AsyncPgConnection,
+    call_sign: String,
+) -> QueryResult<Repeater> {
+    use crate::schema::repeater::dsl as r;
+
+    r::repeater
+        .filter(r::call_sign.eq(call_sign))
+        .select(Repeater::as_select())
+        .first(conn)
+        .await
+}

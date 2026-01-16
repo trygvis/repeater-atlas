@@ -1,0 +1,14 @@
+{% extends "layouts/main.html" %}
+
+{% block title %}Repeater {{ repeater.call_sign }}{% endblock %}
+
+{% block content %}
+  <h1>{{ repeater.call_sign }}</h1>
+  <dl>
+    <dt>Frequency</dt>
+    <dd>{{ repeater.frequency }}</dd>
+    <dt>RX Offset</dt>
+    <dd>{{ repeater.rx_offset }}</dd>
+  </dl>
+  <p><a href="/">Back to list</a></p>
+{% endblock %}

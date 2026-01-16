@@ -1,6 +1,7 @@
 use std::net::SocketAddr;
 
-use axum::{routing::get, Router};
+use axum::Router;
+use axum_extra::routing::RouterExt;
 
 use repeater_atlas::web::index;
 use repeater_atlas::web::AppState;
@@ -14,7 +15,8 @@ async fn main() {
     let state = AppState { pool };
 
     let app = Router::new()
-        .route("/", get(index::index))
+        .typed_get(index::index)
+        .typed_get(index::detail)
         .with_state(state);
 
     let addr: SocketAddr = std::env::var("BIND_ADDR")

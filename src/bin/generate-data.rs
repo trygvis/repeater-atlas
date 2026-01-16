@@ -1,4 +1,3 @@
-use diesel::prelude::*;
 use repeater_atlas::dao;
 
 #[tokio::main]
