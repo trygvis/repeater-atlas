@@ -11,6 +11,8 @@ pub mod test_data;
 pub use error::RepeaterAtlasError;
 
 pub async fn init() -> bb8::Pool<AsyncDieselConnectionManager<AsyncPgConnection>> {
+    dotenvy::dotenv().ok();
+
     let database_url =
         std::env::var("DATABASE_URL").expect("DATABASE_URL must be set to run the server");
     let manager = AsyncDieselConnectionManager::<AsyncPgConnection>::new(database_url);

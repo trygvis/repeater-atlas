@@ -8,8 +8,6 @@ use repeater_atlas::web::AppState;
 
 #[tokio::main]
 async fn main() {
-    dotenvy::dotenv().ok();
-
     let pool = repeater_atlas::init().await;
 
     let state = AppState { pool };

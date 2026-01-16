@@ -6,5 +6,4 @@
 .*
 *.tmp
 *.tmp.*
-.env
 .env.*
