@@ -20,9 +20,10 @@
 ## Documentation
 These must be read before doing any work.
 
+- `docs/CODE.md`
+- `docs/DATA_MODEL.md`
 - `docs/DESIGN.md`
 - `docs/IMPLEMENTATION.md`
-- `docs/DATA_MODEL.md`
 - `docs/TESTING.md`
 
 ## Testing Notes

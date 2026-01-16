@@ -34,7 +34,8 @@
 - Tests can create random data derived from the fixture.
 - Tests must not modify fixture rows in place.
 
-## Tooling (Proposed)
+## Tooling
+- After refactoring, always build the entire codebase with `cargo build --all-targets` and fix any problems before continuing.
 - `cargo test` for unit/integration tests.
 - Local Postgres pointed to by `DATABASE_URL`.
 
