@@ -1,24 +1,15 @@
 use std::net::SocketAddr;
 
-use axum::{Router, routing::get};
-use diesel_async::AsyncPgConnection;
-use diesel_async::pooled_connection::AsyncDieselConnectionManager;
-use diesel_async::pooled_connection::bb8::Pool;
+use axum::{routing::get, Router};
 
-use repeater_atlas::web::AppState;
 use repeater_atlas::web::index;
+use repeater_atlas::web::AppState;
 
 #[tokio::main]
 async fn main() {
     dotenvy::dotenv().ok();
 
-    let database_url =
-        std::env::var("DATABASE_URL").expect("DATABASE_URL must be set to run the server");
-    let manager = AsyncDieselConnectionManager::<AsyncPgConnection>::new(database_url);
-    let pool = Pool::builder()
-        .build(manager)
-        .await
-        .expect("failed to build database connection pool");
+    let pool = repeater_atlas::init().await;
 
     let state = AppState { pool };
 
