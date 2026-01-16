@@ -18,8 +18,8 @@ pub(crate) async fn pool() -> AsyncPool {
         .get_or_init(|| async move {
             let migrate_url = database_url.clone();
             tokio::task::spawn_blocking(move || -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-                let mut conn = PgConnection::establish(&migrate_url)?;
-                conn.run_pending_migrations(MIGRATIONS)?;
+                let mut c = PgConnection::establish(&migrate_url)?;
+                c.run_pending_migrations(MIGRATIONS)?;
                 Ok(())
             })
             .await

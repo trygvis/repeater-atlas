@@ -4,7 +4,7 @@ use repeater_atlas::dao;
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let pool = repeater_atlas::init().await;
 
-    let mut conn = pool.get().await?;
+    let mut c = pool.get().await?;
 
     let repeaters = [
         // LA4O
@@ -16,7 +16,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     ];
 
     for r in repeaters {
-        dao::repeater::insert(&mut conn, r).await?;
+        dao::repeater::insert(&mut c, r).await?;
     }
 
     Ok(())

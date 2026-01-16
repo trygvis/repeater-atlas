@@ -32,9 +32,9 @@ pub async fn index(
     _: IndexPath,
     State(state): State<AppState>,
 ) -> Result<Html<String>, RepeaterAtlasError> {
-    let mut conn = state.pool.get().await?;
+    let mut c = state.pool.get().await?;
 
-    let repeaters = dao::repeater::select(&mut conn).await?;
+    let repeaters = dao::repeater::select(&mut c).await?;
 
     let template = IndexTemplate { repeaters };
     let body = template.render()?;
@@ -46,9 +46,9 @@ pub async fn detail(
     RepeaterDetailPath { call_sign }: RepeaterDetailPath,
     State(state): State<AppState>,
 ) -> Result<Html<String>, RepeaterAtlasError> {
-    let mut conn = state.pool.get().await?;
+    let mut c = state.pool.get().await?;
 
-    let repeater = match dao::repeater::find_by_call_sign(&mut conn, call_sign).await? {
+    let repeater = match dao::repeater::find_by_call_sign(&mut c, call_sign).await? {
         Some(row) => row,
         None => return Err(RepeaterAtlasError::NotFound),
     };

@@ -20,28 +20,28 @@ pub struct Repeater {
 }
 
 pub async fn insert(
-    conn: &mut AsyncPgConnection,
+    c: &mut AsyncPgConnection,
     new_repeater: NewRepeater,
 ) -> QueryResult<usize> {
     use crate::schema::repeater::dsl as r;
 
     diesel::insert_into(r::repeater)
         .values(&new_repeater)
-        .execute(conn)
+        .execute(c)
         .await
 }
 
-pub async fn select(conn: &mut AsyncPgConnection) -> QueryResult<Vec<Repeater>> {
+pub async fn select(c: &mut AsyncPgConnection) -> QueryResult<Vec<Repeater>> {
     use crate::schema::repeater::dsl as r;
 
     r::repeater
         .select(Repeater::as_select())
-        .get_results(conn)
+        .get_results(c)
         .await
 }
 
 pub async fn get(
-    conn: &mut AsyncPgConnection,
+    c: &mut AsyncPgConnection,
     repeater_id: i64,
 ) -> QueryResult<Repeater> {
     use crate::schema::repeater::dsl as r;
@@ -49,12 +49,12 @@ pub async fn get(
     r::repeater
         .filter(r::id.eq(repeater_id))
         .select(Repeater::as_select())
-        .first(conn)
+        .first(c)
         .await
 }
 
 pub async fn find_by_call_sign(
-    conn: &mut AsyncPgConnection,
+    c: &mut AsyncPgConnection,
     call_sign: String,
 ) -> QueryResult<Option<Repeater>> {
     use crate::schema::repeater::dsl as r;
@@ -62,7 +62,7 @@ pub async fn find_by_call_sign(
     r::repeater
         .filter(r::call_sign.eq(call_sign))
         .select(Repeater::as_select())
-        .first(conn)
+        .first(c)
         .await
         .optional()
 }
