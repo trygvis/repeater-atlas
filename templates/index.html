@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Repeater Atlas</title>
+  </head>
+  <body>
+    <main>
+      <h1>Repeater Atlas</h1>
+      <p>Hello world.</p>
+      <section>
+        <h2>Repeaters</h2>
+        {% if repeaters.len() == 0 %}
+          <p>No repeaters yet.</p>
+        {% else %}
+          <ul>
+            {% for repeater in repeaters %}
+              <li>
+                <strong>{{ repeater.call_sign }}</strong>
+                <span>freq {{ repeater.frequency }}</span>
+                <span>offset {{ repeater.rx_offset }}</span>
+              </li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      </section>
+    </main>
+  </body>
+</html>
