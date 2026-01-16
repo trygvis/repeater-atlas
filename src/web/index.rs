@@ -28,28 +28,35 @@ struct DetailTemplate {
     repeater: dao::repeater::Repeater,
 }
 
+#[derive(Template)]
+#[template(path = "pages/500.html")]
+struct ErrorTemplate;
+
+fn render_500() -> (StatusCode, Html<String>) {
+    let body = ErrorTemplate
+        .render()
+        .unwrap_or_else(|_| "<h1>Server Error</h1>".to_string());
+    (StatusCode::INTERNAL_SERVER_ERROR, Html(body))
+}
+
 pub async fn index(
     _: IndexPath,
     State(state): State<AppState>,
-) -> Result<Html<String>, (StatusCode, String)> {
-    let mut conn = state.pool.get().await.map_err(|err| {
-        (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            format!("db pool error: {}", err),
-        )
-    })?;
+) -> Result<Html<String>, (StatusCode, Html<String>)> {
+    let mut conn = match state.pool.get().await {
+        Ok(conn) => conn,
+        Err(_) => return Err(render_500()),
+    };
 
-    let repeaters = dao::repeater::select(&mut conn).await.map_err(|err| {
-        (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            format!("db query error: {}", err),
-        )
-    })?;
+    let repeaters = match dao::repeater::select(&mut conn).await {
+        Ok(rows) => rows,
+        Err(_) => return Err(render_500()),
+    };
 
     let template = IndexTemplate { repeaters };
     let body = template
         .render()
-        .map_err(|err| (StatusCode::INTERNAL_SERVER_ERROR, err.to_string()))?;
+        .map_err(|_| render_500())?;
 
     Ok(Html(body))
 }
@@ -57,25 +64,21 @@ pub async fn index(
 pub async fn detail(
     RepeaterDetailPath { call_sign }: RepeaterDetailPath,
     State(state): State<AppState>,
-) -> Result<Html<String>, (StatusCode, String)> {
-    let mut conn = state.pool.get().await.map_err(|err| {
-        (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            format!("db pool error: {}", err),
-        )
-    })?;
+) -> Result<Html<String>, (StatusCode, Html<String>)> {
+    let mut conn = match state.pool.get().await {
+        Ok(conn) => conn,
+        Err(_) => return Err(render_500()),
+    };
 
-    let repeater = dao::repeater::get_by_call_sign(&mut conn, call_sign).await.map_err(|err| {
-        (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            format!("db query error: {}", err),
-        )
-    })?;
+    let repeater = match dao::repeater::get_by_call_sign(&mut conn, call_sign).await {
+        Ok(row) => row,
+        Err(_) => return Err(render_500()),
+    };
 
     let template = DetailTemplate { repeater };
     let body = template
         .render()
-        .map_err(|err| (StatusCode::INTERNAL_SERVER_ERROR, err.to_string()))?;
+        .map_err(|_| render_500())?;
 
     Ok(Html(body))
 }
