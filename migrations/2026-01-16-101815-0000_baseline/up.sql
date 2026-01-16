@@ -2,14 +2,20 @@ CREATE TABLE ham_club
 (
     id          BIGSERIAL PRIMARY KEY,
     name        TEXT,
-    description TEXT
+    description TEXT,
+    web_url     TEXT,
+    email       TEXT
 );
 
 CREATE TABLE repeater
 (
     id        BIGSERIAL PRIMARY KEY,
     ham_club  BIGINT REFERENCES ham_club,
-    call_sign TEXT
+    call_sign VARCHAR NOT NULL UNIQUE,
+    frequency  BIGINT NOT NULL,
+    rx_offset  BIGINT NOT NULL,
+    tx_subtone NUMERIC,
+    rx_subtone NUMERIC
 );
 
 CREATE TABLE repeater_change_log
@@ -23,5 +29,5 @@ CREATE TABLE repeater_change_log
 CREATE TABLE ham_operator
 (
     id   BIGSERIAL PRIMARY KEY,
-    name TEXT
+    call_sign VARCHAR NOT NULL UNIQUE
 );

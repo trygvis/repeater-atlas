@@ -5,13 +5,15 @@ diesel::table! {
         id -> Int8,
         name -> Nullable<Text>,
         description -> Nullable<Text>,
+        web_url -> Nullable<Text>,
+        email -> Nullable<Text>,
     }
 }
 
 diesel::table! {
     ham_operator (id) {
         id -> Int8,
-        name -> Nullable<Text>,
+        call_sign -> Varchar,
     }
 }
 
@@ -19,7 +21,11 @@ diesel::table! {
     repeater (id) {
         id -> Int8,
         ham_club -> Nullable<Int8>,
-        call_sign -> Nullable<Text>,
+        call_sign -> Varchar,
+        frequency -> Int8,
+        rx_offset -> Int8,
+        tx_subtone -> Nullable<Numeric>,
+        rx_subtone -> Nullable<Numeric>,
     }
 }
 
