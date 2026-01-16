@@ -1,6 +1,6 @@
-DROP DATABASE IF EXISTS relay_atlas WITH (FORCE);
-DROP OWNED BY relay_atlas CASCADE;
-DROP ROLE IF EXISTS relay_atlas;
+DROP DATABASE IF EXISTS repeater_atlas WITH (FORCE);
+DROP OWNED BY repeater_atlas CASCADE;
+DROP ROLE IF EXISTS repeater_atlas;
 
-CREATE ROLE relay_atlas LOGIN PASSWORD 'relay_atlas';
-CREATE DATABASE relay_atlas OWNER relay_atlas;
+CREATE ROLE repeater_atlas LOGIN PASSWORD 'repeater_atlas';
+CREATE DATABASE repeater_atlas OWNER repeater_atlas;

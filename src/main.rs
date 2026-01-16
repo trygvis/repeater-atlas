@@ -1,3 +1,3 @@
 fn main() {
-    println!("{}", nrrl_repeater_atlas::hello());
+    println!("{}", repeater_atlas::hello());
 }

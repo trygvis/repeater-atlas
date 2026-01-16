@@ -1,7 +1,7 @@
 use diesel::prelude::*;
 use diesel::sql_query;
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
-use nrrl_repeater_atlas::schema::repeaters;
+use repeater_atlas::schema::repeaters;
 use uuid::Uuid;
 
 pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!();

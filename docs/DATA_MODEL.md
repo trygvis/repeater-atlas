@@ -1,4 +1,4 @@
-# Data Model: NRRL Repeater Atlas
+# Data Model: Repeater Atlas
 
 ## Intent
 This document captures the conceptual data model and relationships. It intentionally

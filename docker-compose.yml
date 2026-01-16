@@ -2,7 +2,7 @@ services:
   postgres:
     image: postgres:16
     environment:
-      POSTGRES_DB: nrrl_repeater_atlas
+      POSTGRES_DB: repeater_atlas
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: admin
     ports:

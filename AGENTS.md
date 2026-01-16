@@ -1,4 +1,4 @@
-# NRRL Repeater Atlas: Agent Notes
+# Repeater Atlas: Agent Notes
 
 ## Quick Context
 - Purpose: Public repeater directory and map with club-managed data.

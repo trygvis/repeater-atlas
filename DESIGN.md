@@ -1,7 +1,7 @@
-# Design Document: NRRL Repeater Atlas
+# Design Document: Repeater Atlas
 
 ## Overview
-NRRL Repeater Atlas is a new project with an initial design to be defined. This document captures
+Repeater Atlas is a new project with an initial design to be defined. This document captures
 the intended purpose, scope, requirements, and a starting architecture to align on
 direction before implementation.
 
@@ -19,7 +19,7 @@ direction before implementation.
 ## Stakeholders and Users
 - Primary users: Radio amateurs browsing repeaters and settings.
 - Admin users: Repeater owners maintaining listings.
-- Operators/maintainers: NRRL maintainers managing roles and system operations.
+- Operators/maintainers: Maintainers managing roles and system operations.
 
 ## Problem Statement
 Radio amateurs need a reliable, searchable directory of repeaters with accurate settings

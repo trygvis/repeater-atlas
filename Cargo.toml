@@ -1,5 +1,5 @@
 [package]
-name = "nrrl-repeater-atlas"
+name = "repeater-atlas"
 version = "0.1.0"
 edition = "2024"
 
