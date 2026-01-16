@@ -19,7 +19,10 @@ pub struct Repeater {
     pub rx_offset: i64,
 }
 
-pub async fn insert(conn: &mut AsyncPgConnection, new_repeater: NewRepeater) -> QueryResult<usize> {
+pub async fn insert(
+    conn: &mut AsyncPgConnection,
+    new_repeater: NewRepeater,
+) -> QueryResult<usize> {
     use crate::schema::repeater::dsl as r;
 
     diesel::insert_into(r::repeater)

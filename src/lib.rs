@@ -3,8 +3,11 @@ use diesel_async::pooled_connection::AsyncDieselConnectionManager;
 use diesel_async::pooled_connection::bb8::Pool;
 
 pub mod dao;
+pub mod error;
 pub mod schema;
 pub mod web;
+
+pub use error::RepeaterAtlasError;
 
 pub async fn init() -> bb8::Pool<AsyncDieselConnectionManager<AsyncPgConnection>> {
     let database_url =
