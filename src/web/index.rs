@@ -10,22 +10,10 @@ use crate::{dao, RepeaterAtlasError};
 #[typed_path("/")]
 pub struct IndexPath;
 
-#[derive(TypedPath, Deserialize)]
-#[typed_path("/repeaters/{call_sign}")]
-pub struct RepeaterDetailPath {
-    pub call_sign: String,
-}
-
 #[derive(Template)]
 #[template(path = "pages/index.html")]
 struct IndexTemplate {
     repeaters: Vec<dao::repeater::Repeater>,
-}
-
-#[derive(Template)]
-#[template(path = "pages/repeater_detail.html")]
-struct DetailTemplate {
-    repeater: dao::repeater::Repeater,
 }
 
 pub async fn index(
@@ -40,6 +28,18 @@ pub async fn index(
     let body = template.render()?;
 
     Ok(Html(body))
+}
+
+#[derive(TypedPath, Deserialize)]
+#[typed_path("/repeaters/{call_sign}")]
+pub struct RepeaterDetailPath {
+    pub call_sign: String,
+}
+
+#[derive(Template)]
+#[template(path = "pages/repeater_detail.html")]
+struct DetailTemplate {
+    repeater: dao::repeater::Repeater,
 }
 
 pub async fn detail(
