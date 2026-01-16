@@ -12,6 +12,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             call_sign: "LA5OR".to_string(),
             frequency: 145_600_000,
             rx_offset: -600_000,
+            modulation: Some(dao::repeater::Modulation::FmNarrow),
+            subtone_mode: dao::repeater::SubtoneMode::None,
+            tx_subtone: None,
+            rx_subtone: None,
+            has_dmr: false,
+            dmr_id: None,
+            has_aprs: false,
+            maidenhead_locator: Some("JO59ix".to_string()),
+            latitude: None,
+            longitude: None,
+            address: Some("Tryvann, Oslo".to_string()),
         },
     ];
 

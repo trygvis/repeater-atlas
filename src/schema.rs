@@ -22,10 +22,19 @@ diesel::table! {
         id -> Int8,
         ham_club -> Nullable<Int8>,
         call_sign -> Varchar,
+        maidenhead_locator -> Nullable<Text>,
+        latitude -> Nullable<Float8>,
+        longitude -> Nullable<Float8>,
+        address -> Nullable<Text>,
         frequency -> Int8,
+        modulation -> Nullable<Varchar>,
         rx_offset -> Int8,
-        tx_subtone -> Nullable<Numeric>,
-        rx_subtone -> Nullable<Numeric>,
+        subtone_mode -> Varchar,
+        tx_subtone -> Nullable<Float4>,
+        rx_subtone -> Nullable<Float4>,
+        has_dmr -> Bool,
+        dmr_id -> Nullable<Int8>,
+        has_aprs -> Bool,
     }
 }
 
