@@ -11,8 +11,10 @@ type AsyncPool = Pool<AsyncPgConnection>;
 static DB_POOL: OnceCell<AsyncPool> = OnceCell::const_new();
 
 pub(crate) async fn pool() -> AsyncPool {
-    let database_url = std::env::var("TEST_DATABASE_URL")
-        .expect("TEST_DATABASE_URL must be set to run database integration tests");
+    dotenvy::dotenv().ok();
+
+    let database_url = std::env::var("DATABASE_URL")
+        .expect("DATABASE_URL must be set to run database integration tests");
 
     DB_POOL
         .get_or_init(|| async move {

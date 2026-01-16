@@ -1,0 +1,5 @@
+#!/bin/bash
+
+PGHOST=localhost
+
+exec docker compose exec -it postgres psql "${@}"

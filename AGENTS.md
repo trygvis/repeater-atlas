@@ -18,12 +18,15 @@
 - Generate migrations via `diesel migration generate`, not by hand.
 
 ## Documentation
+These must be read before doing any work.
+
 - `docs/DESIGN.md`
 - `docs/IMPLEMENTATION.md`
 - `docs/DATA_MODEL.md`
 - `docs/TESTING.md`
 
 ## Testing Notes
-- Integration tests use a dedicated local Postgres via `TEST_DATABASE_URL`.
+- Access the database via `bin/psql`. It will connect to the correct database automatically.
+- Integration tests use a dedicated local Postgres via `DATABASE_URL`.
 - Fixture loader can drop/recreate the test DB and run migrations.
 - Tests commit changes (no transaction rollback).

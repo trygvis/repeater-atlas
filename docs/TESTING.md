@@ -36,7 +36,7 @@
 
 ## Tooling (Proposed)
 - `cargo test` for unit/integration tests.
-- Local Postgres pointed to by `TEST_DATABASE_URL`.
+- Local Postgres pointed to by `DATABASE_URL`.
 
 ## Acceptance Signals
 - All tests pass on a clean checkout.
