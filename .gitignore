@@ -1,8 +1,10 @@
 /target
-/.env
-/.env.*
-*.log
-*.pid
 /.idea
 /.vscode
 **/.DS_Store
+
+.*
+*.tmp
+*.tmp.*
+.env
+.env.*
