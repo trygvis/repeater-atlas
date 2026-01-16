@@ -8,7 +8,7 @@ pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!();
 #[derive(Insertable)]
 #[diesel(table_name = repeater)]
 struct NewRepeater {
-    callsign: Option<String>,
+    call_sign: Option<String>,
 }
 
 #[test]
@@ -20,7 +20,7 @@ fn inserts_repeater_row() -> Result<(), Box<dyn std::error::Error + Send + Sync>
     conn.run_pending_migrations(MIGRATIONS)?;
 
     let new_repeater = NewRepeater {
-        callsign: Some("LA1ABC".to_string()),
+        call_sign: Some("LA1ABC".to_string()),
     };
 
     diesel::insert_into(repeater::table)

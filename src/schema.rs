@@ -4,24 +4,40 @@ diesel::table! {
     ham_club (id) {
         id -> Int8,
         name -> Nullable<Text>,
+        description -> Nullable<Text>,
+    }
+}
+
+diesel::table! {
+    ham_operator (id) {
+        id -> Int8,
+        name -> Nullable<Text>,
     }
 }
 
 diesel::table! {
     repeater (id) {
         id -> Int8,
-        ham_club_id -> Nullable<Int8>,
-        callsign -> Nullable<Text>,
+        ham_club -> Nullable<Int8>,
+        call_sign -> Nullable<Text>,
     }
 }
 
 diesel::table! {
     repeater_change_log (id) {
         id -> Int8,
-        repeater_id -> Nullable<Int8>,
-        body -> Nullable<Text>,
+        repeater -> Nullable<Int8>,
         created_at -> Nullable<Timestamp>,
+        body -> Nullable<Text>,
     }
 }
 
-diesel::allow_tables_to_appear_in_same_query!(ham_club, repeater, repeater_change_log,);
+diesel::joinable!(repeater -> ham_club (ham_club));
+diesel::joinable!(repeater_change_log -> repeater (repeater));
+
+diesel::allow_tables_to_appear_in_same_query!(
+    ham_club,
+    ham_operator,
+    repeater,
+    repeater_change_log,
+);

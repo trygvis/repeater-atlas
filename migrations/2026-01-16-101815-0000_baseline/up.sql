@@ -1,18 +1,27 @@
-CREATE TABLE ham_club (
-    id BIGSERIAL PRIMARY KEY,
-    name text
+CREATE TABLE ham_club
+(
+    id          BIGSERIAL PRIMARY KEY,
+    name        TEXT,
+    description TEXT
 );
 
-CREATE TABLE repeater (
-    id BIGSERIAL PRIMARY KEY,
-    ham_club_id bigint,
-    callsign text
+CREATE TABLE repeater
+(
+    id        BIGSERIAL PRIMARY KEY,
+    ham_club  BIGINT REFERENCES ham_club,
+    call_sign TEXT
 );
 
-CREATE TABLE repeater_change_log (
-    id BIGSERIAL PRIMARY KEY,
-    repeater_id bigint,
-    body text,
-    created_at timestamp
+CREATE TABLE repeater_change_log
+(
+    id         BIGSERIAL PRIMARY KEY,
+    repeater   BIGINT REFERENCES repeater,
+    created_at TIMESTAMP,
+    body       TEXT
 );
--- Your SQL goes here
+
+CREATE TABLE ham_operator
+(
+    id   BIGSERIAL PRIMARY KEY,
+    name TEXT
+);
