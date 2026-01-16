@@ -50,10 +50,10 @@ pub async fn get(
         .await
 }
 
-pub async fn get_by_call_sign(
+pub async fn find_by_call_sign(
     conn: &mut AsyncPgConnection,
     call_sign: String,
-) -> QueryResult<Repeater> {
+) -> QueryResult<Option<Repeater>> {
     use crate::schema::repeater::dsl as r;
 
     r::repeater
@@ -61,4 +61,5 @@ pub async fn get_by_call_sign(
         .select(Repeater::as_select())
         .first(conn)
         .await
+        .optional()
 }

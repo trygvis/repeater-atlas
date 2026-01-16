@@ -39,6 +39,17 @@ fn render_500() -> (StatusCode, Html<String>) {
     (StatusCode::INTERNAL_SERVER_ERROR, Html(body))
 }
 
+#[derive(Template)]
+#[template(path = "pages/404.html")]
+struct NotFoundTemplate;
+
+fn render_404() -> (StatusCode, Html<String>) {
+    let body = NotFoundTemplate
+        .render()
+        .unwrap_or_else(|_| "<h1>Not Found</h1>".to_string());
+    (StatusCode::NOT_FOUND, Html(body))
+}
+
 pub async fn index(
     _: IndexPath,
     State(state): State<AppState>,
@@ -70,8 +81,9 @@ pub async fn detail(
         Err(_) => return Err(render_500()),
     };
 
-    let repeater = match dao::repeater::get_by_call_sign(&mut conn, call_sign).await {
-        Ok(row) => row,
+    let repeater = match dao::repeater::find_by_call_sign(&mut conn, call_sign).await {
+        Ok(Some(row)) => row,
+        Ok(None) => return Err(render_404()),
         Err(_) => return Err(render_500()),
     };
 
