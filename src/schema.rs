@@ -27,7 +27,7 @@ diesel::table! {
         longitude -> Nullable<Float8>,
         address -> Nullable<Text>,
         frequency -> Int8,
-        modulation -> Nullable<Varchar>,
+        modulation -> Varchar,
         rx_offset -> Int8,
         subtone_mode -> Varchar,
         tx_subtone -> Nullable<Float4>,

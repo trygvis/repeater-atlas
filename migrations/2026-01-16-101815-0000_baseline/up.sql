@@ -17,7 +17,7 @@ CREATE TABLE repeater
     longitude          DOUBLE PRECISION,
     address            TEXT,
     frequency          BIGINT  NOT NULL,
-    modulation         VARCHAR,
+    modulation         VARCHAR NOT NULL,
 
     rx_offset          BIGINT  NOT NULL,
     subtone_mode       VARCHAR NOT NULL DEFAULT 'None',

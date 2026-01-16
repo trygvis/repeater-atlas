@@ -6,6 +6,7 @@ pub mod dao;
 pub mod error;
 pub mod schema;
 pub mod web;
+pub mod test_data;
 
 pub use error::RepeaterAtlasError;
 

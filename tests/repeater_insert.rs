@@ -15,7 +15,7 @@ async fn inserts_repeater_row() -> Result<(), Box<dyn std::error::Error + Send +
         call_sign: "LA1ABC".to_string(),
         frequency: 145775,
         rx_offset: 600,
-        modulation: Some(dao::repeater::Modulation::FmNarrow),
+        modulation: dao::repeater::Modulation::FmNarrow,
         subtone_mode: dao::repeater::SubtoneMode::None,
         tx_subtone: None,
         rx_subtone: None,
