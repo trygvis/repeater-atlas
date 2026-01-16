@@ -1,17 +1,10 @@
 use diesel::prelude::*;
 use diesel::sql_query;
-use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
+use diesel_migrations::{EmbeddedMigrations, MigrationHarness, embed_migrations};
+use repeater_atlas::dao;
 use repeater_atlas::schema::repeater;
 
 pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!();
-
-#[derive(Insertable)]
-#[diesel(table_name = repeater)]
-struct NewRepeater {
-    call_sign: String,
-    frequency: i64,
-    rx_offset: i64,
-}
 
 #[test]
 fn inserts_repeater_row() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
@@ -21,21 +14,18 @@ fn inserts_repeater_row() -> Result<(), Box<dyn std::error::Error + Send + Sync>
     let mut conn = PgConnection::establish(&database_url)?;
     conn.run_pending_migrations(MIGRATIONS)?;
 
-    let new_repeater = NewRepeater {
+    let new_repeater = dao::repeater::NewRepeater {
         call_sign: "LA1ABC".to_string(),
         frequency: 145775,
         rx_offset: 600,
     };
 
-    diesel::insert_into(repeater::table)
-        .values(&new_repeater)
-        .execute(&mut conn)?;
+    dao::repeater::insert(&mut conn, new_repeater)?;
 
     let count: i64 = repeater::table.count().get_result(&mut conn)?;
     assert!(count >= 1, "expected at least one repeater row");
 
-    sql_query("DELETE FROM repeater")
-        .execute(&mut conn)?;
+    sql_query("DELETE FROM repeater").execute(&mut conn)?;
 
     Ok(())
 }
