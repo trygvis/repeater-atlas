@@ -1,0 +1,8 @@
+{
+  "name": "repeater-atlas",
+  "private": true,
+  "description": "Frontend asset management for Repeater Atlas",
+  "dependencies": {
+    "htmx.org": "1.9.12"
+  }
+}

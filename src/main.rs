@@ -2,6 +2,7 @@ use std::net::SocketAddr;
 
 use axum::Router;
 use axum_extra::routing::RouterExt;
+use tower_http::services::ServeDir;
 use tracing_subscriber::EnvFilter;
 
 use repeater_atlas::web::index;
@@ -20,6 +21,7 @@ async fn main() {
     let state = AppState { pool };
 
     let app = Router::new()
+        .nest_service("/static", ServeDir::new("static"))
         .typed_get(index::index)
         .typed_get(index::detail)
         .with_state(state);
