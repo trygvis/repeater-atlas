@@ -4,36 +4,31 @@ use diesel::prelude::*;
 use diesel::sql_query;
 use diesel_async::RunQueryDsl;
 use repeater_atlas::dao;
-use repeater_atlas::schema::repeater;
+use repeater_atlas::schema::repeater_system;
 
 #[tokio::test]
 async fn inserts_repeater_row() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let pool = utils::pool().await;
     let mut c = pool.get().await?;
 
-    let new_repeater = dao::repeater::NewRepeater {
-        call_sign: "LA1ABC".to_string(),
-        frequency: 145775,
-        rx_offset: 600,
-        modulation: dao::repeater::Modulation::FmNarrow,
-        subtone_mode: dao::repeater::SubtoneMode::None,
-        tx_subtone: None,
-        rx_subtone: None,
-        has_dmr: false,
-        dmr_id: None,
-        has_aprs: false,
-        maidenhead_locator: None,
-        latitude: None,
-        longitude: None,
-        address: None,
-    };
+    let new_repeater = dao::repeater::NewRepeater::new("LA1ABC");
 
-    dao::repeater::insert(&mut c, new_repeater).await?;
+    let repeater = dao::repeater::insert(&mut c, new_repeater).await?;
 
-    let count: i64 = repeater::table.count().get_result(&mut c).await?;
-    assert!(count >= 1, "expected at least one repeater row");
+    let tx_hz = 145_775_000;
+    let rx_hz = tx_hz - 600_000;
+    dao::repeater_port::insert(
+        &mut c,
+        dao::repeater_port::NewRepeaterPort::new(repeater.id, "VHF", rx_hz, tx_hz),
+    )
+    .await?;
 
-    sql_query("DELETE FROM repeater").execute(&mut c).await?;
+    let count: i64 = repeater_system::table.count().get_result(&mut c).await?;
+    assert!(count >= 1, "expected at least one repeater system row");
+
+    sql_query("DELETE FROM repeater_system")
+        .execute(&mut c)
+        .await?;
 
     Ok(())
 }

@@ -9,11 +9,22 @@
       <p>No repeaters yet.</p>
     {% else %}
       <ul>
-        {% for repeater in repeaters %}
+        {% for item in repeaters %}
           <li>
-            <strong>{{ repeater.call_sign }}</strong>
-            <span>freq {{ repeater.frequency }}</span>
-            <span>offset {{ repeater.rx_offset }}</span>
+            <strong>{{ item.repeater.call_sign }}</strong>
+            {% if item.ports.len() == 0 %}
+              <span>(no ports)</span>
+            {% else %}
+              <ul>
+                {% for port in item.ports %}
+                  <li>
+                    <strong>{{ port.label }}</strong>
+                    <span>tx {{ port.tx_hz }}</span>
+                    <span>rx {{ port.rx_hz }}</span>
+                  </li>
+                {% endfor %}
+              </ul>
+            {% endif %}
           </li>
         {% endfor %}
       </ul>

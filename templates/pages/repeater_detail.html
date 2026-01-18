@@ -4,11 +4,21 @@
 
 {% block content %}
   <h1>{{ repeater.call_sign }}</h1>
-  <dl>
-    <dt>Frequency</dt>
-    <dd>{{ repeater.frequency }}</dd>
-    <dt>RX Offset</dt>
-    <dd>{{ repeater.rx_offset }}</dd>
-  </dl>
+  <section>
+    <h2>Ports</h2>
+    {% if ports.len() == 0 %}
+      <p>No ports defined.</p>
+    {% else %}
+      <ul>
+        {% for port in ports %}
+          <li>
+            <strong>{{ port.label }}</strong>
+            <span>tx {{ port.tx_hz }}</span>
+            <span>rx {{ port.rx_hz }}</span>
+          </li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  </section>
   <p><a href="/">Back to list</a></p>
 {% endblock %}

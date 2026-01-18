@@ -13,7 +13,12 @@ pub struct IndexPath;
 #[derive(Template)]
 #[template(path = "pages/index.html")]
 struct IndexTemplate {
-    repeaters: Vec<dao::repeater::Repeater>,
+    repeaters: Vec<RepeaterListItem>,
+}
+
+struct RepeaterListItem {
+    repeater: dao::repeater::Repeater,
+    ports: Vec<dao::repeater_port::RepeaterPort>,
 }
 
 pub async fn index(
@@ -23,8 +28,13 @@ pub async fn index(
     let mut c = state.pool.get().await?;
 
     let repeaters = dao::repeater::select(&mut c).await?;
+    let mut items = Vec::with_capacity(repeaters.len());
+    for repeater in repeaters {
+        let ports = dao::repeater_port::select_by_repeater_id(&mut c, repeater.id).await?;
+        items.push(RepeaterListItem { repeater, ports });
+    }
 
-    let template = IndexTemplate { repeaters };
+    let template = IndexTemplate { repeaters: items };
     let body = template.render()?;
 
     Ok(Html(body))
@@ -40,6 +50,7 @@ pub struct RepeaterDetailPath {
 #[template(path = "pages/repeater_detail.html")]
 struct DetailTemplate {
     repeater: dao::repeater::Repeater,
+    ports: Vec<dao::repeater_port::RepeaterPort>,
 }
 
 pub async fn detail(
@@ -53,7 +64,9 @@ pub async fn detail(
         None => return Err(RepeaterAtlasError::NotFound),
     };
 
-    let template = DetailTemplate { repeater };
+    let ports = dao::repeater_port::select_by_repeater_id(&mut c, repeater.id).await?;
+
+    let template = DetailTemplate { repeater, ports };
     let body = template.render()?;
 
     Ok(Html(body))
