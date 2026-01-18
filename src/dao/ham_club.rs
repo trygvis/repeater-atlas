@@ -21,7 +21,7 @@ impl NewHamClub {
     }
 }
 
-#[derive(Queryable, Selectable)]
+#[derive(Clone, Queryable, Selectable)]
 #[diesel(table_name = crate::schema::ham_club)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct HamClub {

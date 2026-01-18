@@ -28,6 +28,16 @@ impl NewRepeaterPort {
     }
 }
 
+pub async fn insert(c: &mut AsyncPgConnection, new_port: NewRepeaterPort) -> QueryResult<RepeaterPort> {
+    use crate::schema::repeater_port::dsl as p;
+
+    diesel::insert_into(p::repeater_port)
+        .values(&new_port)
+        .returning(RepeaterPort::as_returning())
+        .get_result(c)
+        .await
+}
+
 #[derive(Queryable, Selectable, AsChangeset)]
 #[diesel(table_name = crate::schema::repeater_port)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
@@ -38,16 +48,6 @@ pub struct RepeaterPort {
     pub rx_hz: i64,
     pub tx_hz: i64,
     pub note: Option<String>,
-}
-
-pub async fn insert(c: &mut AsyncPgConnection, new_port: NewRepeaterPort) -> QueryResult<RepeaterPort> {
-    use crate::schema::repeater_port::dsl as p;
-
-    diesel::insert_into(p::repeater_port)
-        .values(&new_port)
-        .returning(RepeaterPort::as_returning())
-        .get_result(c)
-        .await
 }
 
 pub async fn select_by_repeater_id(
@@ -63,4 +63,3 @@ pub async fn select_by_repeater_id(
         .get_results(c)
         .await
 }
-

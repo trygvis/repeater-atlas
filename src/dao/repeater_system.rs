@@ -32,7 +32,20 @@ impl NewRepeaterSystem {
     }
 }
 
-#[derive(Queryable, Selectable, AsChangeset)]
+pub async fn insert(
+    c: &mut AsyncPgConnection,
+    new_repeater: NewRepeaterSystem,
+) -> QueryResult<RepeaterSystem> {
+    use crate::schema::repeater_system::dsl as r;
+
+    diesel::insert_into(r::repeater_system)
+        .values(&new_repeater)
+        .returning(RepeaterSystem::as_returning())
+        .get_result(c)
+        .await
+}
+
+#[derive(Clone, Queryable, Selectable, AsChangeset)]
 #[diesel(table_name = crate::schema::repeater_system)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct RepeaterSystem {
@@ -45,19 +58,6 @@ pub struct RepeaterSystem {
     pub status: String,
     pub created_at: chrono::DateTime<chrono::Utc>,
     pub updated_at: chrono::DateTime<chrono::Utc>,
-}
-
-pub async fn insert(
-    c: &mut AsyncPgConnection,
-    new_repeater: NewRepeaterSystem,
-) -> QueryResult<RepeaterSystem> {
-    use crate::schema::repeater_system::dsl as r;
-
-    diesel::insert_into(r::repeater_system)
-        .values(&new_repeater)
-        .returning(RepeaterSystem::as_returning())
-        .get_result(c)
-        .await
 }
 
 pub async fn select(c: &mut AsyncPgConnection) -> QueryResult<Vec<RepeaterSystem>> {
