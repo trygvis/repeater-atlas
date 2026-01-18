@@ -3,7 +3,7 @@ use diesel_async::{AsyncPgConnection, RunQueryDsl};
 
 #[derive(Insertable)]
 #[diesel(table_name = crate::schema::repeater_system)]
-pub struct NewRepeater {
+pub struct NewRepeaterSystem {
     pub ham_club_id: Option<i64>,
     pub call_sign: String,
     pub name: Option<String>,
@@ -12,7 +12,7 @@ pub struct NewRepeater {
     pub status: String,
 }
 
-impl NewRepeater {
+impl NewRepeaterSystem {
     pub fn new(call_sign: impl Into<String>) -> Self {
         Self {
             ham_club_id: None,
@@ -35,7 +35,7 @@ impl NewRepeater {
 #[derive(Queryable, Selectable, AsChangeset)]
 #[diesel(table_name = crate::schema::repeater_system)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
-pub struct Repeater {
+pub struct RepeaterSystem {
     pub id: i64,
     pub ham_club_id: Option<i64>,
     pub call_sign: String,
@@ -47,32 +47,35 @@ pub struct Repeater {
     pub updated_at: chrono::DateTime<chrono::Utc>,
 }
 
-pub async fn insert(c: &mut AsyncPgConnection, new_repeater: NewRepeater) -> QueryResult<Repeater> {
+pub async fn insert(
+    c: &mut AsyncPgConnection,
+    new_repeater: NewRepeaterSystem,
+) -> QueryResult<RepeaterSystem> {
     use crate::schema::repeater_system::dsl as r;
 
     diesel::insert_into(r::repeater_system)
         .values(&new_repeater)
-        .returning(Repeater::as_returning())
+        .returning(RepeaterSystem::as_returning())
         .get_result(c)
         .await
 }
 
-pub async fn select(c: &mut AsyncPgConnection) -> QueryResult<Vec<Repeater>> {
+pub async fn select(c: &mut AsyncPgConnection) -> QueryResult<Vec<RepeaterSystem>> {
     use crate::schema::repeater_system::dsl as r;
 
     r::repeater_system
-        .select(Repeater::as_select())
+        .select(RepeaterSystem::as_select())
         .order_by(r::call_sign.asc())
         .get_results(c)
         .await
 }
 
-pub async fn get(c: &mut AsyncPgConnection, repeater_id: i64) -> QueryResult<Repeater> {
+pub async fn get(c: &mut AsyncPgConnection, repeater_id: i64) -> QueryResult<RepeaterSystem> {
     use crate::schema::repeater_system::dsl as r;
 
     r::repeater_system
         .filter(r::id.eq(repeater_id))
-        .select(Repeater::as_select())
+        .select(RepeaterSystem::as_select())
         .first(c)
         .await
 }
@@ -80,23 +83,26 @@ pub async fn get(c: &mut AsyncPgConnection, repeater_id: i64) -> QueryResult<Rep
 pub async fn find_by_call_sign(
     c: &mut AsyncPgConnection,
     call_sign: String,
-) -> QueryResult<Option<Repeater>> {
+) -> QueryResult<Option<RepeaterSystem>> {
     use crate::schema::repeater_system::dsl as r;
 
     r::repeater_system
         .filter(r::call_sign.eq(call_sign))
-        .select(Repeater::as_select())
+        .select(RepeaterSystem::as_select())
         .first(c)
         .await
         .optional()
 }
 
-pub async fn update(c: &mut AsyncPgConnection, repeater: Repeater) -> QueryResult<Repeater> {
+pub async fn update(
+    c: &mut AsyncPgConnection,
+    repeater: RepeaterSystem,
+) -> QueryResult<RepeaterSystem> {
     use crate::schema::repeater_system::dsl as r;
 
     diesel::update(r::repeater_system.filter(r::id.eq(repeater.id)))
         .set(&repeater)
-        .returning(Repeater::as_returning())
+        .returning(RepeaterSystem::as_returning())
         .get_result(c)
         .await
 }

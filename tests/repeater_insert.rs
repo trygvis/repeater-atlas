@@ -11,9 +11,9 @@ async fn inserts_repeater_row() -> Result<(), Box<dyn std::error::Error + Send +
     let pool = utils::pool().await;
     let mut c = pool.get().await?;
 
-    let new_repeater = dao::repeater::NewRepeater::new("LA1ABC");
+    let new_repeater = dao::repeater_system::NewRepeaterSystem::new("LA1ABC");
 
-    let repeater = dao::repeater::insert(&mut c, new_repeater).await?;
+    let repeater = dao::repeater_system::insert(&mut c, new_repeater).await?;
 
     let tx_hz = 145_775_000;
     let rx_hz = tx_hz - 600_000;

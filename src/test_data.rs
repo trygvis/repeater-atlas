@@ -1,6 +1,6 @@
 use crate::dao;
 use crate::dao::ham_club::NewHamClub;
-use crate::dao::repeater::NewRepeater;
+use crate::dao::repeater_system::NewRepeaterSystem;
 use crate::dao::repeater_port::NewRepeaterPort;
 use diesel::QueryResult;
 use diesel_async::AsyncPgConnection;
@@ -54,8 +54,11 @@ pub async fn generate(c: &mut AsyncPgConnection) -> QueryResult<()> {
     ];
 
     for (call_sign, ports) in repeaters {
-        let repeater = dao::repeater::insert(c, NewRepeater::new(call_sign).ham_club_id(la4o.id))
-            .await?;
+        let repeater = dao::repeater_system::insert(
+            c,
+            NewRepeaterSystem::new(call_sign).ham_club_id(la4o.id),
+        )
+        .await?;
 
         for port in ports {
             dao::repeater_port::insert(
@@ -68,4 +71,3 @@ pub async fn generate(c: &mut AsyncPgConnection) -> QueryResult<()> {
 
     Ok(())
 }
-
