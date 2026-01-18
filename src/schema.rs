@@ -3,7 +3,7 @@
 diesel::table! {
     ham_club (id) {
         id -> Int8,
-        name -> Nullable<Text>,
+        name -> Text,
         description -> Nullable<Text>,
         web_url -> Nullable<Text>,
         email -> Nullable<Text>,
