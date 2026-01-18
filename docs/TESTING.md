@@ -34,15 +34,8 @@
 - Tests can create random data derived from the fixture.
 - Tests must not modify fixture rows in place.
 
-## Tooling
-- After refactoring, always build the entire codebase with `cargo build --all-targets` and fix any problems before continuing.
-- `make test` for unit/integration tests.
-- Generate migrations via `diesel migration generate`, not by hand.
-  - Requires `diesel_cli` installed (`cargo install diesel_cli --no-default-features --features postgres`).
-  - Apply the migration with `diesel migration run`, it will automatically update `src/schema.rs`.
-- Local Postgres pointed to by `DATABASE_URL` in `.env`.
-
 ## Acceptance Signals
+- After refactoring, always build the entire codebase and fix any problems before continuing.
 - All tests pass on a clean checkout.
 - Migrations succeed on empty database.
 - Public pages render without login.

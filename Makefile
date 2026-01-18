@@ -20,3 +20,8 @@ assets:
 db-init:
 	cat init.sql | bin/psql -U admin postgres
 	diesel migration run
+
+# Exports the schema to schema.tmp.sql. This is a complete dump of the current database schema to make it easy to get
+# a complete overview over the complete schema.
+db-export-schema:
+	docker compose exec -it postgres pg_dump -U admin -d repeater_atlas --schema-only > schma.tmp.sql
