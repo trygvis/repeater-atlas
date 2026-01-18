@@ -2,6 +2,10 @@
 
 pub mod sql_types {
     #[derive(diesel::query_builder::QueryId, Clone, diesel::sql_types::SqlType)]
+    #[diesel(postgres_type(name = "aprs_mode"))]
+    pub struct AprsMode;
+
+    #[derive(diesel::query_builder::QueryId, Clone, diesel::sql_types::SqlType)]
     #[diesel(postgres_type(name = "dstar_mode"))]
     pub struct DstarMode;
 
@@ -57,10 +61,12 @@ diesel::table! {
 }
 
 diesel::table! {
+    use diesel::sql_types::*;
+    use super::sql_types::AprsMode;
+
     repeater_service_aprs (service_id) {
         service_id -> Int8,
-        igate -> Bool,
-        digipeater -> Bool,
+        mode -> AprsMode,
         path -> Nullable<Text>,
     }
 }

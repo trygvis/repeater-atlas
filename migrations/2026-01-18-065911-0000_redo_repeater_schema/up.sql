@@ -118,11 +118,12 @@ CREATE TABLE repeater_service_c4fm (
     room            TEXT
 );
 
+CREATE TYPE aprs_mode AS ENUM ('igate', 'digipeater');
+
 CREATE TABLE repeater_service_aprs (
-    service_id  BIGINT PRIMARY KEY REFERENCES repeater_service (id) ON DELETE CASCADE,
-    igate       BOOLEAN NOT NULL DEFAULT FALSE,
-    digipeater  BOOLEAN NOT NULL DEFAULT FALSE,
-    path        TEXT
+    service_id BIGINT PRIMARY KEY REFERENCES repeater_service (id) ON DELETE CASCADE,
+    mode       aprs_mode NOT NULL,
+    path       TEXT
 );
 
 CREATE TYPE ssb_sideband AS ENUM ('lsb', 'usb');

@@ -18,6 +18,7 @@ DROP TABLE repeater_system;
 DROP TABLE repeater_site;
 
 DROP TYPE ssb_sideband;
+DROP TYPE IF EXISTS aprs_mode;
 DROP TYPE dstar_mode;
 DROP TYPE tone_kind;
 DROP TYPE fm_bandwidth;
