@@ -41,7 +41,7 @@ pub async fn index(
 }
 
 #[derive(TypedPath, Deserialize)]
-#[typed_path("/repeaters/{call_sign}")]
+#[typed_path("/repeater/{call_sign}")]
 pub struct RepeaterDetailPath {
     pub call_sign: String,
 }

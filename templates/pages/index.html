@@ -11,7 +11,9 @@
       <ul>
         {% for item in repeaters %}
           <li>
-            <strong>{{ item.repeater.call_sign }}</strong>
+            <strong>
+              <a href="/repeater/{{ item.repeater.call_sign }}">{{ item.repeater.call_sign }}</a>
+            </strong>
             {% if item.ports.len() == 0 %}
               <span>(no ports)</span>
             {% else %}
