@@ -28,8 +28,6 @@
 - Hosting: Containers (Docker/OCI).
 - Auth: Session cookies (signed/encrypted), Argon2 password hashing.
 - Migrations: Diesel migrations.
-  - Generate migrations via `diesel migration generate`, not by hand.
-  - Requires `diesel_cli` installed (`cargo install diesel_cli --no-default-features --features postgres`).
 
 ## Core Attributes
 - Single-instance service; no web-scale or horizontal scaling in MVP.
