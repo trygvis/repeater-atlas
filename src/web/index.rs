@@ -1,6 +1,7 @@
 use askama::Template;
 use axum::{extract::State, response::Html};
 use axum_extra::routing::TypedPath;
+use maidenhead::grid_to_longlat;
 use serde::Deserialize;
 
 use super::AppState;
@@ -48,15 +49,29 @@ pub async fn index(
         };
 
         let (maidenhead, latitude, longitude) = match site {
-            Some(site) => (
-                site.maidenhead.unwrap_or_else(|| "-".to_string()),
-                site.latitude
-                    .map(|value| value.to_string())
-                    .unwrap_or_else(|| "-".to_string()),
-                site.longitude
-                    .map(|value| value.to_string())
-                    .unwrap_or_else(|| "-".to_string()),
-            ),
+            Some(site) => {
+                let mut latitude = site.latitude;
+                let mut longitude = site.longitude;
+
+                if latitude.is_none() || longitude.is_none() {
+                    if let Some(ref grid) = site.maidenhead {
+                        if let Ok((grid_longitude, grid_latitude)) = grid_to_longlat(grid) {
+                            latitude = latitude.or(Some(grid_latitude));
+                            longitude = longitude.or(Some(grid_longitude));
+                        }
+                    }
+                }
+
+                (
+                    site.maidenhead.unwrap_or_else(|| "-".to_string()),
+                    latitude
+                        .map(|value| value.to_string())
+                        .unwrap_or_else(|| "-".to_string()),
+                    longitude
+                        .map(|value| value.to_string())
+                        .unwrap_or_else(|| "-".to_string()),
+                )
+            }
             None => ("-".to_string(), "-".to_string(), "-".to_string()),
         };
 
