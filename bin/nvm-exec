@@ -1,0 +1,16 @@
+#!/bin/bash
+
+set -euo pipefail
+
+basedir="${0%/*}"
+
+d="$basedir/.nvm"
+
+if [ ! -d "$d" ]
+then
+  git clone --revision=v0.40.0 https://github.com/nvm-sh/nvm.git "$d"
+  . "$d/nvm.sh"
+  nvm install
+fi
+
+exec "$d/nvm-exec" "${@}"

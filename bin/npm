@@ -1,0 +1,5 @@
+#!/bin/bash
+
+basedir="${0%/*}"
+
+exec "$basedir/nvm-exec" npm "${@}"
