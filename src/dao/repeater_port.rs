@@ -6,8 +6,10 @@ use diesel_async::{AsyncPgConnection, RunQueryDsl};
 pub struct NewRepeaterPort {
     pub repeater_id: i64,
     pub label: String,
-    pub rx_hz: i64,
-    pub tx_hz: i64,
+    #[diesel(column_name = rx_hz)]
+    pub rx_frequency: i64,
+    #[diesel(column_name = tx_hz)]
+    pub tx_frequency: i64,
     pub note: Option<String>,
 }
 
@@ -21,8 +23,8 @@ impl NewRepeaterPort {
         Self {
             repeater_id,
             label: label.into(),
-            rx_hz,
-            tx_hz,
+            rx_frequency: rx_hz,
+            tx_frequency: tx_hz,
             note: None,
         }
     }

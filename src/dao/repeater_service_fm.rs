@@ -71,10 +71,12 @@ pub struct NewRepeaterServiceFm {
     pub service_id: i64,
     pub bandwidth: FmBandwidth,
     pub access_tone_kind: ToneKind,
-    pub access_ctcss_hz: Option<f32>,
+    #[diesel(column_name = access_ctcss_hz)]
+    pub access_ctcss_frequency: Option<f32>,
     pub access_dcs_code: Option<i32>,
     pub tx_tone_kind: ToneKind,
-    pub tx_ctcss_hz: Option<f32>,
+    #[diesel(column_name = tx_ctcss_hz)]
+    pub tx_ctcss_frequency: Option<f32>,
     pub tx_dcs_code: Option<i32>,
 }
 
