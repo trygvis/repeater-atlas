@@ -9,7 +9,9 @@
 .env.*
 
 !.editorconfig
+!.envrc
 !.gitignore
+!.nvmrc
 !.pre-commit-config.yaml
 !.prettierignore
 !.prettierrc.yaml

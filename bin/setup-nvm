@@ -1,0 +1,14 @@
+#!/bin/bash
+
+set -euo pipefail
+
+basedir="${0%/*}"
+
+export NVM_DIR="$basedir/.nvm"
+
+if [ ! -d "$NVM_DIR" ]
+then
+  git clone --revision=v0.40.0 https://github.com/nvm-sh/nvm.git "$NVM_DIR"
+fi
+
+"$NVM_DIR/nvm.sh"
