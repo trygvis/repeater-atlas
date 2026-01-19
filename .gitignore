@@ -10,5 +10,6 @@
 
 !.editorconfig
 !.gitignore
-!.prettierrc.yaml
+!.pre-commit-config.yaml
 !.prettierignore
+!.prettierrc.yaml
