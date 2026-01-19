@@ -1,35 +1,48 @@
 {% extends "layouts/main.html" %}
 
 {% block content %}
-  <h1>Repeater Atlas</h1>
-  <p>Hello world.</p>
+  <hgroup>
+    <h1>Repeater Atlas</h1>
+    <p>Browse repeaters and their ports.</p>
+  </hgroup>
   <section>
     <h2>Repeaters</h2>
     {% if repeaters.len() == 0 %}
       <p>No repeaters yet.</p>
     {% else %}
-      <ul>
-        {% for item in repeaters %}
-          <li>
-            <strong>
+      {% for item in repeaters %}
+        <article>
+          <header>
+            <h3>
               <a href="/repeater/{{ item.repeater.call_sign }}">{{ item.repeater.call_sign }}</a>
-            </strong>
-            {% if item.ports.len() == 0 %}
-              <span>(no ports)</span>
-            {% else %}
-              <ul>
-                {% for port in item.ports %}
-                  <li>
-                    <strong>{{ port.label }}</strong>
-                    <span>tx {{ port.tx_hz }}</span>
-                    <span>rx {{ port.rx_hz }}</span>
-                  </li>
-                {% endfor %}
-              </ul>
-            {% endif %}
-          </li>
-        {% endfor %}
-      </ul>
+            </h3>
+          </header>
+          {% if item.ports.len() == 0 %}
+            <p>No ports defined.</p>
+          {% else %}
+            <figure>
+              <table>
+                <thead>
+                  <tr>
+                    <th scope="col">Port</th>
+                    <th scope="col">TX</th>
+                    <th scope="col">RX</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for port in item.ports %}
+                    <tr>
+                      <td>{{ port.label }}</td>
+                      <td>{{ port.tx_hz }}</td>
+                      <td>{{ port.rx_hz }}</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </figure>
+          {% endif %}
+        </article>
+      {% endfor %}
     {% endif %}
   </section>
 {% endblock %}

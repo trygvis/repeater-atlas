@@ -3,21 +3,37 @@
 {% block title %}Repeater {{ repeater.call_sign }}{% endblock %}
 
 {% block content %}
-  <h1>{{ repeater.call_sign }}</h1>
+  <hgroup>
+    <h1>{{ repeater.call_sign }}</h1>
+    {% if repeater.name.is_some() %}
+      <p>{{ repeater.name.as_ref().unwrap() }}</p>
+    {% endif %}
+  </hgroup>
   <section>
     <h2>Ports</h2>
     {% if ports.len() == 0 %}
       <p>No ports defined.</p>
     {% else %}
-      <ul>
-        {% for port in ports %}
-          <li>
-            <strong>{{ port.label }}</strong>
-            <span>tx {{ port.tx_hz }}</span>
-            <span>rx {{ port.rx_hz }}</span>
-          </li>
-        {% endfor %}
-      </ul>
+      <figure>
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Port</th>
+              <th scope="col">TX</th>
+              <th scope="col">RX</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for port in ports %}
+              <tr>
+                <td>{{ port.label }}</td>
+                <td>{{ port.tx_hz }}</td>
+                <td>{{ port.rx_hz }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </figure>
     {% endif %}
   </section>
   <p><a href="/">Back to list</a></p>

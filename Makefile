@@ -14,6 +14,7 @@ assets:
 	rm -rf static/vendor
 	mkdir -p static/vendor
 	cp node_modules/htmx.org/dist/htmx.min.js static/vendor/htmx.min.js
+	cp node_modules/@picocss/pico/css/pico.min.css static/vendor/pico.min.css
 	rm -rf node_modules
 
 # This drops and initializes the database

@@ -3,6 +3,7 @@
   "private": true,
   "description": "Frontend asset management for Repeater Atlas",
   "dependencies": {
+    "@picocss/pico": "2.1.1",
     "htmx.org": "1.9.12"
   }
 }
