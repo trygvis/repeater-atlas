@@ -8,6 +8,8 @@
 *.tmp.*
 .env.*
 
+static/vendor
+
 !.editorconfig
 !.envrc
 !.gitignore
