@@ -2,7 +2,7 @@ use askama::Template;
 use axum::{extract::State, response::Html};
 use axum_extra::routing::TypedPath;
 use maidenhead::grid_to_longlat;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use super::AppState;
 use crate::{dao, RepeaterAtlasError};
@@ -13,7 +13,9 @@ pub struct HomePath;
 
 #[derive(Template)]
 #[template(path = "pages/index.html")]
-struct HomeTemplate;
+struct HomeTemplate {
+    repeater_data: Vec<MapRepeater>,
+}
 
 #[derive(TypedPath)]
 #[typed_path("/repeater")]
@@ -33,9 +35,18 @@ struct RepeaterListItem {
     location: String,
 }
 
+#[derive(Serialize)]
+struct MapRepeater {
+    call_sign: String,
+    latitude: f64,
+    longitude: f64,
+}
+
 struct ResolvedSite {
     maidenhead: String,
     location: String,
+    latitude: Option<f64>,
+    longitude: Option<f64>,
 }
 
 fn resolve_site_fields(site: Option<dao::repeater_site::RepeaterSite>) -> ResolvedSite {
@@ -61,17 +72,52 @@ fn resolve_site_fields(site: Option<dao::repeater_site::RepeaterSite>) -> Resolv
         return ResolvedSite {
             maidenhead: grid.unwrap_or_else(|| "-".to_string()),
             location,
+            latitude,
+            longitude,
         };
     }
 
     ResolvedSite {
         maidenhead: "-".to_string(),
         location: "-".to_string(),
+        latitude: None,
+        longitude: None,
     }
 }
 
-pub async fn home(_: HomePath) -> Result<Html<String>, RepeaterAtlasError> {
-    let template = HomeTemplate;
+pub async fn home(
+    _: HomePath,
+    State(state): State<AppState>,
+) -> Result<Html<String>, RepeaterAtlasError> {
+    let mut c = state.pool.get().await?;
+    let repeaters = dao::repeater_system::select(&mut c).await?;
+    let mut map_repeaters = Vec::new();
+
+    for repeater in repeaters {
+        let dao::repeater_system::RepeaterSystem {
+            call_sign,
+            site_id,
+            ..
+        } = repeater;
+
+        let site = match site_id {
+            Some(site_id) => Some(dao::repeater_site::get(&mut c, site_id).await?),
+            None => None,
+        };
+
+        let resolved = resolve_site_fields(site);
+        if let (Some(latitude), Some(longitude)) = (resolved.latitude, resolved.longitude) {
+            map_repeaters.push(MapRepeater {
+                call_sign,
+                latitude,
+                longitude,
+            });
+        }
+    }
+
+    let template = HomeTemplate {
+        repeater_data: map_repeaters,
+    };
     let body = template.render()?;
 
     Ok(Html(body))

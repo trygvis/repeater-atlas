@@ -13,8 +13,12 @@ assets:
 	npm ci
 	rm -rf static/vendor
 	mkdir -p static/vendor
+	mkdir -p static/vendor/leaflet
 	cp node_modules/htmx.org/dist/htmx.min.js static/vendor/htmx.min.js
 	cp node_modules/@picocss/pico/css/pico.min.css static/vendor/pico.min.css
+	cp node_modules/leaflet/dist/leaflet.js static/vendor/leaflet/leaflet.js
+	cp node_modules/leaflet/dist/leaflet.css static/vendor/leaflet/leaflet.css
+	cp -r node_modules/leaflet/dist/images static/vendor/leaflet/images
 	rm -rf node_modules
 
 # This drops and initializes the database
