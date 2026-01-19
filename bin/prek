@@ -1,0 +1,16 @@
+#!/bin/bash
+
+set -euo pipefail
+
+v=0.2.30
+
+basedir=${0%/*}
+
+if [[ ! -x "$basedir/.cargo/bin/prek" ]]
+then
+  # Silence the warning about missing from path
+  PATH="$basedir/.cargo/bin:$PATH"
+  cargo install --root "$basedir/.cargo" "prek@$v"
+fi
+
+exec "$basedir/.cargo/bin/prek" "${@}"
