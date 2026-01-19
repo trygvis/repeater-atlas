@@ -1,10 +1,18 @@
 # Repeater Data Model (Design)
 
-**Status:** Design-only (not fully implemented in the current codebase as of 2026-01-18).
+**Status:** Design-only (not fully implemented in the current codebase as of
+2026-01-18).
 
-This document proposes a more flexible repeater data model than a single `modulation` field on a repeater row. The goal is to model a *physical repeater system* (what people identify as “the repeater”) that can expose multiple RF ports (e.g., different bands / D-STAR modules) and multiple services/features (FM, DMR, D-STAR, C4FM, APRS, etc.), including combinations like FM+DMR on the same frequencies.
+This document proposes a more flexible repeater data model than a single
+`modulation` field on a repeater row. The goal is to model a _physical repeater
+system_ (what people identify as “the repeater”) that can expose multiple RF
+ports (e.g., different bands / D-STAR modules) and multiple services/features
+(FM, DMR, D-STAR, C4FM, APRS, etc.), including combinations like FM+DMR on the
+same frequencies.
 
-It is intended to be useful both for humans (shared understanding and future-proofing) and for coding agents (clear entities, constraints, and migration outline).
+It is intended to be useful both for humans (shared understanding and
+future-proofing) and for coding agents (clear entities, constraints, and
+migration outline).
 
 ## Problem Statement
 
@@ -12,7 +20,8 @@ In practice, “a repeater” often supports multiple communication modes:
 
 - Analog voice: FM (narrow/wide), AM, SSB (LSB/USB)
 - Digital voice/data: DMR, D-STAR, C4FM (System Fusion)
-- Packet/APRS services (igate/digipeater), sometimes as a standalone “service” and sometimes associated with a frequency plan
+- Packet/APRS services (igate/digipeater), sometimes as a standalone “service”
+  and sometimes associated with a frequency plan
 
 Modes can be combined:
 
@@ -20,23 +29,34 @@ Modes can be combined:
 - FM + D-STAR on the same RF pair (less common, but seen)
 - FM + C4FM (common in “auto mode select” / mixed-mode deployments)
 
-And frequencies are not always shared across modes; a “system” may expose multiple RF ports (different bands, cross-band links, simplex nodes, etc.).
+And frequencies are not always shared across modes; a “system” may expose
+multiple RF ports (different bands, cross-band links, simplex nodes, etc.).
 
 ## Design Goals
 
-- **Identity = physical system:** One “repeater” record represents what users call “LA1ABC”, not per-module listings.
-- **Multiple RF ports:** Represent D-STAR modules (A/B/C), VHF/UHF ports, cross-band ports, etc.
-- **Multiple services per port:** Attach FM + DMR (etc.) to the same RF port without duplicating the port row.
-- **Mode-specific fields live with the mode:** Keep DMR fields (color code, repeater ID) out of FM rows, and vice versa.
-- **Query-friendly:** Support “find all repeaters that have DMR”, “list all RF ports”, “show access requirements”.
-- **Incremental implementation:** Allow implementing a minimal subset first (e.g., FM + DMR) without blocking later features.
+- **Identity = physical system:** One “repeater” record represents what users
+  call “LA1ABC”, not per-module listings.
+- **Multiple RF ports:** Represent D-STAR modules (A/B/C), VHF/UHF ports,
+  cross-band ports, etc.
+- **Multiple services per port:** Attach FM + DMR (etc.) to the same RF port
+  without duplicating the port row.
+- **Mode-specific fields live with the mode:** Keep DMR fields (color code,
+  repeater ID) out of FM rows, and vice versa.
+- **Query-friendly:** Support “find all repeaters that have DMR”, “list all RF
+  ports”, “show access requirements”.
+- **Incremental implementation:** Allow implementing a minimal subset first
+  (e.g., FM + DMR) without blocking later features.
 
 ## Terminology
 
-- **Repeater system:** The physical installation people refer to (callsign, owner/club, site).
-- **Site:** The location metadata (lat/lon, address, grid locator). We keep this at the system level for now.
-- **RF port / channel:** A specific RX/TX frequency plan (may be same band or cross-band).
-- **Service / feature:** A capability running on a port (FM, DMR, D-STAR, APRS, etc.).
+- **Repeater system:** The physical installation people refer to (callsign,
+  owner/club, site).
+- **Site:** The location metadata (lat/lon, address, grid locator). We keep this
+  at the system level for now.
+- **RF port / channel:** A specific RX/TX frequency plan (may be same band or
+  cross-band).
+- **Service / feature:** A capability running on a port (FM, DMR, D-STAR, APRS,
+  etc.).
 
 ## Proposed SQL Schema (PostgreSQL)
 
@@ -196,7 +216,8 @@ CREATE TABLE repeater_service_ssb (
 ### Suggested constraints (optional, can be added later)
 
 - `CHECK (color_code BETWEEN 0 AND 15)` for DMR
-- Tone-kind/value consistency checks for FM (e.g., if `access_tone_kind='ctcss'` then `access_ctcss_hz` must be non-null)
+- Tone-kind/value consistency checks for FM (e.g., if `access_tone_kind='ctcss'`
+  then `access_ctcss_hz` must be non-null)
 - `CHECK (rx_hz > 0 AND tx_hz > 0)` for `repeater_port`
 
 These are useful, but can be postponed until the application layer is stable.
@@ -208,7 +229,8 @@ These are useful, but can be postponed until the application layer is stable.
 - `repeater_system`: `call_sign = 'LA5OR'`
 - `repeater_port`: label `VHF`, rx/tx pair
 - `repeater_service`: kind `fm` -> port
-- `repeater_service_fm`: `bandwidth=narrow`, `access_tone_kind=ctcss`, `access_ctcss_hz=123.0`
+- `repeater_service_fm`: `bandwidth=narrow`, `access_tone_kind=ctcss`,
+  `access_ctcss_hz=123.0`
 
 ### 2) FM + DMR on the same frequencies
 
@@ -226,14 +248,17 @@ Single `repeater_port` row, two services attached:
   - label `A` with 23cm frequencies (optional)
 - Attach `repeater_service(kind='dstar')` to each port.
 
-This aligns with how people talk about “LD1OT” as one system, while radios/directory listings often refer to “LD1OT B/C” as distinct RF modules.
+This aligns with how people talk about “LD1OT” as one system, while
+radios/directory listings often refer to “LD1OT B/C” as distinct RF modules.
 
 ### 4) APRS igate/digipeater
 
 Two common approaches:
 
-1. Treat APRS as an RF-backed service and attach it to a port (e.g., 144.800/144.800).
-2. Treat APRS as a non-RF service by allowing `repeater_service.port_id` to be NULL.
+1. Treat APRS as an RF-backed service and attach it to a port (e.g.,
+   144.800/144.800).
+2. Treat APRS as a non-RF service by allowing `repeater_service.port_id` to be
+   NULL.
 
 Start with (1) for simplicity and consistency with “frequency-plan” UI.
 
@@ -244,4 +269,5 @@ Start with (1) for simplicity and consistency with “frequency-plan” UI.
 - List all RF ports for a system:
   - `SELECT * FROM repeater_port WHERE repeater_id = ? ORDER BY label`
 - Render a capabilities summary for a system:
-  - collect `repeater_service.kind` per system, optionally grouped per port label
+  - collect `repeater_service.kind` per system, optionally grouped per port
+    label
