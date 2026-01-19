@@ -37,7 +37,7 @@ pub async fn narrow_fm(
     let port = NewRepeaterPort {
         repeater_id: r.id,
         label: label.into(),
-        rx_hz: tx_frequency - offset,
+        rx_hz: tx_frequency + offset,
         tx_hz: tx_frequency,
         note: None,
     };
@@ -89,7 +89,7 @@ pub async fn dstar(
     let port = NewRepeaterPort {
         repeater_id: r.id,
         label: label.into(),
-        rx_hz: tx_frequency - offset,
+        rx_hz: tx_frequency + offset,
         tx_hz: tx_frequency,
         note: None,
     };
