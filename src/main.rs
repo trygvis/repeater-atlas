@@ -22,7 +22,8 @@ async fn main() {
 
     let app = Router::new()
         .nest_service("/static", ServeDir::new("static"))
-        .typed_get(index::index)
+        .typed_get(index::home)
+        .typed_get(index::repeaters)
         .typed_get(index::detail)
         .with_state(state);
 

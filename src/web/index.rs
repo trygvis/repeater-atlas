@@ -9,11 +9,19 @@ use crate::{dao, RepeaterAtlasError};
 
 #[derive(TypedPath)]
 #[typed_path("/")]
-pub struct IndexPath;
+pub struct HomePath;
 
 #[derive(Template)]
 #[template(path = "pages/index.html")]
-struct IndexTemplate {
+struct HomeTemplate;
+
+#[derive(TypedPath)]
+#[typed_path("/repeater")]
+pub struct RepeatersPath;
+
+#[derive(Template)]
+#[template(path = "pages/repeaters.html")]
+struct RepeatersTemplate {
     repeaters: Vec<RepeaterListItem>,
 }
 
@@ -62,8 +70,15 @@ fn resolve_site_fields(site: Option<dao::repeater_site::RepeaterSite>) -> Resolv
     }
 }
 
-pub async fn index(
-    _: IndexPath,
+pub async fn home(_: HomePath) -> Result<Html<String>, RepeaterAtlasError> {
+    let template = HomeTemplate;
+    let body = template.render()?;
+
+    Ok(Html(body))
+}
+
+pub async fn repeaters(
+    _: RepeatersPath,
     State(state): State<AppState>,
 ) -> Result<Html<String>, RepeaterAtlasError> {
     let mut c = state.pool.get().await?;
@@ -95,7 +110,7 @@ pub async fn index(
         });
     }
 
-    let template = IndexTemplate { repeaters: items };
+    let template = RepeatersTemplate { repeaters: items };
     let body = template.render()?;
 
     Ok(Html(body))

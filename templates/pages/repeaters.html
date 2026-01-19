@@ -1,0 +1,42 @@
+{% extends "layouts/main.html" %}
+
+{% block content %}
+  <hgroup>
+    <h1>Repeater Atlas</h1>
+    <p>Browse repeater listings.</p>
+  </hgroup>
+  <section>
+    <h2>Repeaters</h2>
+    {% if repeaters.len() == 0 %}
+      <p>No repeaters yet.</p>
+    {% else %}
+      {% for item in repeaters %}
+        <article>
+          <header>
+            <h3>
+              <a href="/repeater/{{ item.call_sign }}">{{ item.call_sign }}</a>
+            </h3>
+          </header>
+          <dl>
+            <div>
+              <dt>Status</dt>
+              <dd>{{ item.status }}</dd>
+            </div>
+            <div>
+              <dt>Description</dt>
+              <dd>{{ item.description }}</dd>
+            </div>
+            <div>
+              <dt>Maidenhead locator</dt>
+              <dd>{{ item.maidenhead }}</dd>
+            </div>
+            <div>
+              <dt>Lat/Long</dt>
+              <dd>{{ item.location }}</dd>
+            </div>
+          </dl>
+        </article>
+      {% endfor %}
+    {% endif %}
+  </section>
+{% endblock %}
