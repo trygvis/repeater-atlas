@@ -10,6 +10,27 @@
     {% endif %}
   </hgroup>
   <section>
+    <h2>Details</h2>
+    <dl>
+      <div>
+        <dt>Status</dt>
+        <dd>{{ status }}</dd>
+      </div>
+      <div>
+        <dt>Description</dt>
+        <dd>{{ description }}</dd>
+      </div>
+      <div>
+        <dt>Maidenhead locator</dt>
+        <dd>{{ maidenhead }}</dd>
+      </div>
+      <div>
+        <dt>Lat/Long</dt>
+        <dd>{{ location }}</dd>
+      </div>
+    </dl>
+  </section>
+  <section>
     <h2>Ports</h2>
     {% if ports.len() == 0 %}
       <p>No ports defined.</p>

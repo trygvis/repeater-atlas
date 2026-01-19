@@ -22,8 +22,44 @@ struct RepeaterListItem {
     status: String,
     description: String,
     maidenhead: String,
-    latitude: String,
-    longitude: String,
+    location: String,
+}
+
+struct ResolvedSite {
+    maidenhead: String,
+    location: String,
+}
+
+fn resolve_site_fields(site: Option<dao::repeater_site::RepeaterSite>) -> ResolvedSite {
+    if let Some(site) = site {
+        let grid = site.maidenhead.clone();
+        let mut latitude = site.latitude;
+        let mut longitude = site.longitude;
+
+        if latitude.is_none() || longitude.is_none() {
+            if let Some(ref grid) = grid {
+                if let Ok((grid_longitude, grid_latitude)) = grid_to_longlat(grid) {
+                    latitude = latitude.or(Some(grid_latitude));
+                    longitude = longitude.or(Some(grid_longitude));
+                }
+            }
+        }
+
+        let location = match (latitude, longitude) {
+            (Some(latitude), Some(longitude)) => format!("{latitude}, {longitude}"),
+            _ => "-".to_string(),
+        };
+
+        return ResolvedSite {
+            maidenhead: grid.unwrap_or_else(|| "-".to_string()),
+            location,
+        };
+    }
+
+    ResolvedSite {
+        maidenhead: "-".to_string(),
+        location: "-".to_string(),
+    }
 }
 
 pub async fn index(
@@ -48,40 +84,14 @@ pub async fn index(
             None => None,
         };
 
-        let (maidenhead, latitude, longitude) = match site {
-            Some(site) => {
-                let mut latitude = site.latitude;
-                let mut longitude = site.longitude;
-
-                if latitude.is_none() || longitude.is_none() {
-                    if let Some(ref grid) = site.maidenhead {
-                        if let Ok((grid_longitude, grid_latitude)) = grid_to_longlat(grid) {
-                            latitude = latitude.or(Some(grid_latitude));
-                            longitude = longitude.or(Some(grid_longitude));
-                        }
-                    }
-                }
-
-                (
-                    site.maidenhead.unwrap_or_else(|| "-".to_string()),
-                    latitude
-                        .map(|value| value.to_string())
-                        .unwrap_or_else(|| "-".to_string()),
-                    longitude
-                        .map(|value| value.to_string())
-                        .unwrap_or_else(|| "-".to_string()),
-                )
-            }
-            None => ("-".to_string(), "-".to_string(), "-".to_string()),
-        };
+        let resolved = resolve_site_fields(site);
 
         items.push(RepeaterListItem {
             call_sign,
             status,
             description: description.unwrap_or_else(|| "-".to_string()),
-            maidenhead,
-            latitude,
-            longitude,
+            maidenhead: resolved.maidenhead,
+            location: resolved.location,
         });
     }
 
@@ -102,6 +112,10 @@ pub struct RepeaterDetailPath {
 struct DetailTemplate {
     repeater: dao::repeater_system::RepeaterSystem,
     ports: Vec<dao::repeater_port::RepeaterPort>,
+    status: String,
+    description: String,
+    maidenhead: String,
+    location: String,
 }
 
 pub async fn detail(
@@ -116,8 +130,22 @@ pub async fn detail(
     };
 
     let ports = dao::repeater_port::select_by_repeater_id(&mut c, repeater.id).await?;
+    let status = repeater.status.clone();
+    let description = repeater.description.clone().unwrap_or_else(|| "-".to_string());
+    let site = match repeater.site_id {
+        Some(site_id) => Some(dao::repeater_site::get(&mut c, site_id).await?),
+        None => None,
+    };
+    let resolved = resolve_site_fields(site);
 
-    let template = DetailTemplate { repeater, ports };
+    let template = DetailTemplate {
+        repeater,
+        ports,
+        status,
+        description,
+        maidenhead: resolved.maidenhead,
+        location: resolved.location,
+    };
     let body = template.render()?;
 
     Ok(Html(body))
