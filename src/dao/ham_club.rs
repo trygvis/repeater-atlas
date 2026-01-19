@@ -21,7 +21,7 @@ impl NewHamClub {
     }
 }
 
-#[derive(Clone, Queryable, Selectable)]
+#[derive(Clone, Queryable, Selectable, AsChangeset)]
 #[diesel(table_name = crate::schema::ham_club)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct HamClub {
@@ -73,4 +73,14 @@ pub async fn find_by_name(
         .first(c)
         .await
         .optional()
+}
+
+pub async fn update(c: &mut AsyncPgConnection, club: HamClub) -> QueryResult<HamClub> {
+    use crate::schema::ham_club::dsl as h;
+
+    diesel::update(h::ham_club.filter(h::id.eq(club.id)))
+        .set(&club)
+        .returning(HamClub::as_returning())
+        .get_result(c)
+        .await
 }
