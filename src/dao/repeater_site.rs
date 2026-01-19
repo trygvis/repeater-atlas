@@ -53,3 +53,13 @@ pub async fn insert(c: &mut AsyncPgConnection, site: NewRepeaterSite) -> QueryRe
         .get_result(c)
         .await
 }
+
+pub async fn get(c: &mut AsyncPgConnection, site_id: i64) -> QueryResult<RepeaterSite> {
+    use crate::schema::repeater_site::dsl as s;
+
+    s::repeater_site
+        .filter(s::id.eq(site_id))
+        .select(RepeaterSite::as_select())
+        .first(c)
+        .await
+}

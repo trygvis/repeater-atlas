@@ -17,8 +17,12 @@ struct IndexTemplate {
 }
 
 struct RepeaterListItem {
-    repeater: dao::repeater_system::RepeaterSystem,
-    ports: Vec<dao::repeater_port::RepeaterPort>,
+    call_sign: String,
+    status: String,
+    description: String,
+    maidenhead: String,
+    latitude: String,
+    longitude: String,
 }
 
 pub async fn index(
@@ -30,8 +34,40 @@ pub async fn index(
     let repeaters = dao::repeater_system::select(&mut c).await?;
     let mut items = Vec::with_capacity(repeaters.len());
     for repeater in repeaters {
-        let ports = dao::repeater_port::select_by_repeater_id(&mut c, repeater.id).await?;
-        items.push(RepeaterListItem { repeater, ports });
+        let dao::repeater_system::RepeaterSystem {
+            call_sign,
+            status,
+            description,
+            site_id,
+            ..
+        } = repeater;
+
+        let site = match site_id {
+            Some(site_id) => Some(dao::repeater_site::get(&mut c, site_id).await?),
+            None => None,
+        };
+
+        let (maidenhead, latitude, longitude) = match site {
+            Some(site) => (
+                site.maidenhead.unwrap_or_else(|| "-".to_string()),
+                site.latitude
+                    .map(|value| value.to_string())
+                    .unwrap_or_else(|| "-".to_string()),
+                site.longitude
+                    .map(|value| value.to_string())
+                    .unwrap_or_else(|| "-".to_string()),
+            ),
+            None => ("-".to_string(), "-".to_string(), "-".to_string()),
+        };
+
+        items.push(RepeaterListItem {
+            call_sign,
+            status,
+            description: description.unwrap_or_else(|| "-".to_string()),
+            maidenhead,
+            latitude,
+            longitude,
+        });
     }
 
     let template = IndexTemplate { repeaters: items };
