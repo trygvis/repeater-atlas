@@ -18,7 +18,7 @@ assets:
 
 # This drops and initializes the database
 db-init:
-	cat init.sql | bin/psql -U admin postgres
+	cat init.sql | PGPASSWORD=admin bin/psql -U admin postgres
 	diesel migration run
 
 # Exports the schema to schema.tmp.sql. This is a complete dump of the current database schema to make it easy to get
