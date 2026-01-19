@@ -7,7 +7,7 @@ use crate::dao::repeater_service_c4fm::NewRepeaterServiceC4fm;
 use crate::dao::repeater_service_dmr::NewRepeaterServiceDmr;
 use crate::dao::repeater_service_dstar::{DstarMode, NewRepeaterServiceDstar};
 use crate::dao::repeater_service_fm::{FmBandwidth, NewRepeaterServiceFm, ToneKind};
-use crate::dao::repeater_site::{NewRepeaterSite, RepeaterSite};
+use crate::dao::repeater_site::NewRepeaterSite;
 use crate::dao::repeater_system::{NewRepeaterSystem, RepeaterSystem};
 use diesel::QueryResult;
 use diesel_async::AsyncPgConnection;
@@ -16,24 +16,24 @@ async fn ham_club(c: &mut AsyncPgConnection, call_sign: impl Into<String>) -> Qu
     dao::ham_club::insert(c, NewHamClub::new(call_sign.into())).await
 }
 
-async fn repeater(
+async fn repeater_with_site(
     c: &mut AsyncPgConnection,
     club: &Option<HamClub>,
     call_sign: impl Into<String>,
-) -> QueryResult<RepeaterSystem> {
-    let mut r = NewRepeaterSystem::new(call_sign);
-    if let Some(club) = club {
-        r = r.ham_club_id(club.id);
-    }
-
-    dao::repeater_system::insert(c, r).await
-}
-
-async fn repeater_site(
-    c: &mut AsyncPgConnection,
     address: impl Into<String>,
-) -> QueryResult<RepeaterSite> {
-    dao::repeater_site::insert(c, NewRepeaterSite::address(address)).await
+    maidenhead: Option<&str>,
+) -> QueryResult<RepeaterSystem> {
+    let mut site = NewRepeaterSite::address(address);
+    site.maidenhead = maidenhead.map(|value| value.to_string());
+    let site = dao::repeater_site::insert(c, site).await?;
+
+    let mut repeater = NewRepeaterSystem::new(call_sign);
+    if let Some(club) = club {
+        repeater = repeater.ham_club_id(club.id);
+    }
+    repeater.site_id = Some(site.id);
+
+    dao::repeater_system::insert(c, repeater).await
 }
 
 async fn create_port(
@@ -306,24 +306,41 @@ pub async fn generate(c: &mut AsyncPgConnection) -> QueryResult<()> {
     let club = dao::ham_club::update(c, club).await?;
     let club = &Some(club);
 
-    let r = &repeater(c, &club, "LA5OR").await?;
-    narrow_fm(c, r, "VHF", 145_600_000, -600_000, Some(123.0)).await?;
+    {
+        let system =
+            repeater_with_site(c, club, "LA5OR", r"Tryvann, Oslo", Some("JO59ix")).await?;
+        narrow_fm(c, &system, "VHF", 145_600_000, -600_000, Some(123.0)).await?;
+    }
 
-    let r = &repeater(c, &club, "LA7OR").await?;
-    narrow_fm(c, r, "UHF", 434_775_000, -2_000_000, Some(123.0)).await?;
+    {
+        let system = repeater_with_site(c, club, "LA7OR", r"Brannfjell, Oslo", Some("JO59jv"))
+            .await?;
+        narrow_fm(c, &system, "UHF", 434_775_000, -2_000_000, Some(123.0)).await?;
+    }
 
-    let r = &repeater(c, &club, "LD1OA").await?;
-    narrow_fm(c, r, "UHF", 434_887_500, -2_000_000, Some(123.0)).await?;
+    {
+        let system = repeater_with_site(c, club, "LD1OA", r"Røverkollen, Oslo", Some("JO59kx"))
+            .await?;
+        narrow_fm(c, &system, "UHF", 434_887_500, -2_000_000, Some(123.0)).await?;
+    }
 
-    let r = &repeater(c, &club, "LD1OT").await?;
-    dstar(c, r, "A", 1_297_100_000, -6_000_000).await?;
-    dstar(c, r, "B", 434_862_500, -2_000_000).await?;
+    {
+        let system =
+            repeater_with_site(c, club, "LD1OT", r"Tryvann, Oslo", Some("JO59ix")).await?;
+        dstar(c, &system, "A", 1_297_100_000, -6_000_000).await?;
+        dstar(c, &system, "B", 434_862_500, -2_000_000).await?;
+    }
+    {
+        let system = repeater_with_site(c, club, "LD1OS", r"Oslo sentrum", Some("JO59iv"))
+            .await?;
+        igate(c, &system, "A", 144_800_000).await?;
+    }
 
-    let r = &repeater(c, &club, "LD1OS").await?;
-    igate(c, r, "A", 144_800_000).await?;
-
-    let r = &repeater(c, &club, "LD1OE").await?;
-    digipeater(c, r, "A", 144_800_000).await?;
+    {
+        let system =
+            repeater_with_site(c, club, "LD1OE", r"Brannfjell, Oslo", Some("JO59jv")).await?;
+        digipeater(c, &system, "A", 144_800_000).await?;
+    }
 
     let mut club = ham_club(c, "LA1T").await?;
     club.web_url = Some("https://la1t.no/repeatere/".to_string());
@@ -331,22 +348,21 @@ pub async fn generate(c: &mut AsyncPgConnection) -> QueryResult<()> {
     let club = &Some(club);
 
     {
-        let mut system = repeater(c, club, "LA3XRR").await?;
+        let mut system = repeater_with_site(c, club, "LA3XRR", r"Hvittingen", Some("JO59cn"))
+            .await?;
         system.status = "QRV".to_string();
         system.description = Some(
             r#"Type: FM-crossbandlink
 Kommentar: Linket til "Fylkesnett" Vestfold og Telemark"#
                 .to_string(),
         );
-        let site = repeater_site(c, r"Hvittingen").await?;
-        system.site_id = Some(site.id);
         let system = dao::repeater_system::update(c, system).await?;
         narrow_fm(
             c,
             &system,
             label_for_hz(145_225_000),
             145_225_000,
-            144_625_000 - 145_225_000,
+            -600_000,
             Some(74.4),
         )
         .await?;
@@ -355,29 +371,34 @@ Kommentar: Linket til "Fylkesnett" Vestfold og Telemark"#
             &system,
             label_for_hz(432_587_500),
             432_587_500,
-            434_587_500 - 432_587_500,
+            2_000_000,
             Some(74.4),
         )
         .await?;
     }
 
     {
-        let mut system = repeater(c, club, "LA3SRR").await?;
+        let mut system = repeater_with_site(
+            c,
+            club,
+            "LA3SRR",
+            r"Korpås (Brunlanes)",
+            Some("JO59xa"),
+        )
+        .await?;
         system.status = "QRV".to_string();
         system.description = Some(
             r#"Type: FM-crossbandlink
 Kommentar: Linket til "Fylkesnett" Vestfold og Telemark"#
                 .to_string(),
         );
-        let site = repeater_site(c, r"Korpås (Brunlanes)").await?;
-        system.site_id = Some(site.id);
         let system = dao::repeater_system::update(c, system).await?;
         narrow_fm(
             c,
             &system,
             label_for_hz(145_275_000),
             145_275_000,
-            144_675_000 - 145_275_000,
+            -600_000,
             Some(74.4),
         )
         .await?;
@@ -386,51 +407,48 @@ Kommentar: Linket til "Fylkesnett" Vestfold og Telemark"#
             &system,
             label_for_hz(432_587_500),
             432_587_500,
-            434_587_500 - 432_587_500,
+            2_000_000,
             Some(74.4),
         )
         .await?;
     }
 
     {
-        let mut system = repeater(c, club, "LA3BRR").await?;
+        let mut system = repeater_with_site(c, club, "LA3BRR", r"Drangedal", None).await?;
         system.status = "QRV".to_string();
         system.description = Some(
             r#"Type: FM-repeater
 Kommentar: Planlagt linking til "Fylkesnett" i Vestfold og Telemark"#
                 .to_string(),
         );
-        let site = repeater_site(c, r"Drangedal").await?;
-        system.site_id = Some(site.id);
         let system = dao::repeater_system::update(c, system).await?;
         narrow_fm(
             c,
             &system,
             label_for_hz(145_562_500),
             145_562_500,
-            144_962_500 - 145_562_500,
+            -600_000,
             Some(74.4),
         )
         .await?;
     }
 
     {
-        let mut system = repeater(c, club, "LA3GRR").await?;
+        let mut system =
+            repeater_with_site(c, club, "LA3GRR", r"Gaustatoppen", Some("JO49hu")).await?;
         system.status = "QRV".to_string();
         system.description = Some(
             r"Type: FM-repeater
 Kommentar: "
                 .to_string(),
         );
-        let site = repeater_site(c, r"Gaustatoppen").await?;
-        system.site_id = Some(site.id);
         let system = dao::repeater_system::update(c, system).await?;
         narrow_fm(
             c,
             &system,
             label_for_hz(145_612_500),
             145_612_500,
-            145_012_500 - 145_612_500,
+            -600_000,
             Some(74.4),
         )
         .await?;
@@ -439,132 +457,126 @@ Kommentar: "
             &system,
             label_for_hz(432_587_500),
             432_587_500,
-            434_587_500 - 432_587_500,
+            2_000_000,
             Some(74.4),
         )
         .await?;
     }
 
     {
-        let mut system = repeater(c, club, "LA5HR").await?;
+        let mut system =
+            repeater_with_site(c, club, "LA5HR", r"Horten, Skottås", Some("JO59ej")).await?;
         system.status = "QRV".to_string();
         system.description = Some(
             r"Type: FM-repeater
 Kommentar: "
                 .to_string(),
         );
-        let site = repeater_site(c, r"Horten, Skottås").await?;
-        system.site_id = Some(site.id);
         let system = dao::repeater_system::update(c, system).await?;
         narrow_fm(
             c,
             &system,
             label_for_hz(145_625_000),
             145_625_000,
-            145_025_000 - 145_625_000,
+            -600_000,
             Some(74.4),
         )
         .await?;
     }
 
     {
-        let mut system = repeater(c, club, "LA5GR").await?;
+        let mut system =
+            repeater_with_site(c, club, "LA5GR", r"Skien, Vealøs", Some("JO49uf")).await?;
         system.status = "QRV".to_string();
         system.description = Some(
             r"Type: FM-repeater
 Kommentar: Linket til LA3NRR, X-bandlink i Notodden"
                 .to_string(),
         );
-        let site = repeater_site(c, r"Skien, Vealøs").await?;
-        system.site_id = Some(site.id);
         let system = dao::repeater_system::update(c, system).await?;
         narrow_fm(
             c,
             &system,
             label_for_hz(145_650_000),
             145_650_000,
-            145_050_000 - 145_650_000,
+            -600_000,
             Some(74.4),
         )
         .await?;
     }
 
     {
-        let mut system = repeater(c, club, "LA5ER").await?;
+        let mut system =
+            repeater_with_site(c, club, "LA5ER", r"Eirefjell, Tokke", Some("JO49bl")).await?;
         system.status = "QRV".to_string();
         system.description = Some(
             r#"Type: FM-repeater
 Kommentar: Planlagt linking til "Fylkesnett" i Vestfold og Telemark"#
                 .to_string(),
         );
-        let site = repeater_site(c, r"Eirefjell, Tokke").await?;
-        system.site_id = Some(site.id);
         let system = dao::repeater_system::update(c, system).await?;
         narrow_fm(
             c,
             &system,
             label_for_hz(145_712_500),
             145_712_500,
-            145_112_500 - 145_712_500,
+            -600_000,
             Some(74.4),
         )
         .await?;
     }
 
     {
-        let mut system = repeater(c, club, "LA5SR").await?;
+        let mut system =
+            repeater_with_site(c, club, "LA5SR", r"Sandefjord, Mokollen", Some("JO59cd")).await?;
         system.status = "QRV".to_string();
         system.description = Some(
             r"Type: FM-repeater
 Kommentar: "
                 .to_string(),
         );
-        let site = repeater_site(c, r"Sandefjord, Mokollen").await?;
-        system.site_id = Some(site.id);
         let system = dao::repeater_system::update(c, system).await?;
         narrow_fm(
             c,
             &system,
             label_for_hz(145_750_000),
             145_750_000,
-            145_150_000 - 145_750_000,
+            -600_000,
             Some(74.4),
         )
         .await?;
     }
 
     {
-        let mut system = repeater(c, club, "LA3NRR").await?;
+        let mut system =
+            repeater_with_site(c, club, "LA3NRR", r"Notodden, Sem", Some("JO49on")).await?;
         system.status = "QRV".to_string();
         system.description = Some(
             r"Type: FM-repeater
 Kommentar: Lokal aksess til Notodden for LA5GR"
                 .to_string(),
         );
-        let site = repeater_site(c, r"Notodden, Sem").await?;
-        system.site_id = Some(site.id);
         let system = dao::repeater_system::update(c, system).await?;
         narrow_fm(
             c,
             &system,
             label_for_hz(434_825_000),
             434_825_000,
-            432_825_000 - 434_825_000,
+            -2_000_000,
             Some(74.4),
         )
         .await?;
     }
 
     {
-        let mut system = repeater(c, club, "LD3GL").await?;
+        let mut system =
+            repeater_with_site(c, club, "LD3GL", r"Skien, Vealøs", Some("JO49uf")).await?;
         system.status = "QRV".to_string();
         system.description = Some(
             r"Type: DMR-repeater
 Kommentar: "
                 .to_string(),
         );
-        let site = repeater_site(c, r"Skien, Vealøs").await?;
-        system.site_id = Some(site.id);
         let system = dao::repeater_system::update(c, system).await?;
         let port = create_port(
             c,
@@ -578,15 +590,20 @@ Kommentar: "
     }
 
     {
-        let mut system = repeater(c, club, "LD3ST").await?;
+        let mut system = repeater_with_site(
+            c,
+            club,
+            "LD3ST",
+            r"Tønsberg, Frodeåsen",
+            Some("JO59eg"),
+        )
+        .await?;
         system.status = "QRV".to_string();
         system.description = Some(
             r"Type: DMR-repeater
 Kommentar: Ex. LA3KRR"
                 .to_string(),
         );
-        let site = repeater_site(c, r"Tønsberg, Frodeåsen").await?;
-        system.site_id = Some(site.id);
         let system = dao::repeater_system::update(c, system).await?;
         let port = create_port(
             c,
@@ -600,15 +617,14 @@ Kommentar: Ex. LA3KRR"
     }
 
     {
-        let mut system = repeater(c, club, "LD3TD").await?;
+        let mut system =
+            repeater_with_site(c, club, "LD3TD", r"Tønsberg", Some("JO59de")).await?;
         system.status = "QRV".to_string();
         system.description = Some(
             r"Type: D-Star repeater
 Kommentar: Normalt linket til XRF404B"
                 .to_string(),
         );
-        let site = repeater_site(c, r"Tønsberg").await?;
-        system.site_id = Some(site.id);
         let system = dao::repeater_system::update(c, system).await?;
         let port = create_port(
             c,
@@ -622,44 +638,42 @@ Kommentar: Normalt linket til XRF404B"
     }
 
     {
-        let mut system = repeater(c, club, "LA3DRR").await?;
+        let mut system =
+            repeater_with_site(c, club, "LA3DRR", r"Vealøs, Skien", Some("JO49uf")).await?;
         system.status = "QRV".to_string();
         system.description = Some(
             r#"Type: FM-repeaterlink
 Kommentar: Planlagt linking til "Fylkesnett" i Vestfold og Telemark"#
                 .to_string(),
         );
-        let site = repeater_site(c, r"Vealøs, Skien").await?;
-        system.site_id = Some(site.id);
         let system = dao::repeater_system::update(c, system).await?;
         narrow_fm(
             c,
             &system,
             label_for_hz(434_612_500),
             434_612_500,
-            432_612_500 - 434_612_500,
+            -2_000_000,
             Some(74.4),
         )
         .await?;
     }
 
     {
-        let mut system = repeater(c, club, "LA3VRR").await?;
+        let mut system =
+            repeater_with_site(c, club, "LA3VRR", r"Skien, Vealøs", Some("JO59uf")).await?;
         system.status = "QRV".to_string();
         system.description = Some(
             r"Type: FM&C4FM-repeater
 Kommentar: "
                 .to_string(),
         );
-        let site = repeater_site(c, r"Skien, Vealøs").await?;
-        system.site_id = Some(site.id);
         let system = dao::repeater_system::update(c, system).await?;
         let port = narrow_fm(
             c,
             &system,
             label_for_hz(434_587_500),
             434_587_500,
-            432_587_500 - 434_587_500,
+            -2_000_000,
             Some(74.4),
         )
         .await?;
@@ -667,22 +681,22 @@ Kommentar: "
     }
 
     {
-        let mut system = repeater(c, club, "LA6HR").await?;
+        let mut system =
+            repeater_with_site(c, club, "LA6HR", r"Holmestrand, Hvittingen", Some("JO59cn"))
+                .await?;
         system.status = "QRV".to_string();
         system.description = Some(
             r"Type: FM&DMR-repeater
 Kommentar: "
                 .to_string(),
         );
-        let site = repeater_site(c, r"Holmestrand, Hvittingen").await?;
-        system.site_id = Some(site.id);
         let system = dao::repeater_system::update(c, system).await?;
         let port = narrow_fm(
             c,
             &system,
             label_for_hz(434_650_000),
             434_650_000,
-            432_650_000 - 434_650_000,
+            -2_000_000,
             Some(74.4),
         )
         .await?;
@@ -690,110 +704,117 @@ Kommentar: "
     }
 
     {
-        let mut system = repeater(c, club, "LA3JRR").await?;
+        let mut system =
+            repeater_with_site(c, club, "LA3JRR", r"Kvelde, Jordstøyp", Some("JO49xe")).await?;
         system.status = "QRV".to_string();
         system.description = Some(
             r"Type: FM-repeater
 Kommentar: "
                 .to_string(),
         );
-        let site = repeater_site(c, r"Kvelde, Jordstøyp").await?;
-        system.site_id = Some(site.id);
         let system = dao::repeater_system::update(c, system).await?;
         narrow_fm(
             c,
             &system,
             label_for_hz(434_675_000),
             434_675_000,
-            432_675_000 - 434_675_000,
+            -2_000_000,
             Some(74.4),
         )
         .await?;
     }
 
     {
-        let mut system = repeater(c, club, "LA7SR").await?;
+        let mut system = repeater_with_site(
+            c,
+            club,
+            "LA7SR",
+            r"Sandefjord, Kjerringberget",
+            Some("JO59ca"),
+        )
+        .await?;
         system.status = "QRV".to_string();
         system.description = Some(
             r"Type: FM-repeater
 Kommentar: "
                 .to_string(),
         );
-        let site = repeater_site(c, r"Sandefjord, Kjerringberget").await?;
-        system.site_id = Some(site.id);
         let system = dao::repeater_system::update(c, system).await?;
         narrow_fm(
             c,
             &system,
             label_for_hz(434_800_000),
             434_800_000,
-            432_800_000 - 434_800_000,
+            -2_000_000,
             Some(74.4),
         )
         .await?;
     }
 
     {
-        let mut system = repeater(c, club, "LA6YR").await?;
+        let mut system =
+            repeater_with_site(c, club, "LA6YR", r"Kragerø, Storkollen", Some("JO48qu")).await?;
         system.status = "QRV".to_string();
         system.description = Some(
             r"Type: FM-repeater
 Kommentar: "
                 .to_string(),
         );
-        let site = repeater_site(c, r"Kragerø, Storkollen").await?;
-        system.site_id = Some(site.id);
         let system = dao::repeater_system::update(c, system).await?;
         narrow_fm(
             c,
             &system,
             label_for_hz(434_850_000),
             434_850_000,
-            432_850_000 - 434_850_000,
+            -2_000_000,
             Some(74.4),
         )
         .await?;
     }
 
     {
-        let mut system = repeater(c, club, "LA7LR").await?;
+        let mut system =
+            repeater_with_site(c, club, "LA7LR", r"Lifjell, Bø", Some("JO49ml")).await?;
         system.status = "Midl, QRT".to_string();
         system.description = Some(
             r"Type: FM-repeater
 Kommentar: "
                 .to_string(),
         );
-        let site = repeater_site(c, r"Lifjell, Bø").await?;
-        system.site_id = Some(site.id);
         let system = dao::repeater_system::update(c, system).await?;
         narrow_fm(
             c,
             &system,
             label_for_hz(434_925_000),
             434_925_000,
-            432_925_000 - 434_925_000,
+            -2_000_000,
             Some(74.4),
         )
         .await?;
     }
 
     {
-        let mut system = repeater(c, club, "LA9NR").await?;
+        let mut system = repeater_with_site(
+            c,
+            club,
+            "LA9NR",
+            r"Tønsberg, Frodeåsen",
+            Some("JO59eg"),
+        )
+        .await?;
         system.status = "QRV".to_string();
         system.description = Some(
             r"Type: FM-repeater
 Kommentar: "
                 .to_string(),
         );
-        let site = repeater_site(c, r"Tønsberg, Frodeåsen").await?;
-        system.site_id = Some(site.id);
         let system = dao::repeater_system::update(c, system).await?;
         narrow_fm(
             c,
             &system,
             label_for_hz(434_950_000),
             434_950_000,
-            432_950_000 - 434_950_000,
+            -2_000_000,
             Some(74.4),
         )
         .await?;
