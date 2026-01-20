@@ -1,10 +1,10 @@
 {% extends "layouts/main.html" %}
 
 {% block head %}
-  <link rel="stylesheet" href="/static/vendor/leaflet/leaflet.css">
   <style>
-    #repeater-map {
+    #repeater-map-host {
       height: 800px;
+      width: 100%;
     }
   </style>
 {% endblock %}
@@ -14,7 +14,7 @@
   <p>Repeater Atlas is running.</p>
   <section>
     <h2>Repeater map</h2>
-    <div id="repeater-map"></div>
+    <div id="repeater-map-host"></div>
   </section>
 {% endblock %}
 
@@ -22,7 +22,25 @@
   <script src="/static/vendor/leaflet/leaflet.js"></script>
   <script>
     const data = {{ repeater_data | json | safe }};
-    const map = L.map("repeater-map");
+    const host = document.getElementById("repeater-map-host");
+    const root = host.attachShadow({ mode: "open" });
+    const stylesheet = document.createElement("link");
+    stylesheet.rel = "stylesheet";
+    stylesheet.href = "/static/vendor/leaflet/leaflet.css";
+    root.append(stylesheet);
+    const style = document.createElement("style");
+    style.textContent = "#repeater-map { height: 100%; width: 100%; }";
+    root.append(style);
+    const mapElement = document.createElement("div");
+    mapElement.id = "repeater-map";
+    root.append(mapElement);
+    const leafletBase = "/static/vendor/leaflet/images/";
+    L.Icon.Default.mergeOptions({
+      iconUrl: `${leafletBase}marker-icon.png`,
+      iconRetinaUrl: `${leafletBase}marker-icon-2x.png`,
+      shadowUrl: `${leafletBase}marker-shadow.png`,
+    });
+    const map = L.map(mapElement);
 
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -39,5 +57,7 @@
       });
       map.fitBounds(bounds, { padding: [20, 20] });
     }
+
+    map.invalidateSize();
   </script>
 {% endblock %}
