@@ -31,9 +31,7 @@ CREATE TABLE repeater_port
     label       TEXT   NOT NULL,
     rx_hz       BIGINT NOT NULL,
     tx_hz       BIGINT NOT NULL,
-    note        TEXT,
-
-    UNIQUE (repeater_id, label)
+    note        TEXT
 );
 
 CREATE TYPE REPEATER_SERVICE_KIND AS ENUM (

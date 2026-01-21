@@ -1,4 +1,3 @@
-use crate::dao;
 use crate::dao::ham_club::{HamClub, NewHamClub};
 use crate::dao::repeater_port::{NewRepeaterPort, RepeaterPort};
 use crate::dao::repeater_service::{NewRepeaterService, RepeaterServiceKind};
@@ -9,8 +8,11 @@ use crate::dao::repeater_service_dstar::{DstarMode, NewRepeaterServiceDstar};
 use crate::dao::repeater_service_fm::{FmBandwidth, NewRepeaterServiceFm, ToneKind};
 use crate::dao::repeater_site::NewRepeaterSite;
 use crate::dao::repeater_system::{NewRepeaterSystem, RepeaterSystem};
+use crate::{RepeaterAtlasError, dao};
 use diesel::QueryResult;
 use diesel_async::AsyncPgConnection;
+use std::collections::HashMap;
+use tracing::info;
 
 async fn ham_club(c: &mut AsyncPgConnection, call_sign: impl Into<String>) -> QueryResult<HamClub> {
     dao::ham_club::insert(c, NewHamClub::new(call_sign.into())).await
@@ -19,21 +21,28 @@ async fn ham_club(c: &mut AsyncPgConnection, call_sign: impl Into<String>) -> Qu
 async fn repeater_with_site(
     c: &mut AsyncPgConnection,
     club: &Option<HamClub>,
-    call_sign: impl Into<String>,
+    call_sign: impl Into<String> + std::fmt::Display,
     address: impl Into<String>,
     maidenhead: Option<&str>,
-) -> QueryResult<RepeaterSystem> {
+) -> Result<RepeaterSystem, RepeaterAtlasError> {
+    let call_sign = call_sign.into();
     let mut site = NewRepeaterSite::address(address);
     site.maidenhead = maidenhead.map(|value| value.to_string());
     let site = dao::repeater_site::insert(c, site).await?;
 
-    let mut repeater = NewRepeaterSystem::new(call_sign);
+    let mut repeater = NewRepeaterSystem::new(call_sign.clone());
     if let Some(club) = club {
         repeater = repeater.ham_club_id(club.id);
     }
     repeater.site_id = Some(site.id);
 
-    dao::repeater_system::insert(c, repeater).await
+    info!("Creating repeater system call sign {call_sign}");
+
+    dao::repeater_system::insert(c, repeater)
+        .await
+        .map_err(|e| {
+            RepeaterAtlasError::DatabaseOther(e, format!("repeater system call_sign={call_sign}"))
+        })
 }
 
 async fn create_port(
@@ -42,16 +51,20 @@ async fn create_port(
     label: impl Into<String>,
     tx_frequency: i64,
     rx_frequency: i64,
-) -> QueryResult<RepeaterPort> {
+) -> Result<RepeaterPort, RepeaterAtlasError> {
+    let label = label.into();
+
     let port = NewRepeaterPort {
         repeater_id,
-        label: label.into(),
-        rx_frequency: rx_frequency,
-        tx_frequency: tx_frequency,
+        label: label.clone(),
+        rx_frequency,
+        tx_frequency,
         note: None,
     };
 
-    dao::repeater_port::insert(c, port).await
+    dao::repeater_port::insert(c, port).await.map_err(|e| {
+        RepeaterAtlasError::DatabaseOther(e, format!("Error adding port with label {label}"))
+    })
 }
 
 async fn fm_service_on_port(
@@ -60,7 +73,7 @@ async fn fm_service_on_port(
     port_id: i64,
     bandwidth: FmBandwidth,
     subtone: Option<f32>,
-) -> QueryResult<()> {
+) -> Result<(), RepeaterAtlasError> {
     let service = dao::repeater_service::insert(
         c,
         NewRepeaterService {
@@ -194,7 +207,7 @@ pub async fn narrow_fm(
     tx_frequency: i64,
     offset: i64,
     subtone: Option<f32>,
-) -> QueryResult<RepeaterPort> {
+) -> Result<RepeaterPort, RepeaterAtlasError> {
     let port = create_port(c, r.id, label, tx_frequency, tx_frequency + offset).await?;
     fm_service_on_port(c, r.id, port.id, FmBandwidth::Narrow, subtone).await?;
 
@@ -207,7 +220,7 @@ pub async fn dstar(
     label: impl Into<String>,
     tx_frequency: i64,
     offset: i64,
-) -> QueryResult<RepeaterPort> {
+) -> Result<RepeaterPort, RepeaterAtlasError> {
     let port = create_port(c, r.id, label, tx_frequency, tx_frequency + offset).await?;
     dstar_service_on_port(c, r.id, port.id).await?;
 
@@ -300,502 +313,231 @@ fn label_for_frequency(frequency: i64) -> &'static str {
     }
 }
 
-pub async fn generate(c: &mut AsyncPgConnection) -> QueryResult<()> {
-    let mut club = ham_club(c, "LA4O").await?;
-    club.web_url = Some("https://la4o.no/oversikt-og-status".to_string());
-    let club = dao::ham_club::update(c, club).await?;
-    let club = &Some(club);
-
-    {
-        let system = repeater_with_site(c, club, "LA5OR", r"Tryvann, Oslo", Some("JO59ix")).await?;
-        narrow_fm(c, &system, "VHF", 145_600_000, -600_000, Some(123.0)).await?;
+fn split_call_sign(input: &str) -> (String, Option<String>) {
+    let trimmed = input.trim();
+    if let Some((head, tail)) = trimmed.split_once('-') {
+        let label = tail.trim();
+        let label = if label.is_empty() {
+            None
+        } else {
+            Some(label.to_ascii_uppercase())
+        };
+        (head.trim().to_ascii_uppercase(), label)
+    } else {
+        (trimmed.to_ascii_uppercase(), None)
     }
+}
 
-    {
-        let system =
-            repeater_with_site(c, club, "LA7OR", r"Brannfjell, Oslo", Some("JO59jv")).await?;
-        narrow_fm(c, &system, "UHF", 434_775_000, -2_000_000, Some(123.0)).await?;
-    }
+pub async fn generate(c: &mut AsyncPgConnection) -> Result<(), RepeaterAtlasError> {
+    let mut la4o = ham_club(c, "LA4O").await?;
+    la4o.web_url = Some("https://la4o.no/oversikt-og-status".to_string());
+    let la4o = dao::ham_club::update(c, la4o).await?;
 
-    {
-        let system =
-            repeater_with_site(c, club, "LD1OA", r"Røverkollen, Oslo", Some("JO59kx")).await?;
-        narrow_fm(c, &system, "UHF", 434_887_500, -2_000_000, Some(123.0)).await?;
-    }
+    let mut la1t = ham_club(c, "LA1T").await?;
+    la1t.web_url = Some("https://la1t.no/repeatere/".to_string());
+    let la1t = dao::ham_club::update(c, la1t).await?;
 
-    {
-        let system = repeater_with_site(c, club, "LD1OT", r"Tryvann, Oslo", Some("JO59ix")).await?;
-        dstar(c, &system, "A", 1_297_100_000, -6_000_000).await?;
-        dstar(c, &system, "B", 434_862_500, -2_000_000).await?;
-    }
-    {
-        let system = repeater_with_site(c, club, "LD1OS", r"Oslo sentrum", Some("JO59iv")).await?;
-        igate(c, &system, "A", 144_800_000).await?;
-    }
+    let mut clubs = HashMap::new();
+    clubs.insert(la4o.name.clone(), la4o);
+    clubs.insert(la1t.name.clone(), la1t);
 
-    {
-        let system =
-            repeater_with_site(c, club, "LD1OE", r"Brannfjell, Oslo", Some("JO59jv")).await?;
-        digipeater(c, &system, "A", 144_800_000).await?;
-    }
+    let mut repeaters = HashMap::<String, RepeaterSystem>::new();
+    let to_error = |error| diesel::result::Error::SerializationError(Box::new(error));
+    let mut reader = csv::ReaderBuilder::new()
+        .trim(csv::Trim::All)
+        .flexible(true)
+        .from_path("data/repeaters.tsv")
+        .map_err(to_error)?;
+    let headers = reader.headers().map_err(to_error)?.clone();
 
-    let mut club = ham_club(c, "LA1T").await?;
-    club.web_url = Some("https://la1t.no/repeatere/".to_string());
-    let club = dao::ham_club::update(c, club).await?;
-    let club = &Some(club);
+    for (row_index, record) in reader.records().enumerate() {
+        let row_index = row_index + 2;
+        let record = record.map_err(to_error)?;
+        let mut row = HashMap::new();
+        for (header, value) in headers.iter().zip(record.iter()) {
+            row.insert(header.to_string(), value.to_string());
+        }
 
-    {
-        let mut system =
-            repeater_with_site(c, club, "LA3XRR", r"Hvittingen", Some("JO59cn")).await?;
-        system.status = "QRV".to_string();
-        system.description = Some(
-            r#"Type: FM-crossbandlink
-Kommentar: Linket til "Fylkesnett" Vestfold og Telemark"#
-                .to_string(),
-        );
-        let system = dao::repeater_system::update(c, system).await?;
-        narrow_fm(
-            c,
-            &system,
-            label_for_frequency(145_225_000),
-            145_225_000,
-            -600_000,
-            Some(74.4),
-        )
-        .await?;
-        narrow_fm(
-            c,
-            &system,
-            label_for_frequency(432_587_500),
-            432_587_500,
-            2_000_000,
-            Some(74.4),
-        )
-        .await?;
-    }
+        let call_sign_raw = match row
+            .get("call_sign")
+            .map(|value| value.trim())
+            .filter(|value| !value.is_empty())
+        {
+            Some(value) => value.to_string(),
+            None => {
+                info!(
+                    row = row_index,
+                    reason = "missing call_sign",
+                    "Skipping repeater row"
+                );
+                continue;
+            }
+        };
+        let (call_sign, port_label) = split_call_sign(&call_sign_raw);
 
-    {
-        let mut system =
-            repeater_with_site(c, club, "LA3SRR", r"Korpås (Brunlanes)", Some("JO59xa")).await?;
-        system.status = "QRV".to_string();
-        system.description = Some(
-            r#"Type: FM-crossbandlink
-Kommentar: Linket til "Fylkesnett" Vestfold og Telemark"#
-                .to_string(),
-        );
-        let system = dao::repeater_system::update(c, system).await?;
-        narrow_fm(
-            c,
-            &system,
-            label_for_frequency(145_275_000),
-            145_275_000,
-            -600_000,
-            Some(74.4),
-        )
-        .await?;
-        narrow_fm(
-            c,
-            &system,
-            label_for_frequency(432_587_500),
-            432_587_500,
-            2_000_000,
-            Some(74.4),
-        )
-        .await?;
-    }
+        let owner = row
+            .get("owner")
+            .map(|value| value.trim())
+            .filter(|value| !value.is_empty());
+        let club = owner.and_then(|value| clubs.get(value)).cloned();
 
-    {
-        let mut system = repeater_with_site(c, club, "LA3BRR", r"Drangedal", None).await?;
-        system.status = "QRV".to_string();
-        system.description = Some(
-            r#"Type: FM-repeater
-Kommentar: Planlagt linking til "Fylkesnett" i Vestfold og Telemark"#
-                .to_string(),
-        );
-        let system = dao::repeater_system::update(c, system).await?;
-        narrow_fm(
-            c,
-            &system,
-            label_for_frequency(145_562_500),
-            145_562_500,
-            -600_000,
-            Some(74.4),
-        )
-        .await?;
-    }
+        let repeater = if let Some(existing) = repeaters.get(&call_sign) {
+            existing.clone()
+        } else {
+            let address = row
+                .get("address")
+                .map(|value| value.trim())
+                .filter(|value| !value.is_empty())
+                .unwrap_or("");
+            let maidenhead = row
+                .get("maidenhead")
+                .map(|value| value.trim())
+                .filter(|value| !value.is_empty());
+            let mut repeater =
+                repeater_with_site(c, &club, call_sign.clone(), address, maidenhead).await?;
 
-    {
-        let mut system =
-            repeater_with_site(c, club, "LA3GRR", r"Gaustatoppen", Some("JO49hu")).await?;
-        system.status = "QRV".to_string();
-        system.description = Some(
-            r"Type: FM-repeater
-Kommentar: "
-                .to_string(),
-        );
-        let system = dao::repeater_system::update(c, system).await?;
-        narrow_fm(
-            c,
-            &system,
-            label_for_frequency(145_612_500),
-            145_612_500,
-            -600_000,
-            Some(74.4),
-        )
-        .await?;
-        narrow_fm(
-            c,
-            &system,
-            label_for_frequency(432_587_500),
-            432_587_500,
-            2_000_000,
-            Some(74.4),
-        )
-        .await?;
-    }
+            if let Some(status) = row
+                .get("status")
+                .map(|value| value.trim())
+                .filter(|value| !value.is_empty())
+            {
+                repeater.status = status.to_string();
+                repeater = dao::repeater_system::update(c, repeater).await?;
+            }
 
-    {
-        let mut system =
-            repeater_with_site(c, club, "LA5HR", r"Horten, Skottås", Some("JO59ej")).await?;
-        system.status = "QRV".to_string();
-        system.description = Some(
-            r"Type: FM-repeater
-Kommentar: "
-                .to_string(),
-        );
-        let system = dao::repeater_system::update(c, system).await?;
-        narrow_fm(
-            c,
-            &system,
-            label_for_frequency(145_625_000),
-            145_625_000,
-            -600_000,
-            Some(74.4),
-        )
-        .await?;
-    }
+            repeaters.insert(call_sign.clone(), repeater.clone());
+            repeater
+        };
 
-    {
-        let mut system =
-            repeater_with_site(c, club, "LA5GR", r"Skien, Vealøs", Some("JO49uf")).await?;
-        system.status = "QRV".to_string();
-        system.description = Some(
-            r"Type: FM-repeater
-Kommentar: Linket til LA3NRR, X-bandlink i Notodden"
-                .to_string(),
-        );
-        let system = dao::repeater_system::update(c, system).await?;
-        narrow_fm(
-            c,
-            &system,
-            label_for_frequency(145_650_000),
-            145_650_000,
-            -600_000,
-            Some(74.4),
-        )
-        .await?;
-    }
+        let service = row
+            .get("service")
+            .map(|value| value.trim())
+            .filter(|value| !value.is_empty());
+        let tx_frequency = row
+            .get("tx")
+            .map(|value| value.trim())
+            .filter(|value| !value.is_empty())
+            .and_then(|value| value.parse::<i64>().ok());
+        let offset = row
+            .get("offset")
+            .map(|value| value.trim())
+            .filter(|value| !value.is_empty())
+            .and_then(|value| value.parse::<i64>().ok());
+        let ctcss = row
+            .get("ctcss_tx")
+            .map(|value| value.trim())
+            .filter(|value| !value.is_empty())
+            .and_then(|value| value.parse::<f32>().ok())
+            .or_else(|| {
+                row.get("ctcss_rx")
+                    .map(|value| value.trim())
+                    .filter(|value| !value.is_empty())
+                    .and_then(|value| value.parse::<f32>().ok())
+            });
+        let dmr_id = row
+            .get("dmr_id")
+            .map(|value| value.trim())
+            .filter(|value| !value.is_empty())
+            .and_then(|value| value.parse::<i64>().ok());
 
-    {
-        let mut system =
-            repeater_with_site(c, club, "LA5ER", r"Eirefjell, Tokke", Some("JO49bl")).await?;
-        system.status = "QRV".to_string();
-        system.description = Some(
-            r#"Type: FM-repeater
-Kommentar: Planlagt linking til "Fylkesnett" i Vestfold og Telemark"#
-                .to_string(),
-        );
-        let system = dao::repeater_system::update(c, system).await?;
-        narrow_fm(
-            c,
-            &system,
-            label_for_frequency(145_712_500),
-            145_712_500,
-            -600_000,
-            Some(74.4),
-        )
-        .await?;
-    }
-
-    {
-        let mut system =
-            repeater_with_site(c, club, "LA5SR", r"Sandefjord, Mokollen", Some("JO59cd")).await?;
-        system.status = "QRV".to_string();
-        system.description = Some(
-            r"Type: FM-repeater
-Kommentar: "
-                .to_string(),
-        );
-        let system = dao::repeater_system::update(c, system).await?;
-        narrow_fm(
-            c,
-            &system,
-            label_for_frequency(145_750_000),
-            145_750_000,
-            -600_000,
-            Some(74.4),
-        )
-        .await?;
-    }
-
-    {
-        let mut system =
-            repeater_with_site(c, club, "LA3NRR", r"Notodden, Sem", Some("JO49on")).await?;
-        system.status = "QRV".to_string();
-        system.description = Some(
-            r"Type: FM-repeater
-Kommentar: Lokal aksess til Notodden for LA5GR"
-                .to_string(),
-        );
-        let system = dao::repeater_system::update(c, system).await?;
-        narrow_fm(
-            c,
-            &system,
-            label_for_frequency(434_825_000),
-            434_825_000,
-            -2_000_000,
-            Some(74.4),
-        )
-        .await?;
-    }
-
-    {
-        let mut system =
-            repeater_with_site(c, club, "LD3GL", r"Skien, Vealøs", Some("JO49uf")).await?;
-        system.status = "QRV".to_string();
-        system.description = Some(
-            r"Type: DMR-repeater
-Kommentar: "
-                .to_string(),
-        );
-        let system = dao::repeater_system::update(c, system).await?;
-        let port = create_port(
-            c,
-            system.id,
-            label_for_frequency(434_512_500),
-            434_512_500,
-            432_512_500,
-        )
-        .await?;
-        dmr_service_on_port(c, system.id, port.id, Some(242701)).await?;
-    }
-
-    {
-        let mut system =
-            repeater_with_site(c, club, "LD3ST", r"Tønsberg, Frodeåsen", Some("JO59eg")).await?;
-        system.status = "QRV".to_string();
-        system.description = Some(
-            r"Type: DMR-repeater
-Kommentar: Ex. LA3KRR"
-                .to_string(),
-        );
-        let system = dao::repeater_system::update(c, system).await?;
-        let port = create_port(
-            c,
-            system.id,
-            label_for_frequency(434_550_000),
-            434_550_000,
-            432_550_000,
-        )
-        .await?;
-        dmr_service_on_port(c, system.id, port.id, Some(242801)).await?;
-    }
-
-    {
-        let mut system = repeater_with_site(c, club, "LD3TD", r"Tønsberg", Some("JO59de")).await?;
-        system.status = "QRV".to_string();
-        system.description = Some(
-            r"Type: D-Star repeater
-Kommentar: Normalt linket til XRF404B"
-                .to_string(),
-        );
-        let system = dao::repeater_system::update(c, system).await?;
-        let port = create_port(
-            c,
-            system.id,
-            label_for_frequency(434_562_500),
-            434_562_500,
-            432_562_500,
-        )
-        .await?;
-        dstar_service_on_port(c, system.id, port.id).await?;
-    }
-
-    {
-        let mut system =
-            repeater_with_site(c, club, "LA3DRR", r"Vealøs, Skien", Some("JO49uf")).await?;
-        system.status = "QRV".to_string();
-        system.description = Some(
-            r#"Type: FM-repeaterlink
-Kommentar: Planlagt linking til "Fylkesnett" i Vestfold og Telemark"#
-                .to_string(),
-        );
-        let system = dao::repeater_system::update(c, system).await?;
-        narrow_fm(
-            c,
-            &system,
-            label_for_frequency(434_612_500),
-            434_612_500,
-            -2_000_000,
-            Some(74.4),
-        )
-        .await?;
-    }
-
-    {
-        let mut system =
-            repeater_with_site(c, club, "LA3VRR", r"Skien, Vealøs", Some("JO59uf")).await?;
-        system.status = "QRV".to_string();
-        system.description = Some(
-            r"Type: FM&C4FM-repeater
-Kommentar: "
-                .to_string(),
-        );
-        let system = dao::repeater_system::update(c, system).await?;
-        let port = narrow_fm(
-            c,
-            &system,
-            label_for_frequency(434_587_500),
-            434_587_500,
-            -2_000_000,
-            Some(74.4),
-        )
-        .await?;
-        c4fm_service_on_port(c, system.id, port.id).await?;
-    }
-
-    {
-        let mut system =
-            repeater_with_site(c, club, "LA6HR", r"Holmestrand, Hvittingen", Some("JO59cn"))
-                .await?;
-        system.status = "QRV".to_string();
-        system.description = Some(
-            r"Type: FM&DMR-repeater
-Kommentar: "
-                .to_string(),
-        );
-        let system = dao::repeater_system::update(c, system).await?;
-        let port = narrow_fm(
-            c,
-            &system,
-            label_for_frequency(434_650_000),
-            434_650_000,
-            -2_000_000,
-            Some(74.4),
-        )
-        .await?;
-        dmr_service_on_port(c, system.id, port.id, Some(242803)).await?;
-    }
-
-    {
-        let mut system =
-            repeater_with_site(c, club, "LA3JRR", r"Kvelde, Jordstøyp", Some("JO49xe")).await?;
-        system.status = "QRV".to_string();
-        system.description = Some(
-            r"Type: FM-repeater
-Kommentar: "
-                .to_string(),
-        );
-        let system = dao::repeater_system::update(c, system).await?;
-        narrow_fm(
-            c,
-            &system,
-            label_for_frequency(434_675_000),
-            434_675_000,
-            -2_000_000,
-            Some(74.4),
-        )
-        .await?;
-    }
-
-    {
-        let mut system = repeater_with_site(
-            c,
-            club,
-            "LA7SR",
-            r"Sandefjord, Kjerringberget",
-            Some("JO59ca"),
-        )
-        .await?;
-        system.status = "QRV".to_string();
-        system.description = Some(
-            r"Type: FM-repeater
-Kommentar: "
-                .to_string(),
-        );
-        let system = dao::repeater_system::update(c, system).await?;
-        narrow_fm(
-            c,
-            &system,
-            label_for_frequency(434_800_000),
-            434_800_000,
-            -2_000_000,
-            Some(74.4),
-        )
-        .await?;
-    }
-
-    {
-        let mut system =
-            repeater_with_site(c, club, "LA6YR", r"Kragerø, Storkollen", Some("JO48qu")).await?;
-        system.status = "QRV".to_string();
-        system.description = Some(
-            r"Type: FM-repeater
-Kommentar: "
-                .to_string(),
-        );
-        let system = dao::repeater_system::update(c, system).await?;
-        narrow_fm(
-            c,
-            &system,
-            label_for_frequency(434_850_000),
-            434_850_000,
-            -2_000_000,
-            Some(74.4),
-        )
-        .await?;
-    }
-
-    {
-        let mut system =
-            repeater_with_site(c, club, "LA7LR", r"Lifjell, Bø", Some("JO49ml")).await?;
-        system.status = "Midl, QRT".to_string();
-        system.description = Some(
-            r"Type: FM-repeater
-Kommentar: "
-                .to_string(),
-        );
-        let system = dao::repeater_system::update(c, system).await?;
-        narrow_fm(
-            c,
-            &system,
-            label_for_frequency(434_925_000),
-            434_925_000,
-            -2_000_000,
-            Some(74.4),
-        )
-        .await?;
-    }
-
-    {
-        let mut system =
-            repeater_with_site(c, club, "LA9NR", r"Tønsberg, Frodeåsen", Some("JO59eg")).await?;
-        system.status = "QRV".to_string();
-        system.description = Some(
-            r"Type: FM-repeater
-Kommentar: "
-                .to_string(),
-        );
-        let system = dao::repeater_system::update(c, system).await?;
-        narrow_fm(
-            c,
-            &system,
-            label_for_frequency(434_950_000),
-            434_950_000,
-            -2_000_000,
-            Some(74.4),
-        )
-        .await?;
+        match service {
+            Some("FM_NARROW") => {
+                let (Some(tx_frequency), Some(offset)) = (tx_frequency, offset) else {
+                    info!(
+                        row = row_index,
+                        call_sign = call_sign,
+                        reason = "missing tx/offset",
+                        "Skipping repeater row"
+                    );
+                    continue;
+                };
+                let label = port_label
+                    .as_deref()
+                    .unwrap_or(label_for_frequency(tx_frequency));
+                narrow_fm(c, &repeater, label, tx_frequency, offset, ctcss).await?;
+            }
+            Some("APRS_IGATE") => {
+                let Some(tx_frequency) = tx_frequency else {
+                    info!(
+                        row = row_index,
+                        call_sign = call_sign,
+                        reason = "missing tx",
+                        "Skipping repeater row"
+                    );
+                    continue;
+                };
+                let label = port_label
+                    .as_deref()
+                    .unwrap_or(label_for_frequency(tx_frequency));
+                igate(c, &repeater, label, tx_frequency).await?;
+            }
+            Some("APRS_DIGIPEATER") => {
+                let Some(tx_frequency) = tx_frequency else {
+                    info!(
+                        row = row_index,
+                        call_sign = call_sign,
+                        reason = "missing tx",
+                        "Skipping repeater row"
+                    );
+                    continue;
+                };
+                let label = port_label
+                    .as_deref()
+                    .unwrap_or(label_for_frequency(tx_frequency));
+                digipeater(c, &repeater, label, tx_frequency).await?;
+            }
+            Some("DMR") => {
+                let (Some(tx_frequency), Some(offset)) = (tx_frequency, offset) else {
+                    info!(
+                        row = row_index,
+                        call_sign = call_sign,
+                        reason = "missing tx/offset",
+                        "Skipping repeater row"
+                    );
+                    continue;
+                };
+                let label = port_label
+                    .as_deref()
+                    .unwrap_or(label_for_frequency(tx_frequency));
+                let port =
+                    create_port(c, repeater.id, label, tx_frequency, tx_frequency + offset).await?;
+                dmr_service_on_port(c, repeater.id, port.id, dmr_id).await?;
+            }
+            Some("C4FM") => {
+                let (Some(tx_frequency), Some(offset)) = (tx_frequency, offset) else {
+                    info!(
+                        row = row_index,
+                        call_sign = call_sign,
+                        reason = "missing tx/offset",
+                        "Skipping repeater row"
+                    );
+                    continue;
+                };
+                let label = port_label
+                    .as_deref()
+                    .unwrap_or(label_for_frequency(tx_frequency));
+                let port =
+                    create_port(c, repeater.id, label, tx_frequency, tx_frequency + offset).await?;
+                c4fm_service_on_port(c, repeater.id, port.id).await?;
+            }
+            None => {
+                info!(
+                    row = row_index,
+                    call_sign = call_sign,
+                    reason = "missing service",
+                    "Skipping repeater row"
+                );
+            }
+            Some(service) => {
+                info!(
+                    row = row_index,
+                    call_sign = call_sign,
+                    service = service,
+                    reason = "unsupported service",
+                    "Skipping repeater row"
+                );
+            }
+        }
     }
 
     Ok(())

@@ -9,6 +9,9 @@ pub enum RepeaterAtlasError {
     #[error("database error")]
     Database(#[from] diesel::result::Error),
 
+    #[error("database error")]
+    DatabaseOther(#[source] diesel::result::Error, String),
+
     #[error("database pool error")]
     Pool(#[from] bb8::RunError<PoolError>),
 
@@ -43,6 +46,10 @@ impl IntoResponse for RepeaterAtlasError {
             }
             RepeaterAtlasError::Database(error) => {
                 warn!(error = ?error, "Database error");
+                Self::render_500().into_response()
+            }
+            RepeaterAtlasError::DatabaseOther(error, msg) => {
+                warn!(error = ?error, "Database error: {msg}");
                 Self::render_500().into_response()
             }
             RepeaterAtlasError::Pool(error) => {
