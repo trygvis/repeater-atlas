@@ -10,6 +10,21 @@
     {% block head %}{% endblock %}
   </head>
   <body>
+    <header class="container">
+      <nav>
+        <ul>
+          <li><strong>Repeater Atlas</strong></li>
+        </ul>
+        <ul>
+          {% if auth.logged_in %}
+            <li>Logged in as {{ auth.call_sign }}</li>
+            <li><a href="/logout">Log out</a></li>
+          {% else %}
+            <li><a href="/login">Log in</a></li>
+          {% endif %}
+        </ul>
+      </nav>
+    </header>
     <main class="container">
       {% block content %}{% endblock %}
     </main>

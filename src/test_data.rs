@@ -307,32 +307,29 @@ pub async fn generate(c: &mut AsyncPgConnection) -> QueryResult<()> {
     let club = &Some(club);
 
     {
-        let system =
-            repeater_with_site(c, club, "LA5OR", r"Tryvann, Oslo", Some("JO59ix")).await?;
+        let system = repeater_with_site(c, club, "LA5OR", r"Tryvann, Oslo", Some("JO59ix")).await?;
         narrow_fm(c, &system, "VHF", 145_600_000, -600_000, Some(123.0)).await?;
     }
 
     {
-        let system = repeater_with_site(c, club, "LA7OR", r"Brannfjell, Oslo", Some("JO59jv"))
-            .await?;
+        let system =
+            repeater_with_site(c, club, "LA7OR", r"Brannfjell, Oslo", Some("JO59jv")).await?;
         narrow_fm(c, &system, "UHF", 434_775_000, -2_000_000, Some(123.0)).await?;
     }
 
     {
-        let system = repeater_with_site(c, club, "LD1OA", r"Røverkollen, Oslo", Some("JO59kx"))
-            .await?;
+        let system =
+            repeater_with_site(c, club, "LD1OA", r"Røverkollen, Oslo", Some("JO59kx")).await?;
         narrow_fm(c, &system, "UHF", 434_887_500, -2_000_000, Some(123.0)).await?;
     }
 
     {
-        let system =
-            repeater_with_site(c, club, "LD1OT", r"Tryvann, Oslo", Some("JO59ix")).await?;
+        let system = repeater_with_site(c, club, "LD1OT", r"Tryvann, Oslo", Some("JO59ix")).await?;
         dstar(c, &system, "A", 1_297_100_000, -6_000_000).await?;
         dstar(c, &system, "B", 434_862_500, -2_000_000).await?;
     }
     {
-        let system = repeater_with_site(c, club, "LD1OS", r"Oslo sentrum", Some("JO59iv"))
-            .await?;
+        let system = repeater_with_site(c, club, "LD1OS", r"Oslo sentrum", Some("JO59iv")).await?;
         igate(c, &system, "A", 144_800_000).await?;
     }
 
@@ -348,8 +345,8 @@ pub async fn generate(c: &mut AsyncPgConnection) -> QueryResult<()> {
     let club = &Some(club);
 
     {
-        let mut system = repeater_with_site(c, club, "LA3XRR", r"Hvittingen", Some("JO59cn"))
-            .await?;
+        let mut system =
+            repeater_with_site(c, club, "LA3XRR", r"Hvittingen", Some("JO59cn")).await?;
         system.status = "QRV".to_string();
         system.description = Some(
             r#"Type: FM-crossbandlink
@@ -378,14 +375,8 @@ Kommentar: Linket til "Fylkesnett" Vestfold og Telemark"#
     }
 
     {
-        let mut system = repeater_with_site(
-            c,
-            club,
-            "LA3SRR",
-            r"Korpås (Brunlanes)",
-            Some("JO59xa"),
-        )
-        .await?;
+        let mut system =
+            repeater_with_site(c, club, "LA3SRR", r"Korpås (Brunlanes)", Some("JO59xa")).await?;
         system.status = "QRV".to_string();
         system.description = Some(
             r#"Type: FM-crossbandlink
@@ -590,14 +581,8 @@ Kommentar: "
     }
 
     {
-        let mut system = repeater_with_site(
-            c,
-            club,
-            "LD3ST",
-            r"Tønsberg, Frodeåsen",
-            Some("JO59eg"),
-        )
-        .await?;
+        let mut system =
+            repeater_with_site(c, club, "LD3ST", r"Tønsberg, Frodeåsen", Some("JO59eg")).await?;
         system.status = "QRV".to_string();
         system.description = Some(
             r"Type: DMR-repeater
@@ -617,8 +602,7 @@ Kommentar: Ex. LA3KRR"
     }
 
     {
-        let mut system =
-            repeater_with_site(c, club, "LD3TD", r"Tønsberg", Some("JO59de")).await?;
+        let mut system = repeater_with_site(c, club, "LD3TD", r"Tønsberg", Some("JO59de")).await?;
         system.status = "QRV".to_string();
         system.description = Some(
             r"Type: D-Star repeater
@@ -794,14 +778,8 @@ Kommentar: "
     }
 
     {
-        let mut system = repeater_with_site(
-            c,
-            club,
-            "LA9NR",
-            r"Tønsberg, Frodeåsen",
-            Some("JO59eg"),
-        )
-        .await?;
+        let mut system =
+            repeater_with_site(c, club, "LA9NR", r"Tønsberg, Frodeåsen", Some("JO59eg")).await?;
         system.status = "QRV".to_string();
         system.description = Some(
             r"Type: FM-repeater
@@ -820,5 +798,10 @@ Kommentar: "
         .await?;
     }
 
+    Ok(())
+}
+
+pub async fn generate_users(c: &mut AsyncPgConnection) -> QueryResult<()> {
+    crate::service::user::create_user(c, "LA8PV", "la8pv@example.org", "la8pv").await?;
     Ok(())
 }

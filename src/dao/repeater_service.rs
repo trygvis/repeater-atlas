@@ -1,8 +1,8 @@
 use diesel::deserialize::{self, FromSql};
 use diesel::pg::{Pg, PgValue};
+use diesel::prelude::*;
 use diesel::serialize::{self, IsNull, Output, ToSql};
 use diesel::{AsExpression, FromSqlRow};
-use diesel::prelude::*;
 use diesel_async::{AsyncPgConnection, RunQueryDsl};
 use std::io::Write;
 

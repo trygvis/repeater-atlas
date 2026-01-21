@@ -6,5 +6,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 
     repeater_atlas::test_data::generate(&mut c).await?;
 
+    repeater_atlas::test_data::generate_users(&mut c).await?;
+
     Ok(())
 }

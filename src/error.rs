@@ -15,6 +15,9 @@ pub enum RepeaterAtlasError {
     #[error("template error")]
     Template(#[from] askama::Error),
 
+    #[error("jwt error")]
+    Jwt(#[from] jsonwebtoken::errors::Error),
+
     #[error("not found")]
     NotFound,
 }
@@ -48,6 +51,10 @@ impl IntoResponse for RepeaterAtlasError {
             }
             RepeaterAtlasError::Template(error) => {
                 warn!(error = ?error, "Template error");
+                Self::render_500().into_response()
+            }
+            RepeaterAtlasError::Jwt(error) => {
+                warn!(error = ?error, "JWT error");
                 Self::render_500().into_response()
             }
         }

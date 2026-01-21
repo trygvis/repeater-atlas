@@ -1,12 +1,10 @@
-use std::net::SocketAddr;
-
 use axum::Router;
 use axum_extra::routing::RouterExt;
+use repeater_atlas::web::AppState;
+use repeater_atlas::web::{auth, index};
+use std::net::SocketAddr;
 use tower_http::services::ServeDir;
 use tracing_subscriber::EnvFilter;
-
-use repeater_atlas::web::index;
-use repeater_atlas::web::AppState;
 
 #[tokio::main]
 async fn main() {
@@ -18,13 +16,19 @@ async fn main() {
 
     let pool = repeater_atlas::init().await;
 
-    let state = AppState { pool };
+    let jwt_secret =
+        std::env::var("JWT_SECRET").unwrap_or_else(|_| uuid::Uuid::new_v4().to_string());
+
+    let state = AppState { pool, jwt_secret };
 
     let app = Router::new()
         .nest_service("/static", ServeDir::new("static"))
         .typed_get(index::home)
         .typed_get(index::repeaters)
         .typed_get(index::detail)
+        .typed_get(auth::login_form)
+        .typed_post(auth::login_submit)
+        .typed_get(auth::logout)
         .with_state(state);
 
     let addr: SocketAddr = std::env::var("BIND_ADDR")

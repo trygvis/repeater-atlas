@@ -1,10 +1,11 @@
-pub mod repeater_system;
-pub mod repeater_site;
 pub mod ham_club;
 pub mod repeater_port;
+pub mod repeater_service;
 pub mod repeater_service_aprs;
 pub mod repeater_service_c4fm;
-pub mod repeater_service;
 pub mod repeater_service_dmr;
-pub mod repeater_service_fm;
 pub mod repeater_service_dstar;
+pub mod repeater_service_fm;
+pub mod repeater_site;
+pub mod repeater_system;
+pub mod user;

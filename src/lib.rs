@@ -2,11 +2,13 @@ use diesel_async::AsyncPgConnection;
 use diesel_async::pooled_connection::AsyncDieselConnectionManager;
 use diesel_async::pooled_connection::bb8::Pool;
 
+pub mod auth;
 pub mod dao;
 pub mod error;
 pub mod schema;
-pub mod web;
+pub mod service;
 pub mod test_data;
+pub mod web;
 
 pub use error::RepeaterAtlasError;
 

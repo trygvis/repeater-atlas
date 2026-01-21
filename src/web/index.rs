@@ -1,11 +1,12 @@
+use super::AppState;
+use super::auth::auth_header;
+use crate::{RepeaterAtlasError, dao};
 use askama::Template;
 use axum::{extract::State, response::Html};
+use axum_extra::extract::cookie::CookieJar;
 use axum_extra::routing::TypedPath;
 use maidenhead::grid_to_longlat;
 use serde::{Deserialize, Serialize};
-
-use super::AppState;
-use crate::{dao, RepeaterAtlasError};
 
 #[derive(TypedPath)]
 #[typed_path("/")]
@@ -14,6 +15,7 @@ pub struct HomePath;
 #[derive(Template)]
 #[template(path = "pages/index.html")]
 struct HomeTemplate {
+    auth: super::AuthHeader,
     repeater_data: Vec<MapRepeater>,
 }
 
@@ -24,6 +26,7 @@ pub struct RepeatersPath;
 #[derive(Template)]
 #[template(path = "pages/repeaters.html")]
 struct RepeatersTemplate {
+    auth: super::AuthHeader,
     repeaters: Vec<RepeaterListItem>,
 }
 
@@ -87,6 +90,7 @@ fn resolve_site_fields(site: Option<dao::repeater_site::RepeaterSite>) -> Resolv
 
 pub async fn home(
     _: HomePath,
+    jar: CookieJar,
     State(state): State<AppState>,
 ) -> Result<Html<String>, RepeaterAtlasError> {
     let mut c = state.pool.get().await?;
@@ -95,9 +99,7 @@ pub async fn home(
 
     for repeater in repeaters {
         let dao::repeater_system::RepeaterSystem {
-            call_sign,
-            site_id,
-            ..
+            call_sign, site_id, ..
         } = repeater;
 
         let site = match site_id {
@@ -115,7 +117,9 @@ pub async fn home(
         }
     }
 
+    let auth = auth_header(&jar, &state);
     let template = HomeTemplate {
+        auth,
         repeater_data: map_repeaters,
     };
     let body = template.render()?;
@@ -125,6 +129,7 @@ pub async fn home(
 
 pub async fn repeaters(
     _: RepeatersPath,
+    jar: CookieJar,
     State(state): State<AppState>,
 ) -> Result<Html<String>, RepeaterAtlasError> {
     let mut c = state.pool.get().await?;
@@ -156,7 +161,11 @@ pub async fn repeaters(
         });
     }
 
-    let template = RepeatersTemplate { repeaters: items };
+    let auth = auth_header(&jar, &state);
+    let template = RepeatersTemplate {
+        auth,
+        repeaters: items,
+    };
     let body = template.render()?;
 
     Ok(Html(body))
@@ -171,6 +180,7 @@ pub struct RepeaterDetailPath {
 #[derive(Template)]
 #[template(path = "pages/repeater_detail.html")]
 struct DetailTemplate {
+    auth: super::AuthHeader,
     repeater: dao::repeater_system::RepeaterSystem,
     ports: Vec<dao::repeater_port::RepeaterPort>,
     status: String,
@@ -181,6 +191,7 @@ struct DetailTemplate {
 
 pub async fn detail(
     RepeaterDetailPath { call_sign }: RepeaterDetailPath,
+    jar: CookieJar,
     State(state): State<AppState>,
 ) -> Result<Html<String>, RepeaterAtlasError> {
     let mut c = state.pool.get().await?;
@@ -192,14 +203,19 @@ pub async fn detail(
 
     let ports = dao::repeater_port::select_by_repeater_id(&mut c, repeater.id).await?;
     let status = repeater.status.clone();
-    let description = repeater.description.clone().unwrap_or_else(|| "-".to_string());
+    let description = repeater
+        .description
+        .clone()
+        .unwrap_or_else(|| "-".to_string());
     let site = match repeater.site_id {
         Some(site_id) => Some(dao::repeater_site::get(&mut c, site_id).await?),
         None => None,
     };
     let resolved = resolve_site_fields(site);
 
+    let auth = auth_header(&jar, &state);
     let template = DetailTemplate {
+        auth,
         repeater,
         ports,
         status,

@@ -1,8 +1,8 @@
 use diesel::deserialize::{self, FromSql};
 use diesel::pg::{Pg, PgValue};
+use diesel::prelude::*;
 use diesel::serialize::{self, IsNull, Output, ToSql};
 use diesel::{AsExpression, FromSqlRow};
-use diesel::prelude::*;
 use diesel_async::{AsyncPgConnection, RunQueryDsl};
 use std::io::Write;
 
@@ -80,10 +80,7 @@ pub struct NewRepeaterServiceFm {
     pub tx_dcs_code: Option<i32>,
 }
 
-pub async fn insert(
-    c: &mut AsyncPgConnection,
-    new_fm: NewRepeaterServiceFm,
-) -> QueryResult<usize> {
+pub async fn insert(c: &mut AsyncPgConnection, new_fm: NewRepeaterServiceFm) -> QueryResult<usize> {
     use crate::schema::repeater_service_fm::dsl as f;
 
     diesel::insert_into(f::repeater_service_fm)

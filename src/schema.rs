@@ -27,6 +27,17 @@ pub mod sql_types {
 }
 
 diesel::table! {
+    app_user (id) {
+        id -> Int8,
+        call_sign -> Text,
+        email -> Text,
+        password_hash -> Text,
+        created_at -> Timestamptz,
+        updated_at -> Timestamptz,
+    }
+}
+
+diesel::table! {
     ham_club (id) {
         id -> Int8,
         name -> Text,
@@ -179,6 +190,7 @@ diesel::joinable!(repeater_system -> ham_club (ham_club_id));
 diesel::joinable!(repeater_system -> repeater_site (site_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
+    app_user,
     ham_club,
     repeater_port,
     repeater_service,

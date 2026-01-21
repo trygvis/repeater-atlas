@@ -1,0 +1,26 @@
+{% extends "layouts/main.html" %}
+
+{% block title %}Log in{% endblock %}
+
+{% block content %}
+  <h1>Log in</h1>
+  {% if error.is_some() %}
+    <article class="pico-background-red-100">
+      <strong>{{ error.as_ref().unwrap() }}</strong>
+    </article>
+  {% endif %}
+  <form method="post" action="/login">
+    <label for="call_sign">Call sign</label>
+    <input
+      id="call_sign"
+      name="call_sign"
+      type="text"
+      autocomplete="username"
+      value="{{ call_sign }}"
+      required
+    >
+    <label for="password">Password</label>
+    <input id="password" name="password" type="password" autocomplete="current-password" required>
+    <button type="submit">Log in</button>
+  </form>
+{% endblock %}

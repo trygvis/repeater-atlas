@@ -14,12 +14,7 @@ pub struct NewRepeaterPort {
 }
 
 impl NewRepeaterPort {
-    pub fn new(
-        repeater_id: i64,
-        label: impl Into<String>,
-        rx_hz: i64,
-        tx_hz: i64,
-    ) -> Self {
+    pub fn new(repeater_id: i64, label: impl Into<String>, rx_hz: i64, tx_hz: i64) -> Self {
         Self {
             repeater_id,
             label: label.into(),
@@ -30,7 +25,10 @@ impl NewRepeaterPort {
     }
 }
 
-pub async fn insert(c: &mut AsyncPgConnection, new_port: NewRepeaterPort) -> QueryResult<RepeaterPort> {
+pub async fn insert(
+    c: &mut AsyncPgConnection,
+    new_port: NewRepeaterPort,
+) -> QueryResult<RepeaterPort> {
     use crate::schema::repeater_port::dsl as p;
 
     diesel::insert_into(p::repeater_port)
