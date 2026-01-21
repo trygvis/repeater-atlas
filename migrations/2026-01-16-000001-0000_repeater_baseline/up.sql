@@ -1,15 +1,5 @@
--- Your SQL goes here
--- Redo repeater schema.
--- Data migration is intentionally skipped (DB is expected to be empty).
-
--- Legacy tables (baseline schema)
-DROP TABLE repeater_change_log;
-DROP TABLE repeater;
-DROP TABLE ham_operator;
-
--- New schema
-
-CREATE TABLE repeater_site (
+CREATE TABLE repeater_site
+(
     id          BIGSERIAL PRIMARY KEY,
     name        TEXT,
     address     TEXT,
@@ -21,22 +11,24 @@ CREATE TABLE repeater_site (
     region      TEXT
 );
 
-CREATE TABLE repeater_system (
+CREATE TABLE repeater_system
+(
     id          BIGSERIAL PRIMARY KEY,
     ham_club_id BIGINT REFERENCES ham_club (id),
-    call_sign   TEXT NOT NULL UNIQUE,
+    call_sign   TEXT        NOT NULL UNIQUE,
     name        TEXT,
     description TEXT,
     site_id     BIGINT REFERENCES repeater_site (id),
-    status      TEXT NOT NULL DEFAULT 'active',
+    status      TEXT        NOT NULL DEFAULT 'active',
     created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE TABLE repeater_port (
+CREATE TABLE repeater_port
+(
     id          BIGSERIAL PRIMARY KEY,
     repeater_id BIGINT NOT NULL REFERENCES repeater_system (id) ON DELETE CASCADE,
-    label       TEXT NOT NULL,
+    label       TEXT   NOT NULL,
     rx_hz       BIGINT NOT NULL,
     tx_hz       BIGINT NOT NULL,
     note        TEXT,
@@ -44,7 +36,7 @@ CREATE TABLE repeater_port (
     UNIQUE (repeater_id, label)
 );
 
-CREATE TYPE repeater_service_kind AS ENUM (
+CREATE TYPE REPEATER_SERVICE_KIND AS ENUM (
     'fm',
     'am',
     'ssb',
@@ -52,14 +44,15 @@ CREATE TYPE repeater_service_kind AS ENUM (
     'dmr',
     'c4fm',
     'aprs'
-);
+    );
 
-CREATE TABLE repeater_service (
+CREATE TABLE repeater_service
+(
     id          BIGSERIAL PRIMARY KEY,
-    repeater_id BIGINT NOT NULL REFERENCES repeater_system (id) ON DELETE CASCADE,
-    port_id     BIGINT REFERENCES repeater_port (id) ON DELETE SET NULL,
-    kind        repeater_service_kind NOT NULL,
-    enabled     BOOLEAN NOT NULL DEFAULT TRUE
+    repeater_id BIGINT                NOT NULL REFERENCES repeater_system (id) ON DELETE CASCADE,
+    port_id     BIGINT                REFERENCES repeater_port (id) ON DELETE SET NULL,
+    kind        REPEATER_SERVICE_KIND NOT NULL,
+    enabled     BOOLEAN               NOT NULL DEFAULT TRUE
 );
 
 CREATE UNIQUE INDEX repeater_service_unique_port_kind
@@ -70,65 +63,72 @@ CREATE UNIQUE INDEX repeater_service_unique_system_kind_when_no_port
     ON repeater_service (repeater_id, kind)
     WHERE port_id IS NULL;
 
-CREATE TYPE fm_bandwidth AS ENUM ('narrow', 'wide');
-CREATE TYPE tone_kind AS ENUM ('none', 'ctcss', 'dcs');
+CREATE TYPE FM_BANDWIDTH AS ENUM ('narrow', 'wide');
+CREATE TYPE TONE_KIND AS ENUM ('none', 'ctcss', 'dcs');
 
-CREATE TABLE repeater_service_fm (
+CREATE TABLE repeater_service_fm
+(
     service_id       BIGINT PRIMARY KEY REFERENCES repeater_service (id) ON DELETE CASCADE,
-    bandwidth        fm_bandwidth NOT NULL,
+    bandwidth        FM_BANDWIDTH NOT NULL,
 
-    access_tone_kind tone_kind NOT NULL DEFAULT 'none',
+    access_tone_kind TONE_KIND    NOT NULL DEFAULT 'none',
     access_ctcss_hz  REAL,
     access_dcs_code  INTEGER,
 
-    tx_tone_kind     tone_kind NOT NULL DEFAULT 'none',
+    tx_tone_kind     TONE_KIND    NOT NULL DEFAULT 'none',
     tx_ctcss_hz      REAL,
     tx_dcs_code      INTEGER
 );
 
-CREATE TABLE repeater_service_dmr (
+CREATE TABLE repeater_service_dmr
+(
     service_id      BIGINT PRIMARY KEY REFERENCES repeater_service (id) ON DELETE CASCADE,
     color_code      SMALLINT,
     dmr_repeater_id BIGINT,
     network         TEXT
 );
 
-CREATE TABLE repeater_service_dmr_talkgroup (
-    id        BIGSERIAL PRIMARY KEY,
-    service_id BIGINT NOT NULL REFERENCES repeater_service_dmr (service_id) ON DELETE CASCADE,
-    time_slot SMALLINT NOT NULL,
-    talkgroup INTEGER NOT NULL,
-    name      TEXT,
+CREATE TABLE repeater_service_dmr_talkgroup
+(
+    id         BIGSERIAL PRIMARY KEY,
+    service_id BIGINT   NOT NULL REFERENCES repeater_service_dmr (service_id) ON DELETE CASCADE,
+    time_slot  SMALLINT NOT NULL,
+    talkgroup  INTEGER  NOT NULL,
+    name       TEXT,
 
     UNIQUE (service_id, time_slot, talkgroup)
 );
 
-CREATE TYPE dstar_mode AS ENUM ('dv', 'dd');
+CREATE TYPE DSTAR_MODE AS ENUM ('dv', 'dd');
 
-CREATE TABLE repeater_service_dstar (
+CREATE TABLE repeater_service_dstar
+(
     service_id        BIGINT PRIMARY KEY REFERENCES repeater_service (id) ON DELETE CASCADE,
-    mode              dstar_mode NOT NULL DEFAULT 'dv',
+    mode              DSTAR_MODE NOT NULL DEFAULT 'dv',
     gateway_call_sign TEXT,
     reflector         TEXT
 );
 
-CREATE TABLE repeater_service_c4fm (
+CREATE TABLE repeater_service_c4fm
+(
     service_id      BIGINT PRIMARY KEY REFERENCES repeater_service (id) ON DELETE CASCADE,
     wires_x_node_id INTEGER,
     room            TEXT
 );
 
-CREATE TYPE aprs_mode AS ENUM ('igate', 'digipeater');
+CREATE TYPE APRS_MODE AS ENUM ('igate', 'digipeater');
 
-CREATE TABLE repeater_service_aprs (
+CREATE TABLE repeater_service_aprs
+(
     service_id BIGINT PRIMARY KEY REFERENCES repeater_service (id) ON DELETE CASCADE,
-    mode       aprs_mode NOT NULL,
+    mode       APRS_MODE NOT NULL,
     path       TEXT
 );
 
-CREATE TYPE ssb_sideband AS ENUM ('lsb', 'usb');
+CREATE TYPE SSB_SIDEBAND AS ENUM ('lsb', 'usb');
 
-CREATE TABLE repeater_service_ssb (
+CREATE TABLE repeater_service_ssb
+(
     service_id BIGINT PRIMARY KEY REFERENCES repeater_service (id) ON DELETE CASCADE,
-    sideband   ssb_sideband
+    sideband   SSB_SIDEBAND
 );
