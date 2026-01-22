@@ -20,6 +20,7 @@
 
 {% block scripts %}
   <script src="/static/vendor/leaflet/leaflet.js"></script>
+  <script src="/static/vendor/leaflet.markercluster/leaflet.markercluster.js"></script>
   <script>
     const data = {{ repeater_data | json | safe }};
     const host = document.getElementById("repeater-map-host");
@@ -28,6 +29,14 @@
     stylesheet.rel = "stylesheet";
     stylesheet.href = "/static/vendor/leaflet/leaflet.css";
     root.append(stylesheet);
+    const clusterStylesheet = document.createElement("link");
+    clusterStylesheet.rel = "stylesheet";
+    clusterStylesheet.href = "/static/vendor/leaflet.markercluster/MarkerCluster.css";
+    root.append(clusterStylesheet);
+    const clusterDefaultStylesheet = document.createElement("link");
+    clusterDefaultStylesheet.rel = "stylesheet";
+    clusterDefaultStylesheet.href = "/static/vendor/leaflet.markercluster/MarkerCluster.Default.css";
+    root.append(clusterDefaultStylesheet);
     const style = document.createElement("style");
     style.textContent = "#repeater-map { height: 100%; width: 100%; }";
     root.append(style);
@@ -49,12 +58,15 @@
     if (data.length === 0) {
       map.setView([64.4, 11.7], 4);
     } else {
+      const clusterGroup = L.markerClusterGroup();
       const bounds = [];
       data.forEach((item) => {
-        const marker = L.marker([item.latitude, item.longitude]).addTo(map);
+        const marker = L.marker([item.latitude, item.longitude]);
         marker.bindPopup(item.call_sign);
         bounds.push([item.latitude, item.longitude]);
+        clusterGroup.addLayer(marker);
       });
+      clusterGroup.addTo(map);
       map.fitBounds(bounds, { padding: [20, 20] });
     }
 
