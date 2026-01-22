@@ -10,8 +10,6 @@
 {% endblock %}
 
 {% block content %}
-  <h1>Hello world</h1>
-  <p>Repeater Atlas is running.</p>
   <section>
     <h2>Repeater map</h2>
     <div id="repeater-map-host"></div>
@@ -19,46 +17,24 @@
 {% endblock %}
 
 {% block scripts %}
+  <script src="/static/repeater-atlas.js"></script>
   <script src="/static/vendor/leaflet/leaflet.js"></script>
   <script src="/static/vendor/leaflet.markercluster/leaflet.markercluster.js"></script>
   <script>
     const data = {{ repeater_data | json | safe }};
-    const host = document.getElementById("repeater-map-host");
-    const root = host.attachShadow({ mode: "open" });
-    const stylesheet = document.createElement("link");
-    stylesheet.rel = "stylesheet";
-    stylesheet.href = "/static/vendor/leaflet/leaflet.css";
-    root.append(stylesheet);
-    const clusterStylesheet = document.createElement("link");
-    clusterStylesheet.rel = "stylesheet";
-    clusterStylesheet.href = "/static/vendor/leaflet.markercluster/MarkerCluster.css";
-    root.append(clusterStylesheet);
-    const clusterDefaultStylesheet = document.createElement("link");
-    clusterDefaultStylesheet.rel = "stylesheet";
-    clusterDefaultStylesheet.href = "/static/vendor/leaflet.markercluster/MarkerCluster.Default.css";
-    root.append(clusterDefaultStylesheet);
-    const style = document.createElement("style");
-    style.textContent = "#repeater-map { height: 100%; width: 100%; }";
-    root.append(style);
-    const mapElement = document.createElement("div");
-    mapElement.id = "repeater-map";
-    root.append(mapElement);
-    const leafletBase = "/static/vendor/leaflet/images/";
-    L.Icon.Default.mergeOptions({
-      iconUrl: `${leafletBase}marker-icon.png`,
-      iconRetinaUrl: `${leafletBase}marker-icon-2x.png`,
-      shadowUrl: `${leafletBase}marker-shadow.png`,
-    });
-    const map = L.map(mapElement);
+  </script>
+  <script>
+    initializeRepeaterAtlas();
 
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-    }).addTo(map);
+    const map = buildLeafletMap(document.getElementById("repeater-map-host"));
 
     if (data.length === 0) {
       map.setView([64.4, 11.7], 4);
     } else {
-      const clusterGroup = L.markerClusterGroup();
+      const clusterGroup = L.markerClusterGroup({
+        showCoverageOnHover: false,
+        maxClusterRadius: 10,
+      });
       const bounds = [];
       data.forEach((item) => {
         const marker = L.marker([item.latitude, item.longitude]);
@@ -67,9 +43,9 @@
         clusterGroup.addLayer(marker);
       });
       clusterGroup.addTo(map);
-      map.fitBounds(bounds, { padding: [20, 20] });
+      map.fitBounds(bounds, {padding: [20, 20]});
     }
 
     map.invalidateSize();
-  </script>
+</script>
 {% endblock %}
