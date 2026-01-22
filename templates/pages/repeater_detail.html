@@ -2,62 +2,135 @@
 
 {% block title %}Repeater {{ repeater.call_sign }}{% endblock %}
 
+{% block head %}
+  <style>
+    .repeater-detail-layout {
+      display: grid;
+      gap: 24px;
+      align-items: start;
+    }
+
+    @media (min-width: 900px) {
+      .repeater-detail-layout {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 360px);
+      }
+    }
+
+    #repeater-detail-map-host {
+      height: min(420px, 70vh);
+      width: 100%;
+      border-radius: 16px;
+      overflow: hidden;
+    }
+  </style>
+{% endblock %}
+
 {% block content %}
 <main class="container">
-  <hgroup>
-    <h1>{{ repeater.call_sign }}</h1>
-    {% if repeater.name.is_some() %}
-      <p>{{ repeater.name.as_ref().unwrap() }}</p>
+  <div class="repeater-detail-layout">
+    <div>
+      <hgroup>
+        <h1>{{ repeater.call_sign }}</h1>
+        {% if repeater.name.is_some() %}
+          <p>{{ repeater.name.as_ref().unwrap() }}</p>
+        {% endif %}
+      </hgroup>
+      <section>
+        <h2>Details</h2>
+        <dl>
+          <div>
+            <dt>Status</dt>
+            <dd>{{ status }}</dd>
+          </div>
+          <div>
+            <dt>Description</dt>
+            <dd>{{ description }}</dd>
+          </div>
+          <div>
+            <dt>Maidenhead locator</dt>
+            <dd>{{ maidenhead }}</dd>
+          </div>
+          <div>
+            <dt>Lat/Long</dt>
+            <dd>{{ location }}</dd>
+          </div>
+        </dl>
+      </section>
+      <section>
+        <h2>Ports</h2>
+        {% if ports.len() == 0 %}
+          <p>No ports defined.</p>
+        {% else %}
+          <figure>
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">Port</th>
+                  <th scope="col">TX</th>
+                  <th scope="col">RX</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for port in ports %}
+                  <tr>
+                    <td>{{ port.label }}</td>
+                    <td>{{ port.tx_hz }}</td>
+                    <td>{{ port.rx_hz }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </figure>
+        {% endif %}
+      </section>
+    </div>
+    {% if map_context.is_some() %}
+    <section>
+      <h2>Map</h2>
+      <div id="repeater-detail-map-host"></div>
+    </section>
     {% endif %}
-  </hgroup>
-  <section>
-    <h2>Details</h2>
-    <dl>
-      <div>
-        <dt>Status</dt>
-        <dd>{{ status }}</dd>
-      </div>
-      <div>
-        <dt>Description</dt>
-        <dd>{{ description }}</dd>
-      </div>
-      <div>
-        <dt>Maidenhead locator</dt>
-        <dd>{{ maidenhead }}</dd>
-      </div>
-      <div>
-        <dt>Lat/Long</dt>
-        <dd>{{ location }}</dd>
-      </div>
-    </dl>
-  </section>
-  <section>
-    <h2>Ports</h2>
-    {% if ports.len() == 0 %}
-      <p>No ports defined.</p>
-    {% else %}
-      <figure>
-        <table>
-          <thead>
-            <tr>
-              <th scope="col">Port</th>
-              <th scope="col">TX</th>
-              <th scope="col">RX</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for port in ports %}
-              <tr>
-                <td>{{ port.label }}</td>
-                <td>{{ port.tx_hz }}</td>
-                <td>{{ port.rx_hz }}</td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </figure>
-    {% endif %}
-  </section>
+  </div>
   <p><a href="/repeater">Back to list</a></p>
 </main>
+{% endblock %}
+
+{% block scripts %}
+  {% if map_context.is_some() %}
+    <script src="/static/repeater-atlas.js"></script>
+    <script src="/static/vendor/leaflet/leaflet.js"></script>
+    <script>
+      const mapContext = {{ map_context.as_ref().unwrap() | json | safe }};
+    </script>
+    <script>
+      initializeRepeaterAtlas();
+
+      const map = buildLeafletMap(document.getElementById("repeater-detail-map-host"));
+      const center = [mapContext.center.latitude, mapContext.center.longitude];
+      const bounds = [center];
+
+      mapContext.repeaters.forEach((item) => {
+        const marker = L.marker([item.latitude, item.longitude]);
+        marker.bindPopup(item.call_sign);
+        marker.addTo(map);
+        bounds.push([item.latitude, item.longitude]);
+      });
+
+      L.circle(center, {
+        radius: mapContext.radius_meters,
+        color: "#1f7ae0",
+        fillColor: "#1f7ae0",
+        fillOpacity: 0.08,
+        weight: 2,
+      }).addTo(map);
+
+      if (bounds.length > 1) {
+        map.fitBounds(bounds, {padding: [20, 20]});
+      } else {
+        map.setView(center, 10);
+      }
+
+      map.invalidateSize();
+    </script>
+  {% endif %}
 {% endblock %}
