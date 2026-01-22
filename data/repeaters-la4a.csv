@@ -1,0 +1,15 @@
+call_sign,status,address,maidenhead,owner,service,tx,offset,ctcss_tx,ctcss_rx,dmr_id,agl,asl,antenna_gain_dbd,power_w
+LD4AA,,"Tveitheia, Åmli",JO48GS,LA4A,APRS_DIGIPEATER,144800000,,,,,,,,NULL
+LD4AT,,"Vardåsen, Tromøy",JO48JK,LA4A,APRS_DIGIPEATER,144800000,,,,,,,,NULL
+LD4LF,,"Justøy, Lillesand",JO48EE,LA4A,APRS_DIGIPEATER,144800000,,,,,,,,NULL
+LD4SH,,"Viddefjell, Risør",JO48OR,LA4A,APRS_DIGIPEATER,144800000,,,,,,,,NULL
+LD4VS,,"Slettåsheia, Vegårshei",JO48JQ,LA4A,APRS_DIGIPEATER,144800000,,,,,,,,NULL
+LD4GS,,Stormyrheia (Hørte),JO48FK,LA4A,APRS_DIGIPEATER,144800000,,,,,,,,NULL
+LD4AI,,"Fjæreheia, Grimstad",JO48GJ,LA4A,APRS_DIGIPEATER,144800000,,,,,,,,
+LA5AR,,"Vaktårnheia, Arendal",JO48JL,LA4A,FM_NARROW,145700000,-600000,,,,,,,
+LA6SR,,"Heiberg, Søndeled",JO48NS,LA4A,FM_NARROW,145775000,-600000,,,,,,,
+LA4FRR,,Stormyrheia (HØRTE),JO48FK,LA4A,FM_NARROW,145725000,-600000,,,,,,,
+LA4A_,,"Fjæreheia, Grimstad",JO48GJ,LA4A,FM_NARROW,434700000,-2000000,,,,,,,
+LA4A_,,"Fjæreheia, Grimstad",JO48GJ,LA4A,FM_NARROW,145775000,-600000,,,,,,,
+LA4A_,,"Fjæreheia, Grimstad",JO48GJ,LA4A,DMR,434700000,-2000000,,,,,,,
+LA4A_,,"Fjæreheia, Grimstad",JO48GJ,LA4A,C4FM,434700000,-2000000,,,,,,,

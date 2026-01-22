@@ -9,14 +9,12 @@ use crate::dao::repeater_service_fm::{FmBandwidth, NewRepeaterServiceFm, ToneKin
 use crate::dao::repeater_site::NewRepeaterSite;
 use crate::dao::repeater_system::{NewRepeaterSystem, RepeaterSystem};
 use crate::{RepeaterAtlasError, dao};
+use csv::StringRecord;
 use diesel::QueryResult;
 use diesel_async::AsyncPgConnection;
 use std::collections::HashMap;
+use std::path::{Path, PathBuf};
 use tracing::info;
-
-async fn ham_club(c: &mut AsyncPgConnection, call_sign: impl Into<String>) -> QueryResult<HamClub> {
-    dao::ham_club::insert(c, NewHamClub::new(call_sign.into())).await
-}
 
 async fn repeater_with_site(
     c: &mut AsyncPgConnection,
@@ -328,31 +326,132 @@ fn split_call_sign(input: &str) -> (String, Option<String>) {
     }
 }
 
-pub async fn generate(c: &mut AsyncPgConnection) -> Result<(), RepeaterAtlasError> {
-    let mut la4o = ham_club(c, "LA4O").await?;
-    la4o.web_url = Some("https://la4o.no/oversikt-og-status".to_string());
-    let la4o = dao::ham_club::update(c, la4o).await?;
+fn normalize_call_sign(input: &str) -> String {
+    input.trim().to_ascii_uppercase()
+}
 
-    let mut la1t = ham_club(c, "LA1T").await?;
-    la1t.web_url = Some("https://la1t.no/repeatere/".to_string());
-    let la1t = dao::ham_club::update(c, la1t).await?;
-
-    let mut clubs = HashMap::new();
-    clubs.insert(la4o.name.clone(), la4o);
-    clubs.insert(la1t.name.clone(), la1t);
-
-    let mut repeaters = HashMap::<String, RepeaterSystem>::new();
-    let to_error = |error| diesel::result::Error::SerializationError(Box::new(error));
+fn load_csv(path: &Path) -> Result<(StringRecord, Vec<StringRecord>), RepeaterAtlasError> {
     let mut reader = csv::ReaderBuilder::new()
         .trim(csv::Trim::All)
         .flexible(true)
-        .from_path("data/repeaters.tsv")
-        .map_err(to_error)?;
-    let headers = reader.headers().map_err(to_error)?.clone();
+        .from_path(path)?;
 
-    for (row_index, record) in reader.records().enumerate() {
+    let headers = reader.headers()?.clone();
+
+    let records: Result<Vec<StringRecord>, csv::Error> = reader.records().collect();
+
+    Ok((headers, records?))
+}
+
+pub async fn generate(c: &mut AsyncPgConnection) -> Result<(), RepeaterAtlasError> {
+    let clubs = load_ham_clubs(c, PathBuf::from("data/ham_clubs.csv")).await?;
+
+    let dir = Path::new("data").read_dir()?;
+    for d in dir {
+        let d = d?;
+        let name = d.file_name();
+        let name: &str = name.to_str().unwrap_or("");
+        if name.starts_with("repeaters-") {
+            load_repeaters(c, &clubs, d.path()).await?;
+        }
+    }
+
+    Ok(())
+}
+
+pub async fn load_ham_clubs(
+    c: &mut AsyncPgConnection,
+    path: PathBuf,
+) -> Result<HashMap<String, HamClub>, RepeaterAtlasError> {
+    let (headers, records) = load_csv(&path)?;
+    let mut clubs = HashMap::new();
+
+    for (row_index, record) in records.iter().enumerate() {
         let row_index = row_index + 2;
-        let record = record.map_err(to_error)?;
+        let mut row = HashMap::new();
+        for (header, value) in headers.iter().zip(record.iter()) {
+            row.insert(header.to_string(), value.to_string());
+        }
+
+        let call_sign_raw = match row
+            .get("call_sign")
+            .map(|value| value.trim())
+            .filter(|value| !value.is_empty())
+        {
+            Some(value) => value.to_string(),
+            None => {
+                info!(
+                    row = row_index,
+                    reason = "missing call_sign",
+                    "Skipping club row"
+                );
+                continue;
+            }
+        };
+        let call_sign = normalize_call_sign(&call_sign_raw);
+        if call_sign.is_empty() {
+            info!(
+                row = row_index,
+                reason = "empty call_sign",
+                "Skipping club row"
+            );
+            continue;
+        }
+
+        if clubs.contains_key(&call_sign) {
+            info!(
+                row = row_index,
+                call_sign = call_sign,
+                "Skipping duplicate club row"
+            );
+            continue;
+        }
+
+        let name = row
+            .get("name")
+            .map(|value| value.trim())
+            .filter(|value| !value.is_empty())
+            .map(|value| value.to_string());
+        let web_url = row
+            .get("web_url")
+            .map(|value| value.trim())
+            .filter(|value| !value.is_empty())
+            .map(|value| value.to_string());
+        let email = row
+            .get("email")
+            .map(|value| value.trim())
+            .filter(|value| !value.is_empty())
+            .map(|value| value.to_string());
+
+        let club = dao::ham_club::insert(
+            c,
+            NewHamClub {
+                name: call_sign.clone(),
+                description: name,
+                web_url,
+                email,
+            },
+        )
+        .await?;
+
+        clubs.insert(call_sign, club);
+    }
+
+    Ok(clubs)
+}
+
+pub async fn load_repeaters(
+    c: &mut AsyncPgConnection,
+    clubs: &HashMap<String, HamClub>,
+    path: PathBuf,
+) -> Result<(), RepeaterAtlasError> {
+    let mut imported = 0usize;
+    let mut repeaters = HashMap::<String, RepeaterSystem>::new();
+
+    let (headers, records) = load_csv(&path)?;
+
+    for (row_index, record) in records.iter().enumerate() {
+        let row_index = row_index + 2;
         let mut row = HashMap::new();
         for (header, value) in headers.iter().zip(record.iter()) {
             row.insert(header.to_string(), value.to_string());
@@ -379,7 +478,9 @@ pub async fn generate(c: &mut AsyncPgConnection) -> Result<(), RepeaterAtlasErro
             .get("owner")
             .map(|value| value.trim())
             .filter(|value| !value.is_empty());
-        let club = owner.and_then(|value| clubs.get(value)).cloned();
+        let club = owner
+            .map(normalize_call_sign)
+            .and_then(|value| clubs.get(&value).cloned());
 
         let repeater = if let Some(existing) = repeaters.get(&call_sign) {
             existing.clone()
@@ -413,16 +514,8 @@ pub async fn generate(c: &mut AsyncPgConnection) -> Result<(), RepeaterAtlasErro
             .get("service")
             .map(|value| value.trim())
             .filter(|value| !value.is_empty());
-        let tx_frequency = row
-            .get("tx")
-            .map(|value| value.trim())
-            .filter(|value| !value.is_empty())
-            .and_then(|value| value.parse::<i64>().ok());
-        let offset = row
-            .get("offset")
-            .map(|value| value.trim())
-            .filter(|value| !value.is_empty())
-            .and_then(|value| value.parse::<i64>().ok());
+        let tx_frequency = parse_tx_frequency(&row);
+        let offset = parse_offset(&row).or_else(|| tx_frequency.and_then(default_offset));
         let ctcss = row
             .get("ctcss_tx")
             .map(|value| value.trim())
@@ -455,6 +548,7 @@ pub async fn generate(c: &mut AsyncPgConnection) -> Result<(), RepeaterAtlasErro
                     .as_deref()
                     .unwrap_or(label_for_frequency(tx_frequency));
                 narrow_fm(c, &repeater, label, tx_frequency, offset, ctcss).await?;
+                imported += 1;
             }
             Some("APRS_IGATE") => {
                 let Some(tx_frequency) = tx_frequency else {
@@ -470,6 +564,7 @@ pub async fn generate(c: &mut AsyncPgConnection) -> Result<(), RepeaterAtlasErro
                     .as_deref()
                     .unwrap_or(label_for_frequency(tx_frequency));
                 igate(c, &repeater, label, tx_frequency).await?;
+                imported += 1;
             }
             Some("APRS_DIGIPEATER") => {
                 let Some(tx_frequency) = tx_frequency else {
@@ -485,6 +580,7 @@ pub async fn generate(c: &mut AsyncPgConnection) -> Result<(), RepeaterAtlasErro
                     .as_deref()
                     .unwrap_or(label_for_frequency(tx_frequency));
                 digipeater(c, &repeater, label, tx_frequency).await?;
+                imported += 1;
             }
             Some("DMR") => {
                 let (Some(tx_frequency), Some(offset)) = (tx_frequency, offset) else {
@@ -502,6 +598,7 @@ pub async fn generate(c: &mut AsyncPgConnection) -> Result<(), RepeaterAtlasErro
                 let port =
                     create_port(c, repeater.id, label, tx_frequency, tx_frequency + offset).await?;
                 dmr_service_on_port(c, repeater.id, port.id, dmr_id).await?;
+                imported += 1;
             }
             Some("C4FM") => {
                 let (Some(tx_frequency), Some(offset)) = (tx_frequency, offset) else {
@@ -519,6 +616,7 @@ pub async fn generate(c: &mut AsyncPgConnection) -> Result<(), RepeaterAtlasErro
                 let port =
                     create_port(c, repeater.id, label, tx_frequency, tx_frequency + offset).await?;
                 c4fm_service_on_port(c, repeater.id, port.id).await?;
+                imported += 1;
             }
             None => {
                 info!(
@@ -540,7 +638,47 @@ pub async fn generate(c: &mut AsyncPgConnection) -> Result<(), RepeaterAtlasErro
         }
     }
 
+    info!(
+        file = path.to_string_lossy().as_ref(),
+        imported = imported,
+        "Imported repeater data"
+    );
+
     Ok(())
+}
+
+fn parse_offset(row: &HashMap<String, String>) -> Option<i64> {
+    row.get("offset")
+        .map(|value| value.trim())
+        .filter(|value| !value.is_empty())
+        .and_then(|value| value.parse::<i64>().ok())
+}
+
+fn parse_tx_frequency(row: &HashMap<String, String>) -> Option<i64> {
+    let tx_hz = row
+        .get("tx")
+        .map(|value| value.trim())
+        .filter(|value| !value.is_empty())
+        .and_then(|value| value.parse::<i64>().ok());
+    if tx_hz.is_some() {
+        return tx_hz;
+    }
+
+    row.get("tx_mhz")
+        .map(|value| value.trim())
+        .filter(|value| !value.is_empty())
+        .and_then(|value| value.parse::<f64>().ok())
+        .map(|value| (value * 1_000_000.0).round() as i64)
+}
+
+fn default_offset(tx_hz: i64) -> Option<i64> {
+    if (144_000_000..148_000_000).contains(&tx_hz) {
+        Some(-600_000)
+    } else if (430_000_000..450_000_000).contains(&tx_hz) {
+        Some(-2_000_000)
+    } else {
+        None
+    }
 }
 
 pub async fn generate_users(c: &mut AsyncPgConnection) -> QueryResult<()> {

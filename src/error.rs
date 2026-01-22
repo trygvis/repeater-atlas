@@ -21,8 +21,17 @@ pub enum RepeaterAtlasError {
     #[error("jwt error")]
     Jwt(#[from] jsonwebtoken::errors::Error),
 
+    #[error("csv error")]
+    Csv(#[from] csv::Error),
+
     #[error("not found")]
     NotFound,
+
+    #[error("io error")]
+    Io(#[from] std::io::Error),
+
+    #[error("other error")]
+    Other(#[source] Box<dyn std::error::Error>, String),
 }
 
 impl RepeaterAtlasError {
@@ -62,6 +71,18 @@ impl IntoResponse for RepeaterAtlasError {
             }
             RepeaterAtlasError::Jwt(error) => {
                 warn!(error = ?error, "JWT error");
+                Self::render_500().into_response()
+            }
+            RepeaterAtlasError::Csv(error) => {
+                warn!(error = ?error, "Csv error");
+                Self::render_500().into_response()
+            }
+            RepeaterAtlasError::Io(error) => {
+                warn!(error = ?error, "IO error");
+                Self::render_500().into_response()
+            }
+            RepeaterAtlasError::Other(error, msg) => {
+                warn!(error = ?error, "Other error: {msg}");
                 Self::render_500().into_response()
             }
         }

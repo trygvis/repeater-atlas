@@ -108,8 +108,7 @@ fn distance_km(lat1: f64, lon1: f64, lat2: f64, lon2: f64) -> f64 {
     let lat1 = lat1.to_radians();
     let lat2 = lat2.to_radians();
 
-    let a = (dlat / 2.0).sin().powi(2)
-        + lat1.cos() * lat2.cos() * (dlon / 2.0).sin().powi(2);
+    let a = (dlat / 2.0).sin().powi(2) + lat1.cos() * lat2.cos() * (dlon / 2.0).sin().powi(2);
     let c = 2.0 * a.sqrt().atan2((1.0 - a).sqrt());
 
     earth_radius_km * c
@@ -240,42 +239,41 @@ pub async fn detail(
         None => None,
     };
     let resolved = resolve_site_fields(site);
-    let map_context = if let (Some(center_lat), Some(center_lon)) =
-        (resolved.latitude, resolved.longitude)
-    {
-        let all_repeaters = dao::repeater_system::select(&mut c).await?;
-        let mut nearby_repeaters = Vec::new();
+    let map_context =
+        if let (Some(center_lat), Some(center_lon)) = (resolved.latitude, resolved.longitude) {
+            let all_repeaters = dao::repeater_system::select(&mut c).await?;
+            let mut nearby_repeaters = Vec::new();
 
-        for candidate in all_repeaters {
-            let site = match candidate.site_id {
-                Some(site_id) => Some(dao::repeater_site::get(&mut c, site_id).await?),
-                None => None,
-            };
-            let candidate_resolved = resolve_site_fields(site);
-            if let (Some(lat), Some(lon)) =
-                (candidate_resolved.latitude, candidate_resolved.longitude)
-            {
-                if distance_km(center_lat, center_lon, lat, lon) <= 50.0 {
-                    nearby_repeaters.push(MapRepeater {
-                        call_sign: candidate.call_sign,
-                        latitude: lat,
-                        longitude: lon,
-                    });
+            for candidate in all_repeaters {
+                let site = match candidate.site_id {
+                    Some(site_id) => Some(dao::repeater_site::get(&mut c, site_id).await?),
+                    None => None,
+                };
+                let candidate_resolved = resolve_site_fields(site);
+                if let (Some(lat), Some(lon)) =
+                    (candidate_resolved.latitude, candidate_resolved.longitude)
+                {
+                    if distance_km(center_lat, center_lon, lat, lon) <= 50.0 {
+                        nearby_repeaters.push(MapRepeater {
+                            call_sign: candidate.call_sign,
+                            latitude: lat,
+                            longitude: lon,
+                        });
+                    }
                 }
             }
-        }
 
-        Some(MapContext {
-            center: MapPoint {
-                latitude: center_lat,
-                longitude: center_lon,
-            },
-            radius_meters: 50_000,
-            repeaters: nearby_repeaters,
-        })
-    } else {
-        None
-    };
+            Some(MapContext {
+                center: MapPoint {
+                    latitude: center_lat,
+                    longitude: center_lon,
+                },
+                radius_meters: 50_000,
+                repeaters: nearby_repeaters,
+            })
+        } else {
+            None
+        };
 
     let auth = auth_header(&jar, &state);
     let template = DetailTemplate {

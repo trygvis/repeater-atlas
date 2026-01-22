@@ -1,0 +1,14 @@
+call_sign,address,maidenhead,owner,asl,service,tx_mhz,ctcss_tx,ctcss_rx,dtmf_tone,url,KEY/info
+LD7TD,Vassfjellet,JP53fi,la2t,710,DMR,434.700,,,,https://www.la2t.no/repeatere/,DMR
+LA7RR,Gråkallen,JP53dk,la2t,520,FM_NARROW,145.700,123,123,1750,https://www.la2t.no/repeatere/,1750/123/A
+LD7TG,Gråkallen,JP53dk,la2t,520,APRS_IGATE,144.800,,,,https://www.la2t.no/repeatere/,APRS I-Gate
+LA8TR,Ruten,JP43ne,la2t,1041,FM_NARROW,145.750,85.4,85.4,1750,https://www.la2t.no/repeatere/,1750/85.4/*7
+LD7TR,Ruten,JP43ne,la2t,1041,APRS_IGATE,144.800,,,,https://www.la2t.no/repeatere/,APRS I-Gate
+LA8QR,Bringen,JP53nb,la2t,1040,FM_NARROW,145.7125,85.4,85.4,1750,https://www.la2t.no/repeatere/,1750/85.4/7
+LD7TB,Bringen,JP53nb,la2t,1040,APRS_IGATE,144.800,,,,https://www.la2t.no/repeatere/,APRS I-Gate
+LA7ORR,Oppdal,JP42un,la2t,1345,FM_NARROW,145.775,85.4,85.4,1750,https://www.la2t.no/repeatere/,1750/85.4/7
+LD7TO,Oppdal,JP42un,la2t,1345,APRS_IGATE,144.800,,,,https://www.la2t.no/repeatere/,APRS I-Gate
+LD7TT,Tyholt,JP53fk,la2t,125,APRS_DIGIPEATER,144.800,,,,https://www.la2t.no/repeatere/,APRS
+LD7TS,Støren,JP53da,la2t,200,APRS_DIGIPEATER,144.800,,,,https://www.la2t.no/repeatere/,APRS
+LA8PR,Lialøkken,JP53fi,la2t,120,FM_NARROW,434.900,85.4,85.4,1750,https://www.la2t.no/repeatere/,1750/85.4/7
+LD7TH,Tydal,JP52vv,la2t,925,APRS_DIGIPEATER,144.800,,,,https://www.la2t.no/repeatere/,APRS
