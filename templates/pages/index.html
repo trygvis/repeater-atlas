@@ -28,6 +28,50 @@
     .hero-overlay p {
       margin: 0;
     }
+
+    .repeater-details {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      z-index: 10;
+      width: min(320px, calc(100vw - 32px));
+      padding: 16px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.92);
+      box-shadow: 0 18px 48px rgba(0, 0, 0, 0.18);
+      backdrop-filter: blur(6px);
+    }
+
+    .repeater-details h2 {
+      margin-bottom: 12px;
+    }
+
+    .repeater-details dl {
+      margin: 0;
+    }
+
+    .repeater-details dl div + div {
+      margin-top: 8px;
+    }
+
+    .repeater-details dt {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      opacity: 0.7;
+    }
+
+    .repeater-details dd {
+      margin: 0;
+      font-weight: 600;
+    }
+
+    .repeater-details a {
+      display: inline-block;
+      margin-top: 6px;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
   </style>
 {% endblock %}
 
@@ -46,6 +90,28 @@
     {% endif %}
   </p>
 </aside>
+<aside class="repeater-details" id="repeater-details">
+  <h2>Repeater</h2>
+  <dl>
+    <div>
+      <dt>Call sign</dt>
+      <dd data-field="call-sign">-</dd>
+      <a data-field="details-link" href="#" target="_blank" rel="noopener">Open repeater</a>
+    </div>
+    <div>
+      <dt>Status</dt>
+      <dd data-field="status">Select a repeater</dd>
+    </div>
+    <div>
+      <dt>Mode</dt>
+      <dd data-field="mode">-</dd>
+    </div>
+    <div>
+      <dt>Notes</dt>
+      <dd data-field="notes">Temporary placeholder data.</dd>
+    </div>
+  </dl>
+</aside>
 {% endblock %}
 
 {% block scripts %}
@@ -59,6 +125,35 @@
     initializeRepeaterAtlas();
 
     const map = buildLeafletMap(document.getElementById("repeater-map-host"));
+    const repeaterDetails = document.getElementById("repeater-details");
+
+    function updateRepeaterDetails(item) {
+      if (!repeaterDetails) {
+        return;
+      }
+
+      const callSign = repeaterDetails.querySelector('[data-field="call-sign"]');
+      const detailsLink = repeaterDetails.querySelector('[data-field="details-link"]');
+      const status = repeaterDetails.querySelector('[data-field="status"]');
+      const mode = repeaterDetails.querySelector('[data-field="mode"]');
+      const notes = repeaterDetails.querySelector('[data-field="notes"]');
+
+      if (callSign) {
+        callSign.textContent = item.call_sign;
+      }
+      if (detailsLink) {
+        detailsLink.href = `/repeater/${encodeURIComponent(item.call_sign)}`;
+      }
+      if (status) {
+        status.textContent = "Active (sample)";
+      }
+      if (mode) {
+        mode.textContent = "FM (sample)";
+      }
+      if (notes) {
+        notes.textContent = "Temporary placeholder data.";
+      }
+    }
 
     if (data.length === 0) {
       map.setView([64.4, 11.7], 4);
@@ -70,7 +165,8 @@
       const bounds = [];
       data.forEach((item) => {
         const marker = L.marker([item.latitude, item.longitude]);
-        marker.bindPopup(item.call_sign);
+        // marker.bindPopup(item.call_sign);
+        marker.on("click", () => updateRepeaterDetails(item));
         bounds.push([item.latitude, item.longitude]);
         clusterGroup.addLayer(marker);
       });
