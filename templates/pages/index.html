@@ -4,10 +4,29 @@
   <style>
     #repeater-map-host {
       position: fixed;
-      left: 0;
-      top: 0;
-      height: 100vw;
-      width: 100vw;
+      inset: 0;
+    }
+
+    .hero-overlay {
+      position: fixed;
+      right: 24px;
+      top: 24px;
+      z-index: 10;
+      width: min(160px, calc(100vw - 32px));
+      height: min(160px, calc(100vw - 32px));
+      padding: 16px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.92);
+      box-shadow: 0 18px 48px rgba(0, 0, 0, 0.18);
+      backdrop-filter: blur(6px);
+    }
+
+    .hero-overlay h2 {
+      margin-bottom: 8px;
+    }
+
+    .hero-overlay p {
+      margin: 0;
     }
   </style>
 {% endblock %}
@@ -17,6 +36,16 @@
 
 {% block content %}
 <div id="repeater-map-host"></div>
+<aside class="hero-overlay" id="hero-overlay">
+  <p>
+    {% if auth.logged_in %}
+    {{ auth.call_sign }}<br>
+    <a href="/logout">Log out</a>
+    {% else %}
+    <a href="/login">Log in</a>
+    {% endif %}
+  </p>
+</aside>
 {% endblock %}
 
 {% block scripts %}
