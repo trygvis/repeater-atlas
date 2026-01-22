@@ -1,16 +1,3 @@
-CREATE TABLE repeater_site
-(
-    id          BIGSERIAL PRIMARY KEY,
-    name        TEXT,
-    address     TEXT,
-    maidenhead  TEXT,
-    latitude    DOUBLE PRECISION,
-    longitude   DOUBLE PRECISION,
-    elevation_m INTEGER,
-    country     TEXT,
-    region      TEXT
-);
-
 CREATE TABLE repeater_system
 (
     id          BIGSERIAL PRIMARY KEY,
@@ -18,7 +5,13 @@ CREATE TABLE repeater_system
     call_sign   TEXT        NOT NULL UNIQUE,
     name        TEXT,
     description TEXT,
-    site_id     BIGINT REFERENCES repeater_site (id),
+    address     TEXT,
+    maidenhead  TEXT,
+    latitude    DOUBLE PRECISION,
+    longitude   DOUBLE PRECISION,
+    elevation_m INTEGER,
+    country     TEXT,
+    region      TEXT,
     status      TEXT        NOT NULL DEFAULT 'active',
     created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()

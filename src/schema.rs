@@ -149,9 +149,12 @@ diesel::table! {
 }
 
 diesel::table! {
-    repeater_site (id) {
+    repeater_system (id) {
         id -> Int8,
+        ham_club_id -> Nullable<Int8>,
+        call_sign -> Text,
         name -> Nullable<Text>,
+        description -> Nullable<Text>,
         address -> Nullable<Text>,
         maidenhead -> Nullable<Text>,
         latitude -> Nullable<Float8>,
@@ -159,17 +162,6 @@ diesel::table! {
         elevation_m -> Nullable<Int4>,
         country -> Nullable<Text>,
         region -> Nullable<Text>,
-    }
-}
-
-diesel::table! {
-    repeater_system (id) {
-        id -> Int8,
-        ham_club_id -> Nullable<Int8>,
-        call_sign -> Text,
-        name -> Nullable<Text>,
-        description -> Nullable<Text>,
-        site_id -> Nullable<Int8>,
         status -> Text,
         created_at -> Timestamptz,
         updated_at -> Timestamptz,
@@ -187,7 +179,6 @@ diesel::joinable!(repeater_service_dstar -> repeater_service (service_id));
 diesel::joinable!(repeater_service_fm -> repeater_service (service_id));
 diesel::joinable!(repeater_service_ssb -> repeater_service (service_id));
 diesel::joinable!(repeater_system -> ham_club (ham_club_id));
-diesel::joinable!(repeater_system -> repeater_site (site_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
     app_user,
@@ -201,6 +192,5 @@ diesel::allow_tables_to_appear_in_same_query!(
     repeater_service_dstar,
     repeater_service_fm,
     repeater_service_ssb,
-    repeater_site,
     repeater_system,
 );

@@ -6,7 +6,6 @@ use crate::dao::repeater_service_c4fm::NewRepeaterServiceC4fm;
 use crate::dao::repeater_service_dmr::NewRepeaterServiceDmr;
 use crate::dao::repeater_service_dstar::{DstarMode, NewRepeaterServiceDstar};
 use crate::dao::repeater_service_fm::{FmBandwidth, NewRepeaterServiceFm, ToneKind};
-use crate::dao::repeater_site::NewRepeaterSite;
 use crate::dao::repeater_system::{NewRepeaterSystem, RepeaterSystem};
 use crate::{RepeaterAtlasError, dao};
 use csv::StringRecord;
@@ -24,15 +23,15 @@ async fn repeater_with_site(
     maidenhead: Option<&str>,
 ) -> Result<RepeaterSystem, RepeaterAtlasError> {
     let call_sign = call_sign.into();
-    let mut site = NewRepeaterSite::address(address);
-    site.maidenhead = maidenhead.map(|value| value.to_string());
-    let site = dao::repeater_site::insert(c, site).await?;
-
     let mut repeater = NewRepeaterSystem::new(call_sign.clone());
     if let Some(club) = club {
         repeater = repeater.ham_club_id(club.id);
     }
-    repeater.site_id = Some(site.id);
+    let address = address.into();
+    if !address.trim().is_empty() {
+        repeater.address = Some(address);
+    }
+    repeater.maidenhead = maidenhead.map(|value| value.to_string());
 
     info!("Creating repeater system call sign {call_sign}");
 

@@ -65,39 +65,30 @@ struct ResolvedSite {
     longitude: Option<f64>,
 }
 
-fn resolve_site_fields(site: Option<dao::repeater_site::RepeaterSite>) -> ResolvedSite {
-    if let Some(site) = site {
-        let grid = site.maidenhead.clone();
-        let mut latitude = site.latitude;
-        let mut longitude = site.longitude;
+fn resolve_site_fields(repeater: &dao::repeater_system::RepeaterSystem) -> ResolvedSite {
+    let grid = repeater.maidenhead.clone();
+    let mut latitude = repeater.latitude;
+    let mut longitude = repeater.longitude;
 
-        if latitude.is_none() || longitude.is_none() {
-            if let Some(ref grid) = grid {
-                if let Ok((grid_longitude, grid_latitude)) = grid_to_longlat(grid) {
-                    latitude = latitude.or(Some(grid_latitude));
-                    longitude = longitude.or(Some(grid_longitude));
-                }
+    if latitude.is_none() || longitude.is_none() {
+        if let Some(ref grid) = grid {
+            if let Ok((grid_longitude, grid_latitude)) = grid_to_longlat(grid) {
+                latitude = latitude.or(Some(grid_latitude));
+                longitude = longitude.or(Some(grid_longitude));
             }
         }
-
-        let location = match (latitude, longitude) {
-            (Some(latitude), Some(longitude)) => format!("{latitude}, {longitude}"),
-            _ => "-".to_string(),
-        };
-
-        return ResolvedSite {
-            maidenhead: grid.unwrap_or_else(|| "-".to_string()),
-            location,
-            latitude,
-            longitude,
-        };
     }
 
+    let location = match (latitude, longitude) {
+        (Some(latitude), Some(longitude)) => format!("{latitude}, {longitude}"),
+        _ => "-".to_string(),
+    };
+
     ResolvedSite {
-        maidenhead: "-".to_string(),
-        location: "-".to_string(),
-        latitude: None,
-        longitude: None,
+        maidenhead: grid.unwrap_or_else(|| "-".to_string()),
+        location,
+        latitude,
+        longitude,
     }
 }
 
@@ -124,16 +115,8 @@ pub async fn home(
     let mut map_repeaters = Vec::new();
 
     for repeater in repeaters {
-        let dao::repeater_system::RepeaterSystem {
-            call_sign, site_id, ..
-        } = repeater;
-
-        let site = match site_id {
-            Some(site_id) => Some(dao::repeater_site::get(&mut c, site_id).await?),
-            None => None,
-        };
-
-        let resolved = resolve_site_fields(site);
+        let call_sign = repeater.call_sign.clone();
+        let resolved = resolve_site_fields(&repeater);
         if let (Some(latitude), Some(longitude)) = (resolved.latitude, resolved.longitude) {
             map_repeaters.push(MapRepeater {
                 call_sign,
@@ -163,20 +146,10 @@ pub async fn repeaters(
     let repeaters = dao::repeater_system::select(&mut c).await?;
     let mut items = Vec::with_capacity(repeaters.len());
     for repeater in repeaters {
-        let dao::repeater_system::RepeaterSystem {
-            call_sign,
-            status,
-            description,
-            site_id,
-            ..
-        } = repeater;
-
-        let site = match site_id {
-            Some(site_id) => Some(dao::repeater_site::get(&mut c, site_id).await?),
-            None => None,
-        };
-
-        let resolved = resolve_site_fields(site);
+        let resolved = resolve_site_fields(&repeater);
+        let call_sign = repeater.call_sign.clone();
+        let status = repeater.status.clone();
+        let description = repeater.description.clone();
 
         items.push(RepeaterListItem {
             call_sign,
@@ -234,22 +207,14 @@ pub async fn detail(
         .description
         .clone()
         .unwrap_or_else(|| "-".to_string());
-    let site = match repeater.site_id {
-        Some(site_id) => Some(dao::repeater_site::get(&mut c, site_id).await?),
-        None => None,
-    };
-    let resolved = resolve_site_fields(site);
+    let resolved = resolve_site_fields(&repeater);
     let map_context =
         if let (Some(center_lat), Some(center_lon)) = (resolved.latitude, resolved.longitude) {
             let all_repeaters = dao::repeater_system::select(&mut c).await?;
             let mut nearby_repeaters = Vec::new();
 
             for candidate in all_repeaters {
-                let site = match candidate.site_id {
-                    Some(site_id) => Some(dao::repeater_site::get(&mut c, site_id).await?),
-                    None => None,
-                };
-                let candidate_resolved = resolve_site_fields(site);
+                let candidate_resolved = resolve_site_fields(&candidate);
                 if let (Some(lat), Some(lon)) =
                     (candidate_resolved.latitude, candidate_resolved.longitude)
                 {
