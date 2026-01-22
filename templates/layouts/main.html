@@ -10,6 +10,7 @@
     {% block head %}{% endblock %}
   </head>
   <body>
+    {% block header %}
     <header class="container">
       <nav>
         <ul>
@@ -25,9 +26,8 @@
         </ul>
       </nav>
     </header>
-    <main class="container">
-      {% block content %}{% endblock %}
-    </main>
+    {% endblock %}
+    {% block content %}{% endblock %}
     {% block scripts %}{% endblock %}
   </body>
 </html>

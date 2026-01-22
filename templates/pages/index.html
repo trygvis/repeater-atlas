@@ -3,17 +3,20 @@
 {% block head %}
   <style>
     #repeater-map-host {
-      height: 800px;
-      width: 100%;
+      position: fixed;
+      left: 0;
+      top: 0;
+      height: 100vw;
+      width: 100vw;
     }
   </style>
 {% endblock %}
 
+{% block header %}
+{% endblock %}
+
 {% block content %}
-  <section>
-    <h2>Repeater map</h2>
-    <div id="repeater-map-host"></div>
-  </section>
+<div id="repeater-map-host"></div>
 {% endblock %}
 
 {% block scripts %}

@@ -3,6 +3,7 @@
 {% block title %}Repeater {{ repeater.call_sign }}{% endblock %}
 
 {% block content %}
+<main class="container">
   <hgroup>
     <h1>{{ repeater.call_sign }}</h1>
     {% if repeater.name.is_some() %}
@@ -58,4 +59,5 @@
     {% endif %}
   </section>
   <p><a href="/repeater">Back to list</a></p>
+</main>
 {% endblock %}
