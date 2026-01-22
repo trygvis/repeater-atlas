@@ -1,0 +1,45 @@
+#!/bin/bash
+
+set -euo pipefail
+
+v=0.47.1
+
+basedir="${0%/*}"
+self="${0##*/}"
+
+s=$(uname -s)
+case "$s"
+in
+  Darwin) s=osx ;;
+  Linux) s=linux ;;
+  *) echo "Unsupported system: $s" >/dev/stderr; exit 1 ;;
+esac
+
+m=$(uname -m)
+case "$m"
+in
+  x86_64) m=amd64 ;;
+  arm64) ;;
+  *) echo "Unsupported machine: $m" >/dev/stderr; exit 1 ;;
+esac
+
+url="https://github.com/steveyegge/beads/releases/download/v${v}/beads_${v}_${s}_${m}.tar.gz"
+filename=${url##*/}
+
+root="$basedir/.$self"
+archive="$root/$filename"
+bin="$root/$self-$v/bd"
+
+if [[ ! -x "$bin" ]]
+then
+  if [[ ! -r "$archive" ]]
+  then
+    mkdir -p "${archive%/*}"
+    wget -O "$archive" "$url"
+  fi
+
+  mkdir -p "${bin%/*}"
+  tar xzf - -C "${bin%/*}" < "$archive"
+fi
+
+exec "$bin" "${@}"
