@@ -1,0 +1,21 @@
+.kv-list {
+  margin: 0;
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  column-gap: 12px;
+  row-gap: 8px;
+}
+
+.kv-list div {
+  display: contents;
+}
+
+.kv-list dt {
+  margin: 0;
+  white-space: nowrap;
+}
+
+.kv-list dd {
+  margin: 0;
+  min-width: 0;
+}

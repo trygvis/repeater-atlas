@@ -11,7 +11,7 @@
       position: fixed;
       z-index: 10;
       padding: 16px;
-      border-radius: var(--pico-border-radius);
+      border-radius: calc(3 * var(--pico-border-radius));
       background: var(--pico-card-background-color);
       border: 1px solid var(--pico-card-border-color);
       box-shadow: var(--pico-card-box-shadow);
@@ -44,31 +44,9 @@
       margin-bottom: 12px;
     }
 
-    .repeater-details dl {
-      margin: 0;
-    }
-
-    .repeater-details dl div + div {
-      margin-top: 8px;
-    }
-
-    .repeater-details dt {
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      opacity: 0.7;
-    }
-
-    .repeater-details dd {
-      margin: 0;
-      font-weight: 600;
-    }
 
     .repeater-details a {
       display: inline-block;
-      margin-top: 6px;
-      font-size: 0.85rem;
-      font-weight: 500;
     }
   </style>
 {% endblock %}
@@ -93,11 +71,13 @@
 <aside class="map-overlay repeater-details" id="repeater-details">
   <h2>Repeater</h2>
   bla bla
-  <dl>
+  <dl class="kv-list">
     <div>
       <dt>Call sign</dt>
-      <dd data-field="call-sign">-</dd>
-      <a data-field="details-link" href="#" target="_blank" rel="noopener">Open repeater</a>
+      <dd>
+        <span data-field="call-sign">-</span>
+        <a data-field="details-link" href="#" target="_blank" rel="noopener">Open repeater</a>
+      </dd>
     </div>
     <div>
       <dt>Status</dt>
