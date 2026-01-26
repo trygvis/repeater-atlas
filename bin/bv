@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-v=0.49.0
+v=0.13.0
 
 basedir="${0%/*}"
 self="${0##*/}"
@@ -23,7 +23,7 @@ in
   *) echo "Unsupported machine: $m" >/dev/stderr; exit 1 ;;
 esac
 
-url="https://github.com/steveyegge/beads/releases/download/v${v}/beads_${v}_${s}_${m}.tar.gz"
+url="https://github.com/Dicklesworthstone/beads_viewer/releases/download/v$v/bv_${v}_${s}_${m}.tar.gz"
 filename=${url##*/}
 
 root="$basedir/.$self"
