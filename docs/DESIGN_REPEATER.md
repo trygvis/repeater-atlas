@@ -152,9 +152,9 @@ CREATE TABLE repeater_service_fm (
   bandwidth             fm_bandwidth NOT NULL,
 
   -- "access" = what users must transmit; "tx" = what repeater transmits (if any)
-  access_tone_kind      tone_kind NOT NULL DEFAULT 'none',
-  access_ctcss_hz       REAL,
-  access_dcs_code       INTEGER,
+  rx_tone_kind          tone_kind NOT NULL DEFAULT 'none',
+  rx_ctcss_hz           REAL,
+  rx_dcs_code           INTEGER,
 
   tx_tone_kind          tone_kind NOT NULL DEFAULT 'none',
   tx_ctcss_hz           REAL,
@@ -216,8 +216,8 @@ CREATE TABLE repeater_service_ssb (
 ### Suggested constraints (optional, can be added later)
 
 - `CHECK (color_code BETWEEN 0 AND 15)` for DMR
-- Tone-kind/value consistency checks for FM (e.g., if `access_tone_kind='ctcss'`
-  then `access_ctcss_hz` must be non-null)
+- Tone-kind/value consistency checks for FM (e.g., if `rx_tone_kind='ctcss'`
+  then `rx_ctcss_hz` must be non-null)
 - `CHECK (rx_hz > 0 AND tx_hz > 0)` for `repeater_port`
 
 These are useful, but can be postponed until the application layer is stable.
@@ -229,8 +229,8 @@ These are useful, but can be postponed until the application layer is stable.
 - `repeater_system`: `call_sign = 'LA5OR'`
 - `repeater_port`: label `VHF`, rx/tx pair
 - `repeater_service`: kind `fm` -> port
-- `repeater_service_fm`: `bandwidth=narrow`, `access_tone_kind=ctcss`,
-  `access_ctcss_hz=123.0`
+- `repeater_service_fm`: `bandwidth=narrow`, `rx_tone_kind=ctcss`,
+  `rx_ctcss_hz=123.0`
 
 ### 2) FM + DMR on the same frequencies
 

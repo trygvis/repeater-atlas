@@ -57,25 +57,27 @@
         </dl>
       </section>
       <section>
-        <h2>Ports</h2>
-        {% if ports.len() == 0 %}
-          <p>No ports defined.</p>
+        <h2>Services</h2>
+        {% if services.len() == 0 %}
+          <p>No services defined.</p>
         {% else %}
           <figure>
             <table>
               <thead>
                 <tr>
-                  <th scope="col">Port</th>
+                  <th scope="col">Kind</th>
+                  <th scope="col">Label</th>
                   <th scope="col">TX</th>
                   <th scope="col">RX</th>
                 </tr>
               </thead>
               <tbody>
-                {% for port in ports %}
+                {% for service in services %}
                   <tr>
-                    <td>{{ port.label }}</td>
-                    <td>{{ port.tx_hz }}</td>
-                    <td>{{ port.rx_hz }}</td>
+                    <td>{{ service.kind }}</td>
+                    <td>{{ service.label }}</td>
+                    <td>{{ service.tx_hz }}</td>
+                    <td>{{ service.rx_hz }}</td>
                   </tr>
                 {% endfor %}
               </tbody>

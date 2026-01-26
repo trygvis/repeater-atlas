@@ -5,6 +5,7 @@ use diesel_async::pooled_connection::bb8::Pool;
 pub mod auth;
 pub mod dao;
 pub mod error;
+pub mod repeater_service;
 pub mod schema;
 pub mod service;
 pub mod test_data;

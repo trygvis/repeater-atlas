@@ -48,54 +48,41 @@ diesel::table! {
 }
 
 diesel::table! {
-    repeater_port (id) {
-        id -> Int8,
-        repeater_id -> Int8,
-        label -> Text,
-        rx_hz -> Int8,
-        tx_hz -> Int8,
-        note -> Nullable<Text>,
-    }
-}
-
-diesel::table! {
     use diesel::sql_types::*;
     use super::sql_types::RepeaterServiceKind;
+    use super::sql_types::FmBandwidth;
+    use super::sql_types::ToneKind;
+    use super::sql_types::DstarMode;
+    use super::sql_types::AprsMode;
+    use super::sql_types::SsbSideband;
 
     repeater_service (id) {
         id -> Int8,
         repeater_id -> Int8,
-        port_id -> Nullable<Int8>,
         kind -> RepeaterServiceKind,
         enabled -> Bool,
-    }
-}
-
-diesel::table! {
-    use diesel::sql_types::*;
-    use super::sql_types::AprsMode;
-
-    repeater_service_aprs (service_id) {
-        service_id -> Int8,
-        mode -> AprsMode,
-        path -> Nullable<Text>,
-    }
-}
-
-diesel::table! {
-    repeater_service_c4fm (service_id) {
-        service_id -> Int8,
-        wires_x_node_id -> Nullable<Int4>,
-        room -> Nullable<Text>,
-    }
-}
-
-diesel::table! {
-    repeater_service_dmr (service_id) {
-        service_id -> Int8,
-        color_code -> Nullable<Int2>,
+        label -> Text,
+        note -> Nullable<Text>,
+        rx_hz -> Int8,
+        tx_hz -> Int8,
+        fm_bandwidth -> FmBandwidth,
+        rx_tone_kind -> ToneKind,
+        rx_ctcss_hz -> Nullable<Float4>,
+        rx_dcs_code -> Nullable<Int4>,
+        tx_tone_kind -> ToneKind,
+        tx_ctcss_hz -> Nullable<Float4>,
+        tx_dcs_code -> Nullable<Int4>,
+        dmr_color_code -> Int2,
         dmr_repeater_id -> Nullable<Int8>,
-        network -> Nullable<Text>,
+        dmr_network -> Text,
+        dstar_mode -> DstarMode,
+        dstar_gateway_call_sign -> Nullable<Text>,
+        dstar_reflector -> Nullable<Text>,
+        c4fm_wires_x_node_id -> Nullable<Int4>,
+        c4fm_room -> Nullable<Text>,
+        aprs_mode -> Nullable<AprsMode>,
+        aprs_path -> Nullable<Text>,
+        ssb_sideband -> Nullable<SsbSideband>,
     }
 }
 
@@ -106,45 +93,6 @@ diesel::table! {
         time_slot -> Int2,
         talkgroup -> Int4,
         name -> Nullable<Text>,
-    }
-}
-
-diesel::table! {
-    use diesel::sql_types::*;
-    use super::sql_types::DstarMode;
-
-    repeater_service_dstar (service_id) {
-        service_id -> Int8,
-        mode -> DstarMode,
-        gateway_call_sign -> Nullable<Text>,
-        reflector -> Nullable<Text>,
-    }
-}
-
-diesel::table! {
-    use diesel::sql_types::*;
-    use super::sql_types::FmBandwidth;
-    use super::sql_types::ToneKind;
-
-    repeater_service_fm (service_id) {
-        service_id -> Int8,
-        bandwidth -> FmBandwidth,
-        access_tone_kind -> ToneKind,
-        access_ctcss_hz -> Nullable<Float4>,
-        access_dcs_code -> Nullable<Int4>,
-        tx_tone_kind -> ToneKind,
-        tx_ctcss_hz -> Nullable<Float4>,
-        tx_dcs_code -> Nullable<Int4>,
-    }
-}
-
-diesel::table! {
-    use diesel::sql_types::*;
-    use super::sql_types::SsbSideband;
-
-    repeater_service_ssb (service_id) {
-        service_id -> Int8,
-        sideband -> Nullable<SsbSideband>,
     }
 }
 
@@ -168,29 +116,14 @@ diesel::table! {
     }
 }
 
-diesel::joinable!(repeater_port -> repeater_system (repeater_id));
-diesel::joinable!(repeater_service -> repeater_port (port_id));
 diesel::joinable!(repeater_service -> repeater_system (repeater_id));
-diesel::joinable!(repeater_service_aprs -> repeater_service (service_id));
-diesel::joinable!(repeater_service_c4fm -> repeater_service (service_id));
-diesel::joinable!(repeater_service_dmr -> repeater_service (service_id));
-diesel::joinable!(repeater_service_dmr_talkgroup -> repeater_service_dmr (service_id));
-diesel::joinable!(repeater_service_dstar -> repeater_service (service_id));
-diesel::joinable!(repeater_service_fm -> repeater_service (service_id));
-diesel::joinable!(repeater_service_ssb -> repeater_service (service_id));
+diesel::joinable!(repeater_service_dmr_talkgroup -> repeater_service (service_id));
 diesel::joinable!(repeater_system -> ham_club (ham_club_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
     app_user,
     ham_club,
-    repeater_port,
     repeater_service,
-    repeater_service_aprs,
-    repeater_service_c4fm,
-    repeater_service_dmr,
     repeater_service_dmr_talkgroup,
-    repeater_service_dstar,
-    repeater_service_fm,
-    repeater_service_ssb,
     repeater_system,
 );

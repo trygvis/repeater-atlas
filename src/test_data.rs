@@ -1,12 +1,7 @@
 use crate::dao::ham_club::{HamClub, NewHamClub};
-use crate::dao::repeater_port::{NewRepeaterPort, RepeaterPort};
-use crate::dao::repeater_service::{NewRepeaterService, RepeaterServiceKind};
-use crate::dao::repeater_service_aprs::{AprsMode, NewRepeaterServiceAprs};
-use crate::dao::repeater_service_c4fm::NewRepeaterServiceC4fm;
-use crate::dao::repeater_service_dmr::NewRepeaterServiceDmr;
-use crate::dao::repeater_service_dstar::{DstarMode, NewRepeaterServiceDstar};
-use crate::dao::repeater_service_fm::{FmBandwidth, NewRepeaterServiceFm, ToneKind};
+use crate::dao::repeater_service::{AprsMode, DstarMode, FmBandwidth};
 use crate::dao::repeater_system::{NewRepeaterSystem, RepeaterSystem};
+use crate::repeater_service::{RepeaterService, Tone};
 use crate::{RepeaterAtlasError, dao};
 use csv::StringRecord;
 use diesel::QueryResult;
@@ -42,159 +37,16 @@ async fn repeater_with_site(
         })
 }
 
-async fn create_port(
+async fn create_service(
     c: &mut AsyncPgConnection,
     repeater_id: i64,
-    label: impl Into<String>,
-    tx_frequency: i64,
-    rx_frequency: i64,
-) -> Result<RepeaterPort, RepeaterAtlasError> {
-    let label = label.into();
-
-    let port = NewRepeaterPort {
-        repeater_id,
-        label: label.clone(),
-        rx_frequency,
-        tx_frequency,
-        note: None,
-    };
-
-    dao::repeater_port::insert(c, port).await.map_err(|e| {
-        RepeaterAtlasError::DatabaseOther(e, format!("Error adding port with label {label}"))
-    })
-}
-
-async fn fm_service_on_port(
-    c: &mut AsyncPgConnection,
-    repeater_id: i64,
-    port_id: i64,
-    bandwidth: FmBandwidth,
-    subtone: Option<f32>,
+    service: RepeaterService,
 ) -> Result<(), RepeaterAtlasError> {
-    let service = dao::repeater_service::insert(
-        c,
-        NewRepeaterService {
-            repeater_id,
-            port_id: Some(port_id),
-            kind: RepeaterServiceKind::Fm,
-            enabled: true,
-        },
-    )
-    .await?;
-    let mut fm = NewRepeaterServiceFm {
-        service_id: service.id,
-        bandwidth,
-        access_tone_kind: ToneKind::None,
-        access_ctcss_frequency: None,
-        access_dcs_code: None,
-        tx_tone_kind: ToneKind::None,
-        tx_ctcss_frequency: None,
-        tx_dcs_code: None,
-    };
-
-    if let Some(subtone) = subtone {
-        fm = NewRepeaterServiceFm {
-            access_tone_kind: ToneKind::CTCSS,
-            access_ctcss_frequency: Some(subtone),
-            tx_tone_kind: ToneKind::CTCSS,
-            tx_ctcss_frequency: Some(subtone),
-            ..fm
-        }
-    }
-
-    dao::repeater_service_fm::insert(c, fm).await?;
-
-    Ok(())
-}
-
-async fn dstar_service_on_port(
-    c: &mut AsyncPgConnection,
-    repeater_id: i64,
-    port_id: i64,
-) -> QueryResult<()> {
-    let service = dao::repeater_service::insert(
-        c,
-        NewRepeaterService {
-            repeater_id,
-            port_id: Some(port_id),
-            kind: RepeaterServiceKind::Dstar,
-            enabled: true,
-        },
-    )
-    .await?;
-
-    dao::repeater_service_dstar::insert(
-        c,
-        NewRepeaterServiceDstar {
-            service_id: service.id,
-            mode: DstarMode::Dv,
-            gateway_call_sign: None,
-            reflector: None,
-        },
-    )
-    .await?;
-
-    Ok(())
-}
-
-async fn dmr_service_on_port(
-    c: &mut AsyncPgConnection,
-    repeater_id: i64,
-    port_id: i64,
-    dmr_id: Option<i64>,
-) -> QueryResult<()> {
-    let service = dao::repeater_service::insert(
-        c,
-        NewRepeaterService {
-            repeater_id,
-            port_id: Some(port_id),
-            kind: RepeaterServiceKind::Dmr,
-            enabled: true,
-        },
-    )
-    .await?;
-
-    dao::repeater_service_dmr::insert(
-        c,
-        NewRepeaterServiceDmr {
-            service_id: service.id,
-            color_code: None,
-            dmr_repeater_id: dmr_id,
-            network: None,
-        },
-    )
-    .await?;
-
-    Ok(())
-}
-
-async fn c4fm_service_on_port(
-    c: &mut AsyncPgConnection,
-    repeater_id: i64,
-    port_id: i64,
-) -> QueryResult<()> {
-    let service = dao::repeater_service::insert(
-        c,
-        NewRepeaterService {
-            repeater_id,
-            port_id: Some(port_id),
-            kind: RepeaterServiceKind::C4fm,
-            enabled: true,
-        },
-    )
-    .await?;
-
-    dao::repeater_service_c4fm::insert(
-        c,
-        NewRepeaterServiceC4fm {
-            service_id: service.id,
-            wires_x_node_id: None,
-            room: None,
-        },
-    )
-    .await?;
-
-    Ok(())
+    let label = service.label().to_string();
+    dao::repeater_service::insert(c, service.to_new_dao(repeater_id))
+        .await
+        .map(|_| ())
+        .map_err(|e| RepeaterAtlasError::DatabaseOther(e, format!("Error adding service {label}")))
 }
 
 pub async fn narrow_fm(
@@ -204,11 +56,19 @@ pub async fn narrow_fm(
     tx_frequency: i64,
     offset: i64,
     subtone: Option<f32>,
-) -> Result<RepeaterPort, RepeaterAtlasError> {
-    let port = create_port(c, r.id, label, tx_frequency, tx_frequency + offset).await?;
-    fm_service_on_port(c, r.id, port.id, FmBandwidth::Narrow, subtone).await?;
-
-    Ok(port)
+) -> Result<(), RepeaterAtlasError> {
+    let label = label.into();
+    let tone = subtone.map(Tone::CTCSS).unwrap_or(Tone::None);
+    let service = RepeaterService::Fm {
+        label,
+        rx_hz: tx_frequency + offset,
+        tx_hz: tx_frequency,
+        bandwidth: FmBandwidth::Narrow,
+        rx_tone: tone.clone(),
+        tx_tone: tone,
+        note: None,
+    };
+    create_service(c, r.id, service).await
 }
 
 pub async fn dstar(
@@ -217,11 +77,18 @@ pub async fn dstar(
     label: impl Into<String>,
     tx_frequency: i64,
     offset: i64,
-) -> Result<RepeaterPort, RepeaterAtlasError> {
-    let port = create_port(c, r.id, label, tx_frequency, tx_frequency + offset).await?;
-    dstar_service_on_port(c, r.id, port.id).await?;
-
-    Ok(port)
+) -> Result<(), RepeaterAtlasError> {
+    let label = label.into();
+    let service = RepeaterService::Dstar {
+        label,
+        rx_hz: tx_frequency + offset,
+        tx_hz: tx_frequency,
+        mode: DstarMode::Dv,
+        gateway_call_sign: None,
+        reflector: None,
+        note: None,
+    };
+    create_service(c, r.id, service).await
 }
 
 pub async fn igate(
@@ -229,37 +96,17 @@ pub async fn igate(
     r: &RepeaterSystem,
     label: impl Into<String>,
     frequency: i64,
-) -> QueryResult<RepeaterPort> {
-    let port = NewRepeaterPort {
-        repeater_id: r.id,
-        label: label.into(),
-        rx_frequency: frequency,
-        tx_frequency: frequency,
+) -> Result<(), RepeaterAtlasError> {
+    let label = label.into();
+    let service = RepeaterService::Aprs {
+        label,
+        rx_hz: frequency,
+        tx_hz: frequency,
+        mode: Some(AprsMode::Igate),
+        path: None,
         note: None,
     };
-
-    let port = dao::repeater_port::insert(c, port).await?;
-    let service = dao::repeater_service::insert(
-        c,
-        NewRepeaterService {
-            repeater_id: r.id,
-            port_id: Some(port.id),
-            kind: RepeaterServiceKind::Aprs,
-            enabled: true,
-        },
-    )
-    .await?;
-    dao::repeater_service_aprs::insert(
-        c,
-        NewRepeaterServiceAprs {
-            service_id: service.id,
-            mode: AprsMode::Igate,
-            path: None,
-        },
-    )
-    .await?;
-
-    Ok(port)
+    create_service(c, r.id, service).await
 }
 
 pub async fn digipeater(
@@ -267,37 +114,17 @@ pub async fn digipeater(
     r: &RepeaterSystem,
     label: impl Into<String>,
     frequency: i64,
-) -> QueryResult<RepeaterPort> {
-    let port = NewRepeaterPort {
-        repeater_id: r.id,
-        label: label.into(),
-        rx_frequency: frequency,
-        tx_frequency: frequency,
+) -> Result<(), RepeaterAtlasError> {
+    let label = label.into();
+    let service = RepeaterService::Aprs {
+        label,
+        rx_hz: frequency,
+        tx_hz: frequency,
+        mode: Some(AprsMode::Digipeater),
+        path: None,
         note: None,
     };
-
-    let port = dao::repeater_port::insert(c, port).await?;
-    let service = dao::repeater_service::insert(
-        c,
-        NewRepeaterService {
-            repeater_id: r.id,
-            port_id: Some(port.id),
-            kind: RepeaterServiceKind::Aprs,
-            enabled: true,
-        },
-    )
-    .await?;
-    dao::repeater_service_aprs::insert(
-        c,
-        NewRepeaterServiceAprs {
-            service_id: service.id,
-            mode: AprsMode::Digipeater,
-            path: None,
-        },
-    )
-    .await?;
-
-    Ok(port)
+    create_service(c, r.id, service).await
 }
 
 fn label_for_frequency(frequency: i64) -> &'static str {
@@ -594,9 +421,16 @@ pub async fn load_repeaters(
                 let label = port_label
                     .as_deref()
                     .unwrap_or(label_for_frequency(tx_frequency));
-                let port =
-                    create_port(c, repeater.id, label, tx_frequency, tx_frequency + offset).await?;
-                dmr_service_on_port(c, repeater.id, port.id, dmr_id).await?;
+                let service = RepeaterService::Dmr {
+                    label: label.to_string(),
+                    rx_hz: tx_frequency + offset,
+                    tx_hz: tx_frequency,
+                    color_code: 1,
+                    dmr_repeater_id: dmr_id,
+                    network: "unknown".to_string(),
+                    note: None,
+                };
+                create_service(c, repeater.id, service).await?;
                 imported += 1;
             }
             Some("C4FM") => {
@@ -612,9 +446,15 @@ pub async fn load_repeaters(
                 let label = port_label
                     .as_deref()
                     .unwrap_or(label_for_frequency(tx_frequency));
-                let port =
-                    create_port(c, repeater.id, label, tx_frequency, tx_frequency + offset).await?;
-                c4fm_service_on_port(c, repeater.id, port.id).await?;
+                let service = RepeaterService::C4fm {
+                    label: label.to_string(),
+                    rx_hz: tx_frequency + offset,
+                    tx_hz: tx_frequency,
+                    wires_x_node_id: None,
+                    room: None,
+                    note: None,
+                };
+                create_service(c, repeater.id, service).await?;
                 imported += 1;
             }
             None => {

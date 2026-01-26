@@ -1,5 +1,6 @@
 use super::AppState;
 use super::auth::auth_header;
+use crate::repeater_service::RepeaterService;
 use crate::{RepeaterAtlasError, dao};
 use askama::Template;
 use axum::{extract::State, response::Html};
@@ -181,12 +182,19 @@ pub struct RepeaterDetailPath {
 struct DetailTemplate {
     auth: super::AuthHeader,
     repeater: dao::repeater_system::RepeaterSystem,
-    ports: Vec<dao::repeater_port::RepeaterPort>,
+    services: Vec<RepeaterServiceListItem>,
     status: String,
     description: String,
     maidenhead: String,
     location: String,
     map_context: Option<MapContext>,
+}
+
+struct RepeaterServiceListItem {
+    kind: String,
+    label: String,
+    rx_hz: i64,
+    tx_hz: i64,
 }
 
 pub async fn detail(
@@ -201,7 +209,17 @@ pub async fn detail(
         None => return Err(RepeaterAtlasError::NotFound),
     };
 
-    let ports = dao::repeater_port::select_by_repeater_id(&mut c, repeater.id).await?;
+    let services = dao::repeater_service::select_by_repeater_id(&mut c, repeater.id).await?;
+    let services = services
+        .into_iter()
+        .map(RepeaterService::from)
+        .map(|service| RepeaterServiceListItem {
+            kind: service.kind_label().to_string(),
+            label: service.label().to_string(),
+            rx_hz: service.rx_hz(),
+            tx_hz: service.tx_hz(),
+        })
+        .collect();
     let status = repeater.status.clone();
     let description = repeater
         .description
@@ -244,7 +262,7 @@ pub async fn detail(
     let template = DetailTemplate {
         auth,
         repeater,
-        ports,
+        services,
         status,
         description,
         maidenhead: resolved.maidenhead,
