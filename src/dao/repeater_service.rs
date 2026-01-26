@@ -195,24 +195,24 @@ impl FromSql<crate::schema::sql_types::SsbSideband, Pg> for SsbSideband {
 #[derive(Insertable)]
 #[diesel(table_name = crate::schema::repeater_service)]
 pub struct NewRepeaterServiceDao {
-    pub repeater_id: i64,
-    pub kind: RepeaterServiceKind,
-    pub enabled: bool,
-    pub label: String,
+    pub repeater_id: Option<i64>,
+    pub kind: Option<RepeaterServiceKind>,
+    pub enabled: Option<bool>,
+    pub label: Option<String>,
     pub note: Option<String>,
-    pub rx_hz: i64,
-    pub tx_hz: i64,
-    pub fm_bandwidth: FmBandwidth,
-    pub rx_tone_kind: ToneKind,
+    pub rx_hz: Option<i64>,
+    pub tx_hz: Option<i64>,
+    pub fm_bandwidth: Option<FmBandwidth>,
+    pub rx_tone_kind: Option<ToneKind>,
     pub rx_ctcss_hz: Option<f32>,
     pub rx_dcs_code: Option<i32>,
-    pub tx_tone_kind: ToneKind,
+    pub tx_tone_kind: Option<ToneKind>,
     pub tx_ctcss_hz: Option<f32>,
     pub tx_dcs_code: Option<i32>,
-    pub dmr_color_code: i16,
+    pub dmr_color_code: Option<i16>,
     pub dmr_repeater_id: Option<i64>,
-    pub dmr_network: String,
-    pub dstar_mode: DstarMode,
+    pub dmr_network: Option<String>,
+    pub dstar_mode: Option<DstarMode>,
     pub dstar_gateway_call_sign: Option<String>,
     pub dstar_reflector: Option<String>,
     pub c4fm_wires_x_node_id: Option<i32>,
@@ -227,24 +227,24 @@ pub struct NewRepeaterServiceDao {
 #[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct RepeaterServiceDao {
     pub id: i64,
-    pub repeater_id: i64,
-    pub kind: RepeaterServiceKind,
-    pub enabled: bool,
-    pub label: String,
+    pub repeater_id: Option<i64>,
+    pub kind: Option<RepeaterServiceKind>,
+    pub enabled: Option<bool>,
+    pub label: Option<String>,
     pub note: Option<String>,
-    pub rx_hz: i64,
-    pub tx_hz: i64,
-    pub fm_bandwidth: FmBandwidth,
-    pub rx_tone_kind: ToneKind,
+    pub rx_hz: Option<i64>,
+    pub tx_hz: Option<i64>,
+    pub fm_bandwidth: Option<FmBandwidth>,
+    pub rx_tone_kind: Option<ToneKind>,
     pub rx_ctcss_hz: Option<f32>,
     pub rx_dcs_code: Option<i32>,
-    pub tx_tone_kind: ToneKind,
+    pub tx_tone_kind: Option<ToneKind>,
     pub tx_ctcss_hz: Option<f32>,
     pub tx_dcs_code: Option<i32>,
-    pub dmr_color_code: i16,
+    pub dmr_color_code: Option<i16>,
     pub dmr_repeater_id: Option<i64>,
-    pub dmr_network: String,
-    pub dstar_mode: DstarMode,
+    pub dmr_network: Option<String>,
+    pub dstar_mode: Option<DstarMode>,
     pub dstar_gateway_call_sign: Option<String>,
     pub dstar_reflector: Option<String>,
     pub c4fm_wires_x_node_id: Option<i32>,
@@ -274,7 +274,7 @@ pub async fn select_by_repeater_id(
     use crate::schema::repeater_service::dsl as s;
 
     s::repeater_service
-        .filter(s::repeater_id.eq(repeater_id))
+        .filter(s::repeater_id.eq(Some(repeater_id)))
         .select(RepeaterServiceDao::as_select())
         .order_by(s::label.asc())
         .get_results(c)

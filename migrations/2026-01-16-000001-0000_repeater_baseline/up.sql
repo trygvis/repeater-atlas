@@ -36,27 +36,27 @@ CREATE TYPE SSB_SIDEBAND AS ENUM ('lsb', 'usb');
 CREATE TABLE repeater_service
 (
     id                      BIGSERIAL PRIMARY KEY,
-    repeater_id             BIGINT                NOT NULL REFERENCES repeater_system (id) ON DELETE CASCADE,
-    kind                    REPEATER_SERVICE_KIND NOT NULL,
-    enabled                 BOOLEAN               NOT NULL DEFAULT TRUE,
-    label                   TEXT                  NOT NULL,
+    repeater_id             BIGINT REFERENCES repeater_system (id) ON DELETE CASCADE,
+    kind                    REPEATER_SERVICE_KIND,
+    enabled                 BOOLEAN,
+    label                   TEXT,
     note                    TEXT,
-    rx_hz                   BIGINT                NOT NULL,
-    tx_hz                   BIGINT                NOT NULL,
+    rx_hz                   BIGINT,
+    tx_hz                   BIGINT,
 
-    fm_bandwidth            FM_BANDWIDTH          NOT NULL DEFAULT 'narrow',
-    rx_tone_kind            TONE_KIND             NOT NULL DEFAULT 'none',
+    fm_bandwidth            FM_BANDWIDTH,
+    rx_tone_kind            TONE_KIND,
     rx_ctcss_hz             REAL,
     rx_dcs_code             INTEGER,
-    tx_tone_kind            TONE_KIND             NOT NULL DEFAULT 'none',
+    tx_tone_kind            TONE_KIND,
     tx_ctcss_hz             REAL,
     tx_dcs_code             INTEGER,
 
-    dmr_color_code          SMALLINT              NOT NULL DEFAULT 0,
+    dmr_color_code          SMALLINT,
     dmr_repeater_id         BIGINT,
-    dmr_network             TEXT                  NOT NULL DEFAULT '',
+    dmr_network             TEXT,
 
-    dstar_mode              DSTAR_MODE            NOT NULL DEFAULT 'dv',
+    dstar_mode              DSTAR_MODE,
     dstar_gateway_call_sign TEXT,
     dstar_reflector         TEXT,
 
@@ -66,7 +66,47 @@ CREATE TABLE repeater_service
     aprs_mode               APRS_MODE,
     aprs_path               TEXT,
 
-    ssb_sideband            SSB_SIDEBAND
+    ssb_sideband            SSB_SIDEBAND,
+
+    CHECK (
+        (kind = 'fm' AND fm_bandwidth IS NOT NULL AND rx_tone_kind IS NOT NULL AND tx_tone_kind IS NOT NULL)
+            OR (kind IS DISTINCT FROM 'fm' AND fm_bandwidth IS NULL AND rx_tone_kind IS NULL AND tx_tone_kind IS NULL
+            AND rx_ctcss_hz IS NULL AND rx_dcs_code IS NULL AND tx_ctcss_hz IS NULL AND tx_dcs_code IS NULL)
+        ),
+    CHECK (
+        rx_tone_kind IS NULL
+            OR (rx_tone_kind = 'none' AND rx_ctcss_hz IS NULL AND rx_dcs_code IS NULL)
+            OR (rx_tone_kind = 'ctcss' AND rx_ctcss_hz IS NOT NULL AND rx_dcs_code IS NULL)
+            OR (rx_tone_kind = 'dcs' AND rx_ctcss_hz IS NULL AND rx_dcs_code IS NOT NULL)
+        ),
+    CHECK (
+        tx_tone_kind IS NULL
+            OR (tx_tone_kind = 'none' AND tx_ctcss_hz IS NULL AND tx_dcs_code IS NULL)
+            OR (tx_tone_kind = 'ctcss' AND tx_ctcss_hz IS NOT NULL AND tx_dcs_code IS NULL)
+            OR (tx_tone_kind = 'dcs' AND tx_ctcss_hz IS NULL AND tx_dcs_code IS NOT NULL)
+        ),
+    CHECK (
+        (kind = 'dmr' AND dmr_color_code IS NOT NULL AND dmr_network IS NOT NULL)
+            OR
+        (kind IS DISTINCT FROM 'dmr' AND dmr_color_code IS NULL AND dmr_repeater_id IS NULL AND dmr_network IS NULL)
+        ),
+    CHECK (
+        (kind = 'dstar' AND dstar_mode IS NOT NULL)
+            OR (kind IS DISTINCT FROM 'dstar' AND dstar_mode IS NULL
+            AND dstar_gateway_call_sign IS NULL AND dstar_reflector IS NULL)
+        ),
+    CHECK (
+        kind = 'c4fm'
+            OR (kind IS DISTINCT FROM 'c4fm' AND c4fm_wires_x_node_id IS NULL AND c4fm_room IS NULL)
+        ),
+    CHECK (
+        kind = 'aprs'
+            OR (kind IS DISTINCT FROM 'aprs' AND aprs_mode IS NULL AND aprs_path IS NULL)
+        ),
+    CHECK (
+        kind = 'ssb'
+            OR (kind IS DISTINCT FROM 'ssb' AND ssb_sideband IS NULL)
+        )
 );
 
 CREATE UNIQUE INDEX repeater_service_unique_label_kind
