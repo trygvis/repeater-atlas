@@ -32,8 +32,6 @@ These must be read before doing any work.
 
 ## CLI commands used while developing and refactoring
 
-- Build the entire codebase: `make all`.
-- Run all unit and integration tests with: `make test`
 - Read the entire Makefile, look at all targets and comments. Learn the
   top-level targets as commands to run.
 - Generate migrations via `diesel migration generate`, not by hand.
@@ -44,6 +42,12 @@ These must be read before doing any work.
 - Local Postgres pointed to by `DATABASE_URL` in `.env`.
 - _NEVER_ commit any code without explicit instructions. Ask if a commit should
   be made, only if everything builds and all tests pass.
+- When testing new features, run these commands in this order:
+  - Build the entire codebase: `make all`.
+  - Run all unit and integration tests with: `make test`
+  - Check that the database migrations work with `make db-init`. This will clean
+    the database and run all migrations
+  - Load the data with `cargo run --bin load-data`.
 
 ## Testing Notes
 
