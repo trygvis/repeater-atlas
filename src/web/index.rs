@@ -1,6 +1,7 @@
 use super::AppState;
 use super::auth::auth_header;
 use crate::repeater_service::RepeaterService;
+use crate::Frequency;
 use crate::MaidenheadLocator;
 use crate::{RepeaterAtlasError, dao};
 use askama::Template;
@@ -192,8 +193,8 @@ struct DetailTemplate {
 struct RepeaterServiceListItem {
     kind: String,
     label: String,
-    rx_hz: i64,
-    tx_hz: i64,
+    rx_hz: Frequency,
+    tx_hz: Frequency,
 }
 
 pub async fn detail(

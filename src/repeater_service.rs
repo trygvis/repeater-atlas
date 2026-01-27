@@ -2,6 +2,7 @@ use crate::dao::repeater_service::{
     AprsMode, DstarMode, FmBandwidth, NewRepeaterServiceDao, RepeaterServiceDao,
     RepeaterServiceKind, SsbSideband, ToneKind,
 };
+use crate::Frequency;
 
 #[derive(Debug, Clone)]
 pub enum Tone {
@@ -14,8 +15,8 @@ pub enum Tone {
 pub enum RepeaterService {
     Fm {
         label: String,
-        rx_hz: i64,
-        tx_hz: i64,
+        rx_hz: Frequency,
+        tx_hz: Frequency,
         bandwidth: FmBandwidth,
         rx_tone: Tone,
         tx_tone: Tone,
@@ -23,21 +24,21 @@ pub enum RepeaterService {
     },
     Am {
         label: String,
-        rx_hz: i64,
-        tx_hz: i64,
+        rx_hz: Frequency,
+        tx_hz: Frequency,
         note: Option<String>,
     },
     Ssb {
         label: String,
-        rx_hz: i64,
-        tx_hz: i64,
+        rx_hz: Frequency,
+        tx_hz: Frequency,
         sideband: Option<SsbSideband>,
         note: Option<String>,
     },
     Dstar {
         label: String,
-        rx_hz: i64,
-        tx_hz: i64,
+        rx_hz: Frequency,
+        tx_hz: Frequency,
         mode: DstarMode,
         gateway_call_sign: Option<String>,
         reflector: Option<String>,
@@ -45,8 +46,8 @@ pub enum RepeaterService {
     },
     Dmr {
         label: String,
-        rx_hz: i64,
-        tx_hz: i64,
+        rx_hz: Frequency,
+        tx_hz: Frequency,
         color_code: i16,
         dmr_repeater_id: Option<i64>,
         network: String,
@@ -54,16 +55,16 @@ pub enum RepeaterService {
     },
     C4fm {
         label: String,
-        rx_hz: i64,
-        tx_hz: i64,
+        rx_hz: Frequency,
+        tx_hz: Frequency,
         wires_x_node_id: Option<i32>,
         room: Option<String>,
         note: Option<String>,
     },
     Aprs {
         label: String,
-        rx_hz: i64,
-        tx_hz: i64,
+        rx_hz: Frequency,
+        tx_hz: Frequency,
         mode: Option<AprsMode>,
         path: Option<String>,
         note: Option<String>,
@@ -83,7 +84,7 @@ impl RepeaterService {
         }
     }
 
-    pub fn rx_hz(&self) -> i64 {
+    pub fn rx_hz(&self) -> Frequency {
         match self {
             RepeaterService::Fm { rx_hz, .. }
             | RepeaterService::Am { rx_hz, .. }
@@ -95,7 +96,7 @@ impl RepeaterService {
         }
     }
 
-    pub fn tx_hz(&self) -> i64 {
+    pub fn tx_hz(&self) -> Frequency {
         match self {
             RepeaterService::Fm { tx_hz, .. }
             | RepeaterService::Am { tx_hz, .. }

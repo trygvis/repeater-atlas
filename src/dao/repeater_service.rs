@@ -6,6 +6,8 @@ use diesel::{AsExpression, FromSqlRow};
 use diesel_async::{AsyncPgConnection, RunQueryDsl};
 use std::io::Write;
 
+use crate::Frequency;
+
 #[derive(Debug, Copy, Clone, Eq, PartialEq, AsExpression, FromSqlRow)]
 #[diesel(sql_type = crate::schema::sql_types::RepeaterServiceKind)]
 pub enum RepeaterServiceKind {
@@ -200,8 +202,8 @@ pub struct NewRepeaterServiceDao {
     pub enabled: Option<bool>,
     pub label: Option<String>,
     pub note: Option<String>,
-    pub rx_hz: Option<i64>,
-    pub tx_hz: Option<i64>,
+    pub rx_hz: Option<Frequency>,
+    pub tx_hz: Option<Frequency>,
     pub fm_bandwidth: Option<FmBandwidth>,
     pub rx_tone_kind: Option<ToneKind>,
     pub rx_ctcss_hz: Option<f32>,
@@ -232,8 +234,8 @@ pub struct RepeaterServiceDao {
     pub enabled: Option<bool>,
     pub label: Option<String>,
     pub note: Option<String>,
-    pub rx_hz: Option<i64>,
-    pub tx_hz: Option<i64>,
+    pub rx_hz: Option<Frequency>,
+    pub tx_hz: Option<Frequency>,
     pub fm_bandwidth: Option<FmBandwidth>,
     pub rx_tone_kind: Option<ToneKind>,
     pub rx_ctcss_hz: Option<f32>,

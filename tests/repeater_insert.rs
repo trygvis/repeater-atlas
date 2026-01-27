@@ -4,6 +4,7 @@ use diesel::prelude::*;
 use diesel::sql_query;
 use diesel_async::RunQueryDsl;
 use repeater_atlas::dao;
+use repeater_atlas::Frequency;
 use repeater_atlas::repeater_service::RepeaterService;
 use repeater_atlas::schema::repeater_system;
 
@@ -16,8 +17,8 @@ async fn inserts_repeater_row() -> Result<(), Box<dyn std::error::Error + Send +
 
     let repeater = dao::repeater_system::insert(&mut c, new_repeater).await?;
 
-    let tx_hz = 145_775_000;
-    let rx_hz = tx_hz - 600_000;
+    let tx_hz = Frequency::new_hz(145_775_000)?;
+    let rx_hz = Frequency::new_hz(tx_hz.hz() - 600_000)?;
     let service = RepeaterService::Fm {
         label: "VHF".to_string(),
         rx_hz,

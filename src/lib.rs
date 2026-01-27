@@ -5,6 +5,7 @@ use diesel_async::pooled_connection::bb8::Pool;
 pub mod auth;
 pub mod dao;
 pub mod error;
+pub mod frequency;
 pub mod maidenhead_locator;
 pub mod repeater_service;
 pub mod schema;
@@ -13,6 +14,7 @@ pub mod test_data;
 pub mod web;
 
 pub use error::RepeaterAtlasError;
+pub use frequency::Frequency;
 pub use maidenhead_locator::MaidenheadLocator;
 
 pub async fn init() -> bb8::Pool<AsyncDieselConnectionManager<AsyncPgConnection>> {

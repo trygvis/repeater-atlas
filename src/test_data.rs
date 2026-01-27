@@ -2,7 +2,7 @@ use crate::dao::ham_club::{HamClub, NewHamClub};
 use crate::dao::repeater_service::{AprsMode, DstarMode, FmBandwidth};
 use crate::dao::repeater_system::{NewRepeaterSystem, RepeaterSystem};
 use crate::repeater_service::{RepeaterService, Tone};
-use crate::{MaidenheadLocator, RepeaterAtlasError, dao};
+use crate::{Frequency, MaidenheadLocator, RepeaterAtlasError, dao};
 use csv::StringRecord;
 use diesel::QueryResult;
 use diesel_async::AsyncPgConnection;
@@ -67,10 +67,22 @@ pub async fn narrow_fm(
 ) -> Result<(), RepeaterAtlasError> {
     let label = label.into();
     let tone = subtone.map(Tone::CTCSS).unwrap_or(Tone::None);
+    let tx_hz = Frequency::new_hz(tx_frequency).map_err(|e| {
+        RepeaterAtlasError::Other(
+            Box::new(e),
+            format!("invalid tx frequency for call_sign={}", r.call_sign),
+        )
+    })?;
+    let rx_hz = Frequency::new_hz(tx_frequency + offset).map_err(|e| {
+        RepeaterAtlasError::Other(
+            Box::new(e),
+            format!("invalid rx frequency for call_sign={}", r.call_sign),
+        )
+    })?;
     let service = RepeaterService::Fm {
         label,
-        rx_hz: tx_frequency + offset,
-        tx_hz: tx_frequency,
+        rx_hz,
+        tx_hz,
         bandwidth: FmBandwidth::Narrow,
         rx_tone: tone.clone(),
         tx_tone: tone,
@@ -87,10 +99,22 @@ pub async fn dstar(
     offset: i64,
 ) -> Result<(), RepeaterAtlasError> {
     let label = label.into();
+    let tx_hz = Frequency::new_hz(tx_frequency).map_err(|e| {
+        RepeaterAtlasError::Other(
+            Box::new(e),
+            format!("invalid tx frequency for call_sign={}", r.call_sign),
+        )
+    })?;
+    let rx_hz = Frequency::new_hz(tx_frequency + offset).map_err(|e| {
+        RepeaterAtlasError::Other(
+            Box::new(e),
+            format!("invalid rx frequency for call_sign={}", r.call_sign),
+        )
+    })?;
     let service = RepeaterService::Dstar {
         label,
-        rx_hz: tx_frequency + offset,
-        tx_hz: tx_frequency,
+        rx_hz,
+        tx_hz,
         mode: DstarMode::Dv,
         gateway_call_sign: None,
         reflector: None,
@@ -106,10 +130,16 @@ pub async fn igate(
     frequency: i64,
 ) -> Result<(), RepeaterAtlasError> {
     let label = label.into();
+    let hz = Frequency::new_hz(frequency).map_err(|e| {
+        RepeaterAtlasError::Other(
+            Box::new(e),
+            format!("invalid aprs frequency for call_sign={}", r.call_sign),
+        )
+    })?;
     let service = RepeaterService::Aprs {
         label,
-        rx_hz: frequency,
-        tx_hz: frequency,
+        rx_hz: hz,
+        tx_hz: hz,
         mode: Some(AprsMode::Igate),
         path: None,
         note: None,
@@ -124,10 +154,16 @@ pub async fn digipeater(
     frequency: i64,
 ) -> Result<(), RepeaterAtlasError> {
     let label = label.into();
+    let hz = Frequency::new_hz(frequency).map_err(|e| {
+        RepeaterAtlasError::Other(
+            Box::new(e),
+            format!("invalid aprs frequency for call_sign={}", r.call_sign),
+        )
+    })?;
     let service = RepeaterService::Aprs {
         label,
-        rx_hz: frequency,
-        tx_hz: frequency,
+        rx_hz: hz,
+        tx_hz: hz,
         mode: Some(AprsMode::Digipeater),
         path: None,
         note: None,
@@ -349,7 +385,7 @@ pub async fn load_repeaters(
             .map(|value| value.trim())
             .filter(|value| !value.is_empty());
         let tx_frequency = parse_tx_frequency(&row);
-        let offset = parse_offset(&row).or_else(|| tx_frequency.and_then(default_offset));
+        let offset = parse_offset(&row).or_else(|| tx_frequency.map(|value| value.hz()).and_then(default_offset));
         let ctcss = row
             .get("ctcss_tx")
             .map(|value| value.trim())
@@ -380,8 +416,8 @@ pub async fn load_repeaters(
                 };
                 let label = port_label
                     .as_deref()
-                    .unwrap_or(label_for_frequency(tx_frequency));
-                narrow_fm(c, &repeater, label, tx_frequency, offset, ctcss).await?;
+                    .unwrap_or(label_for_frequency(tx_frequency.hz()));
+                narrow_fm(c, &repeater, label, tx_frequency.hz(), offset, ctcss).await?;
                 imported += 1;
             }
             Some("APRS_IGATE") => {
@@ -396,8 +432,8 @@ pub async fn load_repeaters(
                 };
                 let label = port_label
                     .as_deref()
-                    .unwrap_or(label_for_frequency(tx_frequency));
-                igate(c, &repeater, label, tx_frequency).await?;
+                    .unwrap_or(label_for_frequency(tx_frequency.hz()));
+                igate(c, &repeater, label, tx_frequency.hz()).await?;
                 imported += 1;
             }
             Some("APRS_DIGIPEATER") => {
@@ -412,8 +448,8 @@ pub async fn load_repeaters(
                 };
                 let label = port_label
                     .as_deref()
-                    .unwrap_or(label_for_frequency(tx_frequency));
-                digipeater(c, &repeater, label, tx_frequency).await?;
+                    .unwrap_or(label_for_frequency(tx_frequency.hz()));
+                digipeater(c, &repeater, label, tx_frequency.hz()).await?;
                 imported += 1;
             }
             Some("DMR") => {
@@ -428,10 +464,22 @@ pub async fn load_repeaters(
                 };
                 let label = port_label
                     .as_deref()
-                    .unwrap_or(label_for_frequency(tx_frequency));
+                    .unwrap_or(label_for_frequency(tx_frequency.hz()));
+                let rx_hz = match Frequency::new_hz(tx_frequency.hz() + offset) {
+                    Ok(value) => value,
+                    Err(_) => {
+                        info!(
+                            row = row_index,
+                            call_sign = call_sign,
+                            reason = "invalid rx frequency",
+                            "Skipping repeater row"
+                        );
+                        continue;
+                    }
+                };
                 let service = RepeaterService::Dmr {
                     label: label.to_string(),
-                    rx_hz: tx_frequency + offset,
+                    rx_hz,
                     tx_hz: tx_frequency,
                     color_code: 1,
                     dmr_repeater_id: dmr_id,
@@ -453,10 +501,22 @@ pub async fn load_repeaters(
                 };
                 let label = port_label
                     .as_deref()
-                    .unwrap_or(label_for_frequency(tx_frequency));
+                    .unwrap_or(label_for_frequency(tx_frequency.hz()));
+                let rx_hz = match Frequency::new_hz(tx_frequency.hz() + offset) {
+                    Ok(value) => value,
+                    Err(_) => {
+                        info!(
+                            row = row_index,
+                            call_sign = call_sign,
+                            reason = "invalid rx frequency",
+                            "Skipping repeater row"
+                        );
+                        continue;
+                    }
+                };
                 let service = RepeaterService::C4fm {
                     label: label.to_string(),
-                    rx_hz: tx_frequency + offset,
+                    rx_hz,
                     tx_hz: tx_frequency,
                     wires_x_node_id: None,
                     room: None,
@@ -501,14 +561,14 @@ fn parse_offset(row: &HashMap<String, String>) -> Option<i64> {
         .and_then(|value| value.parse::<i64>().ok())
 }
 
-fn parse_tx_frequency(row: &HashMap<String, String>) -> Option<i64> {
-    let tx_hz = row
+fn parse_tx_frequency(row: &HashMap<String, String>) -> Option<Frequency> {
+    let tx_hz: Option<i64> = row
         .get("tx")
         .map(|value| value.trim())
         .filter(|value| !value.is_empty())
         .and_then(|value| value.parse::<i64>().ok());
     if tx_hz.is_some() {
-        return tx_hz;
+        return tx_hz.and_then(|value| Frequency::new_hz(value).ok());
     }
 
     row.get("tx_mhz")
@@ -516,6 +576,7 @@ fn parse_tx_frequency(row: &HashMap<String, String>) -> Option<i64> {
         .filter(|value| !value.is_empty())
         .and_then(|value| value.parse::<f64>().ok())
         .map(|value| (value * 1_000_000.0).round() as i64)
+        .and_then(|value| Frequency::new_hz(value).ok())
 }
 
 fn default_offset(tx_hz: i64) -> Option<i64> {
