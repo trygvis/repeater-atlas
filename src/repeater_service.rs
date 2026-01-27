@@ -134,13 +134,13 @@ impl RepeaterService {
                 let (rx_tone_kind, rx_ctcss_hz, rx_dcs_code) = tone_to_parts(rx_tone);
                 let (tx_tone_kind, tx_ctcss_hz, tx_dcs_code) = tone_to_parts(tx_tone);
                 NewRepeaterServiceDao {
-                    repeater_id: Some(repeater_id),
+                    repeater_id,
                     kind: Some(RepeaterServiceKind::Fm),
-                    enabled: Some(true),
-                    label: Some(label),
-                    rx_hz: Some(rx_hz),
-                    tx_hz: Some(tx_hz),
-                    note,
+                    enabled: true,
+                    label,
+                    rx_hz,
+                    tx_hz,
+                    note: note.unwrap_or_default(),
                     fm_bandwidth: Some(bandwidth),
                     rx_tone_kind,
                     rx_ctcss_hz,
@@ -167,13 +167,13 @@ impl RepeaterService {
                 tx_hz,
                 note,
             } => NewRepeaterServiceDao {
-                repeater_id: Some(repeater_id),
+                repeater_id,
                 kind: Some(RepeaterServiceKind::Am),
-                enabled: Some(true),
-                label: Some(label),
-                rx_hz: Some(rx_hz),
-                tx_hz: Some(tx_hz),
-                note,
+                enabled: true,
+                label,
+                rx_hz,
+                tx_hz,
+                note: note.unwrap_or_default(),
                 fm_bandwidth: None,
                 rx_tone_kind: None,
                 rx_ctcss_hz: None,
@@ -200,13 +200,13 @@ impl RepeaterService {
                 sideband,
                 note,
             } => NewRepeaterServiceDao {
-                repeater_id: Some(repeater_id),
+                repeater_id,
                 kind: Some(RepeaterServiceKind::Ssb),
-                enabled: Some(true),
-                label: Some(label),
-                rx_hz: Some(rx_hz),
-                tx_hz: Some(tx_hz),
-                note,
+                enabled: true,
+                label,
+                rx_hz,
+                tx_hz,
+                note: note.unwrap_or_default(),
                 fm_bandwidth: None,
                 rx_tone_kind: None,
                 rx_ctcss_hz: None,
@@ -235,13 +235,13 @@ impl RepeaterService {
                 reflector,
                 note,
             } => NewRepeaterServiceDao {
-                repeater_id: Some(repeater_id),
+                repeater_id,
                 kind: Some(RepeaterServiceKind::Dstar),
-                enabled: Some(true),
-                label: Some(label),
-                rx_hz: Some(rx_hz),
-                tx_hz: Some(tx_hz),
-                note,
+                enabled: true,
+                label,
+                rx_hz,
+                tx_hz,
+                note: note.unwrap_or_default(),
                 fm_bandwidth: None,
                 rx_tone_kind: None,
                 rx_ctcss_hz: None,
@@ -270,13 +270,13 @@ impl RepeaterService {
                 network,
                 note,
             } => NewRepeaterServiceDao {
-                repeater_id: Some(repeater_id),
+                repeater_id,
                 kind: Some(RepeaterServiceKind::Dmr),
-                enabled: Some(true),
-                label: Some(label),
-                rx_hz: Some(rx_hz),
-                tx_hz: Some(tx_hz),
-                note,
+                enabled: true,
+                label,
+                rx_hz,
+                tx_hz,
+                note: note.unwrap_or_default(),
                 fm_bandwidth: None,
                 rx_tone_kind: None,
                 rx_ctcss_hz: None,
@@ -304,13 +304,13 @@ impl RepeaterService {
                 room,
                 note,
             } => NewRepeaterServiceDao {
-                repeater_id: Some(repeater_id),
+                repeater_id,
                 kind: Some(RepeaterServiceKind::C4fm),
-                enabled: Some(true),
-                label: Some(label),
-                rx_hz: Some(rx_hz),
-                tx_hz: Some(tx_hz),
-                note,
+                enabled: true,
+                label,
+                rx_hz,
+                tx_hz,
+                note: note.unwrap_or_default(),
                 fm_bandwidth: None,
                 rx_tone_kind: None,
                 rx_ctcss_hz: None,
@@ -338,13 +338,13 @@ impl RepeaterService {
                 path,
                 note,
             } => NewRepeaterServiceDao {
-                repeater_id: Some(repeater_id),
+                repeater_id,
                 kind: Some(RepeaterServiceKind::Aprs),
-                enabled: Some(true),
-                label: Some(label),
-                rx_hz: Some(rx_hz),
-                tx_hz: Some(tx_hz),
-                note,
+                enabled: true,
+                label,
+                rx_hz,
+                tx_hz,
+                note: note.unwrap_or_default(),
                 fm_bandwidth: None,
                 rx_tone_kind: None,
                 rx_ctcss_hz: None,
@@ -371,9 +371,9 @@ impl RepeaterService {
 impl From<RepeaterServiceDao> for RepeaterService {
     fn from(value: RepeaterServiceDao) -> Self {
         let kind = require_field(value.kind, "kind");
-        let label = require_field(value.label, "label");
-        let rx_hz = require_field(value.rx_hz, "rx_hz");
-        let tx_hz = require_field(value.tx_hz, "tx_hz");
+        let label = value.label;
+        let rx_hz = value.rx_hz;
+        let tx_hz = value.tx_hz;
         let rx_tone = tone_from_parts(value.rx_tone_kind, value.rx_ctcss_hz, value.rx_dcs_code);
         let tx_tone = tone_from_parts(value.tx_tone_kind, value.tx_ctcss_hz, value.tx_dcs_code);
 
@@ -385,20 +385,20 @@ impl From<RepeaterServiceDao> for RepeaterService {
                 bandwidth: require_field(value.fm_bandwidth, "fm_bandwidth"),
                 rx_tone,
                 tx_tone,
-                note: value.note,
+                note: (!value.note.is_empty()).then_some(value.note),
             },
             RepeaterServiceKind::Am => RepeaterService::Am {
                 label,
                 rx_hz,
                 tx_hz,
-                note: value.note,
+                note: (!value.note.is_empty()).then_some(value.note),
             },
             RepeaterServiceKind::Ssb => RepeaterService::Ssb {
                 label,
                 rx_hz,
                 tx_hz,
                 sideband: value.ssb_sideband,
-                note: value.note,
+                note: (!value.note.is_empty()).then_some(value.note),
             },
             RepeaterServiceKind::Dstar => RepeaterService::Dstar {
                 label,
@@ -407,7 +407,7 @@ impl From<RepeaterServiceDao> for RepeaterService {
                 mode: require_field(value.dstar_mode, "dstar_mode"),
                 gateway_call_sign: value.dstar_gateway_call_sign,
                 reflector: value.dstar_reflector,
-                note: value.note,
+                note: (!value.note.is_empty()).then_some(value.note),
             },
             RepeaterServiceKind::Dmr => RepeaterService::Dmr {
                 label,
@@ -416,7 +416,7 @@ impl From<RepeaterServiceDao> for RepeaterService {
                 color_code: require_field(value.dmr_color_code, "dmr_color_code"),
                 dmr_repeater_id: value.dmr_repeater_id,
                 network: require_field(value.dmr_network, "dmr_network"),
-                note: value.note,
+                note: (!value.note.is_empty()).then_some(value.note),
             },
             RepeaterServiceKind::C4fm => RepeaterService::C4fm {
                 label,
@@ -424,7 +424,7 @@ impl From<RepeaterServiceDao> for RepeaterService {
                 tx_hz,
                 wires_x_node_id: value.c4fm_wires_x_node_id,
                 room: value.c4fm_room,
-                note: value.note,
+                note: (!value.note.is_empty()).then_some(value.note),
             },
             RepeaterServiceKind::Aprs => RepeaterService::Aprs {
                 label,
@@ -432,7 +432,7 @@ impl From<RepeaterServiceDao> for RepeaterService {
                 tx_hz,
                 mode: value.aprs_mode,
                 path: value.aprs_path,
-                note: value.note,
+                note: (!value.note.is_empty()).then_some(value.note),
             },
         }
     }

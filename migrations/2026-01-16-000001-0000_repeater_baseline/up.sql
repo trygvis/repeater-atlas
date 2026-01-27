@@ -36,13 +36,13 @@ CREATE TYPE SSB_SIDEBAND AS ENUM ('lsb', 'usb');
 CREATE TABLE repeater_service
 (
     id                      BIGSERIAL PRIMARY KEY,
-    repeater_id             BIGINT REFERENCES repeater_system (id) ON DELETE CASCADE,
+    repeater_id             BIGINT NOT NULL REFERENCES repeater_system (id) ON DELETE CASCADE,
     kind                    REPEATER_SERVICE_KIND,
-    enabled                 BOOLEAN,
-    label                   TEXT,
-    note                    TEXT,
-    rx_hz                   BIGINT,
-    tx_hz                   BIGINT,
+    enabled                 BOOLEAN NOT NULL,
+    label                   TEXT NOT NULL,
+    note                    TEXT NOT NULL,
+    rx_hz                   BIGINT NOT NULL,
+    tx_hz                   BIGINT NOT NULL,
 
     fm_bandwidth            FM_BANDWIDTH,
     rx_tone_kind            TONE_KIND,

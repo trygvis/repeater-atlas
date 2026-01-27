@@ -197,13 +197,13 @@ impl FromSql<crate::schema::sql_types::SsbSideband, Pg> for SsbSideband {
 #[derive(Insertable)]
 #[diesel(table_name = crate::schema::repeater_service)]
 pub struct NewRepeaterServiceDao {
-    pub repeater_id: Option<i64>,
+    pub repeater_id: i64,
     pub kind: Option<RepeaterServiceKind>,
-    pub enabled: Option<bool>,
-    pub label: Option<String>,
-    pub note: Option<String>,
-    pub rx_hz: Option<Frequency>,
-    pub tx_hz: Option<Frequency>,
+    pub enabled: bool,
+    pub label: String,
+    pub note: String,
+    pub rx_hz: Frequency,
+    pub tx_hz: Frequency,
     pub fm_bandwidth: Option<FmBandwidth>,
     pub rx_tone_kind: Option<ToneKind>,
     pub rx_ctcss_hz: Option<f32>,
@@ -229,13 +229,13 @@ pub struct NewRepeaterServiceDao {
 #[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct RepeaterServiceDao {
     pub id: i64,
-    pub repeater_id: Option<i64>,
+    pub repeater_id: i64,
     pub kind: Option<RepeaterServiceKind>,
-    pub enabled: Option<bool>,
-    pub label: Option<String>,
-    pub note: Option<String>,
-    pub rx_hz: Option<Frequency>,
-    pub tx_hz: Option<Frequency>,
+    pub enabled: bool,
+    pub label: String,
+    pub note: String,
+    pub rx_hz: Frequency,
+    pub tx_hz: Frequency,
     pub fm_bandwidth: Option<FmBandwidth>,
     pub rx_tone_kind: Option<ToneKind>,
     pub rx_ctcss_hz: Option<f32>,
@@ -276,7 +276,7 @@ pub async fn select_by_repeater_id(
     use crate::schema::repeater_service::dsl as s;
 
     s::repeater_service
-        .filter(s::repeater_id.eq(Some(repeater_id)))
+        .filter(s::repeater_id.eq(repeater_id))
         .select(RepeaterServiceDao::as_select())
         .order_by(s::label.asc())
         .get_results(c)
