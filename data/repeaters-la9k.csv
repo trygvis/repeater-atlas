@@ -1,0 +1,7 @@
+call_sign,owner,address,tx,rx,ctcss,service,status
+LA6KR,LA9K,"Hesteheia, Kristiansand",145.750,145.150,123.0 Hz,FM_NARROW,QRV
+LA4ARR,LA9K,"Hestheia, Kristiansand",434.625,432.625,123.0 Hz,FM_NARROW,QRV
+LA4ORR,LA9K,"Odderøya, Kristiansand",145.6125,145.0125,123.0 Hz,FM_NARROW,QRV
+LA6JR,LA9K,"Hovassfjell, Ose i Setesdal",145.600,145.000,123.0 Hz,FM_NARROW,QRV
+LA6SR,LA9K,"Heiberg, Risør",145.775,145.175,123.0 Hz,FM_NARROW,Prøvedrift
+LA5AR,LA9K,"Vakttårnheia, Arendal",145.700,145.100,123.0 Hz,FM_NARROW,QRV

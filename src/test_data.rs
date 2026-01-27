@@ -10,6 +10,39 @@ use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use tracing::info;
 
+fn row_from_record(
+    headers: &StringRecord,
+    record: &StringRecord,
+) -> Result<HashMap<String, String>, RepeaterAtlasError> {
+    let mut row = HashMap::new();
+
+    for (header, value) in headers.iter().zip(record.iter()) {
+        let key = header.trim().to_string();
+        if row.contains_key(&key) {
+            return Err(RepeaterAtlasError::Other(
+                Box::new(std::io::Error::new(
+                    std::io::ErrorKind::InvalidData,
+                    "duplicate header in csv",
+                )),
+                format!("duplicate header {key}"),
+            ));
+        }
+        row.insert(key, value.to_string());
+    }
+
+    Ok(row)
+}
+
+fn parse_ctcss(value: &str) -> Option<f32> {
+    let trimmed = value.trim();
+    if trimmed.is_empty() {
+        return None;
+    }
+    // Accept "123", "123.0", "123.0 Hz".
+    let first = trimmed.split_whitespace().next().unwrap_or(trimmed);
+    first.parse::<f32>().ok()
+}
+
 async fn repeater_with_site(
     c: &mut AsyncPgConnection,
     club: &Option<HamClub>,
@@ -216,14 +249,19 @@ fn load_csv(path: &Path) -> Result<(StringRecord, Vec<StringRecord>), RepeaterAt
 pub async fn generate(c: &mut AsyncPgConnection) -> Result<(), RepeaterAtlasError> {
     let clubs = load_ham_clubs(c, PathBuf::from("data/ham_clubs.csv")).await?;
 
-    let dir = Path::new("data").read_dir()?;
-    for d in dir {
+    let mut repeater_files = Vec::new();
+    for d in Path::new("data").read_dir()? {
         let d = d?;
         let name = d.file_name();
         let name: &str = name.to_str().unwrap_or("");
         if name.starts_with("repeaters-") {
-            load_repeaters(c, &clubs, d.path()).await?;
+            repeater_files.push(d.path());
         }
+    }
+
+    repeater_files.sort();
+    for path in repeater_files {
+        load_repeaters(c, &clubs, path).await?;
     }
 
     let links_path = PathBuf::from("data/repeater-links.csv");
@@ -323,10 +361,7 @@ pub async fn load_ham_clubs(
 
     for (row_index, record) in records.iter().enumerate() {
         let row_index = row_index + 2;
-        let mut row = HashMap::new();
-        for (header, value) in headers.iter().zip(record.iter()) {
-            row.insert(header.to_string(), value.to_string());
-        }
+        let row = row_from_record(&headers, record)?;
 
         let call_sign_raw = match row
             .get("call_sign")
@@ -407,10 +442,7 @@ pub async fn load_repeaters(
 
     for (row_index, record) in records.iter().enumerate() {
         let row_index = row_index + 2;
-        let mut row = HashMap::new();
-        for (header, value) in headers.iter().zip(record.iter()) {
-            row.insert(header.to_string(), value.to_string());
-        }
+        let row = row_from_record(&headers, record)?;
 
         let call_sign_raw = match row
             .get("call_sign")
@@ -488,21 +520,10 @@ pub async fn load_repeaters(
             .or_else(|| tx_frequency.map(|value| value.hz()).and_then(default_offset));
         let ctcss = row
             .get("ctcss_tx")
-            .map(|value| value.trim())
-            .filter(|value| !value.is_empty())
-            .and_then(|value| value.parse::<f32>().ok())
-            .or_else(|| {
-                row.get("ctcss_rx")
-                    .map(|value| value.trim())
-                    .filter(|value| !value.is_empty())
-                    .and_then(|value| value.parse::<f32>().ok())
-            })
-            .or_else(|| {
-                row.get("ctcss")
-                    .map(|value| value.trim())
-                    .filter(|value| !value.is_empty())
-                    .and_then(|value| value.parse::<f32>().ok())
-            });
+            .and_then(|value| parse_ctcss(value))
+            .or_else(|| row.get("ctcss_rx").and_then(|value| parse_ctcss(value)))
+            .or_else(|| row.get("ctcss").and_then(|value| parse_ctcss(value)))
+            .or_else(|| row.get("CTCSS").and_then(|value| parse_ctcss(value)));
         let dmr_id = row
             .get("dmr_id")
             .map(|value| value.trim())
