@@ -367,6 +367,15 @@ pub async fn load_repeaters(
             let mut repeater =
                 repeater_with_site(c, &club, call_sign.clone(), address, maidenhead).await?;
 
+            if let Some(name) = row
+                .get("name")
+                .map(|value| value.trim())
+                .filter(|value| !value.is_empty())
+            {
+                repeater.name = Some(name.to_string());
+                repeater = dao::repeater_system::update(c, repeater).await?;
+            }
+
             if let Some(status) = row
                 .get("status")
                 .map(|value| value.trim())
@@ -385,7 +394,13 @@ pub async fn load_repeaters(
             .map(|value| value.trim())
             .filter(|value| !value.is_empty());
         let tx_frequency = parse_tx_frequency(&row);
-        let offset = parse_offset(&row).or_else(|| tx_frequency.map(|value| value.hz()).and_then(default_offset));
+        let rx_frequency = parse_rx_frequency(&row);
+        let offset = parse_offset(&row)
+            .or_else(|| match (tx_frequency, rx_frequency) {
+                (Some(tx), Some(rx)) => Some(rx.hz() - tx.hz()),
+                _ => None,
+            })
+            .or_else(|| tx_frequency.map(|value| value.hz()).and_then(default_offset));
         let ctcss = row
             .get("ctcss_tx")
             .map(|value| value.trim())
@@ -393,6 +408,12 @@ pub async fn load_repeaters(
             .and_then(|value| value.parse::<f32>().ok())
             .or_else(|| {
                 row.get("ctcss_rx")
+                    .map(|value| value.trim())
+                    .filter(|value| !value.is_empty())
+                    .and_then(|value| value.parse::<f32>().ok())
+            })
+            .or_else(|| {
+                row.get("ctcss")
                     .map(|value| value.trim())
                     .filter(|value| !value.is_empty())
                     .and_then(|value| value.parse::<f32>().ok())
@@ -561,22 +582,32 @@ fn parse_offset(row: &HashMap<String, String>) -> Option<i64> {
         .and_then(|value| value.parse::<i64>().ok())
 }
 
-fn parse_tx_frequency(row: &HashMap<String, String>) -> Option<Frequency> {
-    let tx_hz: Option<i64> = row
-        .get("tx")
-        .map(|value| value.trim())
-        .filter(|value| !value.is_empty())
-        .and_then(|value| value.parse::<i64>().ok());
-    if tx_hz.is_some() {
-        return tx_hz.and_then(|value| Frequency::new_hz(value).ok());
+fn parse_hz_field(row: &HashMap<String, String>, key: &str) -> Option<i64> {
+    let raw = row.get(key).map(|value| value.trim()).filter(|value| !value.is_empty())?;
+
+    // Prefer explicit Hz integers.
+    if let Ok(value) = raw.parse::<i64>() {
+        return Some(value);
     }
 
-    row.get("tx_mhz")
-        .map(|value| value.trim())
-        .filter(|value| !value.is_empty())
-        .and_then(|value| value.parse::<f64>().ok())
+    // Otherwise interpret as MHz with decimals (e.g. "145.625").
+    raw.parse::<f64>()
+        .ok()
         .map(|value| (value * 1_000_000.0).round() as i64)
-        .and_then(|value| Frequency::new_hz(value).ok())
+}
+
+fn parse_tx_frequency(row: &HashMap<String, String>) -> Option<Frequency> {
+    let tx_hz = parse_hz_field(row, "tx")
+        .or_else(|| parse_hz_field(row, "tx_hz"))
+        .or_else(|| parse_hz_field(row, "tx_mhz"));
+    tx_hz.and_then(|value| Frequency::new_hz(value).ok())
+}
+
+fn parse_rx_frequency(row: &HashMap<String, String>) -> Option<Frequency> {
+    let rx_hz = parse_hz_field(row, "rx")
+        .or_else(|| parse_hz_field(row, "rx_hz"))
+        .or_else(|| parse_hz_field(row, "rx_mhz"));
+    rx_hz.and_then(|value| Frequency::new_hz(value).ok())
 }
 
 fn default_offset(tx_hz: i64) -> Option<i64> {

@@ -1,0 +1,4 @@
+call_sign,owner,status,address,name,service,tx,rx,ctcss,dtmf_tone
+LA6FR,LA4K,active,Storestø,Flekkefjord Repeater,FM_NARROW,145.625,145.025,123
+LA9MR,LA4K,active,Varmestø,Mandal Repeater,FM_NARROW,145.675,145.075,123,
+LA7ER,LA4K,active,Sjåvassknuten,Åseral Repeater,FM_NARROW,145.650,145.050,,1750
