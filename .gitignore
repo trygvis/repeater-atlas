@@ -18,6 +18,4 @@ static/vendor
 !.pre-commit-config.yaml
 !.prettierignore
 !.prettierrc.yaml
-
-# bv (beads viewer) local config and caches
-.bv/
+!.tickets

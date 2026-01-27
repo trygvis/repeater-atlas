@@ -1,0 +1,23 @@
+#!/bin/bash
+
+set -euo pipefail
+
+v=0.3.0
+
+basedir="${0%/*}"
+self="${0##*/}"
+
+url="https://raw.githubusercontent.com/wedow/ticket/refs/tags/v$v/ticket"
+
+root="$basedir/.$self"
+bin="$root/$self-$v/$self"
+
+if [[ ! -x "$bin" ]]
+then
+  mkdir -p "${bin%/*}"
+  wget -q -O "$bin" "$url"
+
+  chmod +x "$bin"
+fi
+
+exec "$bin" "${@}"
