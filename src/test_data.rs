@@ -2,7 +2,7 @@ use crate::dao::ham_club::{HamClub, NewHamClub};
 use crate::dao::repeater_service::{AprsMode, DstarMode, FmBandwidth};
 use crate::dao::repeater_system::{NewRepeaterSystem, RepeaterSystem};
 use crate::repeater_service::{RepeaterService, Tone};
-use crate::{RepeaterAtlasError, dao};
+use crate::{MaidenheadLocator, RepeaterAtlasError, dao};
 use csv::StringRecord;
 use diesel::QueryResult;
 use diesel_async::AsyncPgConnection;
@@ -26,7 +26,15 @@ async fn repeater_with_site(
     if !address.trim().is_empty() {
         repeater.address = Some(address);
     }
-    repeater.maidenhead = maidenhead.map(|value| value.to_string());
+    repeater.maidenhead = maidenhead
+        .map(MaidenheadLocator::new)
+        .transpose()
+        .map_err(|e| {
+            RepeaterAtlasError::Other(
+                Box::new(e),
+                format!("invalid maidenhead locator for call_sign={call_sign}"),
+            )
+        })?;
 
     info!("Creating repeater system call sign {call_sign}");
 

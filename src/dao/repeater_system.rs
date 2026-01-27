@@ -1,6 +1,8 @@
 use diesel::prelude::*;
 use diesel_async::{AsyncPgConnection, RunQueryDsl};
 
+use crate::MaidenheadLocator;
+
 #[derive(Insertable)]
 #[diesel(table_name = crate::schema::repeater_system)]
 pub struct NewRepeaterSystem {
@@ -9,7 +11,7 @@ pub struct NewRepeaterSystem {
     pub name: Option<String>,
     pub description: Option<String>,
     pub address: Option<String>,
-    pub maidenhead: Option<String>,
+    pub maidenhead: Option<MaidenheadLocator>,
     pub latitude: Option<f64>,
     pub longitude: Option<f64>,
     pub elevation_m: Option<i32>,
@@ -67,7 +69,7 @@ pub struct RepeaterSystem {
     pub name: Option<String>,
     pub description: Option<String>,
     pub address: Option<String>,
-    pub maidenhead: Option<String>,
+    pub maidenhead: Option<MaidenheadLocator>,
     pub latitude: Option<f64>,
     pub longitude: Option<f64>,
     pub elevation_m: Option<i32>,

@@ -1,12 +1,12 @@
 use super::AppState;
 use super::auth::auth_header;
 use crate::repeater_service::RepeaterService;
+use crate::MaidenheadLocator;
 use crate::{RepeaterAtlasError, dao};
 use askama::Template;
 use axum::{extract::State, response::Html};
 use axum_extra::extract::cookie::CookieJar;
 use axum_extra::routing::TypedPath;
-use maidenhead::grid_to_longlat;
 use serde::{Deserialize, Serialize};
 
 #[derive(TypedPath)]
@@ -67,16 +67,15 @@ struct ResolvedSite {
 }
 
 fn resolve_site_fields(repeater: &dao::repeater_system::RepeaterSystem) -> ResolvedSite {
-    let grid = repeater.maidenhead.clone();
+    let grid: Option<MaidenheadLocator> = repeater.maidenhead.clone();
     let mut latitude = repeater.latitude;
     let mut longitude = repeater.longitude;
 
     if latitude.is_none() || longitude.is_none() {
         if let Some(ref grid) = grid {
-            if let Ok((grid_longitude, grid_latitude)) = grid_to_longlat(grid) {
-                latitude = latitude.or(Some(grid_latitude));
-                longitude = longitude.or(Some(grid_longitude));
-            }
+            let (grid_longitude, grid_latitude) = grid.longlat();
+            latitude = latitude.or(Some(grid_latitude));
+            longitude = longitude.or(Some(grid_longitude));
         }
     }
 
@@ -86,7 +85,7 @@ fn resolve_site_fields(repeater: &dao::repeater_system::RepeaterSystem) -> Resol
     };
 
     ResolvedSite {
-        maidenhead: grid.unwrap_or_else(|| "-".to_string()),
+        maidenhead: grid.map(|value| format!("{value}")).unwrap_or_else(|| "-".to_string()),
         location,
         latitude,
         longitude,
