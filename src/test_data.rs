@@ -226,6 +226,91 @@ pub async fn generate(c: &mut AsyncPgConnection) -> Result<(), RepeaterAtlasErro
         }
     }
 
+    let links_path = PathBuf::from("data/repeater-links.csv");
+    if links_path.exists() {
+        load_repeater_links(c, links_path).await?;
+    }
+
+    Ok(())
+}
+
+pub async fn load_repeater_links(
+    c: &mut AsyncPgConnection,
+    path: PathBuf,
+) -> Result<(), RepeaterAtlasError> {
+    let (headers, records) = load_csv(&path)?;
+
+    let mut call_sign_a_index = None;
+    let mut call_sign_b_index = None;
+    for (idx, header) in headers.iter().enumerate() {
+        match header.trim() {
+            "call_sign_a" => call_sign_a_index = Some(idx),
+            "call_sign_b" => call_sign_b_index = Some(idx),
+            _ => {}
+        }
+    }
+    let (Some(call_sign_a_index), Some(call_sign_b_index)) = (call_sign_a_index, call_sign_b_index)
+    else {
+        return Err(RepeaterAtlasError::Other(
+            Box::new(std::io::Error::new(
+                std::io::ErrorKind::InvalidData,
+                "missing required headers call_sign_a/call_sign_b",
+            )),
+            format!("invalid repeater links csv: {}", path.to_string_lossy()),
+        ));
+    };
+
+    let mut imported = 0usize;
+    for (row_index, record) in records.iter().enumerate() {
+        let row_index = row_index + 2;
+        let call_sign_a_raw = record.get(call_sign_a_index).unwrap_or("").trim();
+        let call_sign_b_raw = record.get(call_sign_b_index).unwrap_or("").trim();
+        if call_sign_a_raw.is_empty() || call_sign_b_raw.is_empty() {
+            info!(row = row_index, reason = "missing call signs", "Skipping link row");
+            continue;
+        }
+
+        let (call_sign_a, _) = split_call_sign(call_sign_a_raw);
+        let (call_sign_b, _) = split_call_sign(call_sign_b_raw);
+
+        let Some(a) = dao::repeater_system::find_by_call_sign(c, call_sign_a.clone()).await? else {
+            info!(
+                row = row_index,
+                call_sign = call_sign_a,
+                reason = "unknown repeater",
+                "Skipping link row"
+            );
+            continue;
+        };
+        let Some(b) = dao::repeater_system::find_by_call_sign(c, call_sign_b.clone()).await? else {
+            info!(
+                row = row_index,
+                call_sign = call_sign_b,
+                reason = "unknown repeater",
+                "Skipping link row"
+            );
+            continue;
+        };
+
+        let (repeater_a_id, repeater_b_id) = if a.id < b.id {
+            (a.id, b.id)
+        } else {
+            (b.id, a.id)
+        };
+        dao::repeater_link::insert(
+            c,
+            dao::repeater_link::NewRepeaterLink::new(repeater_a_id, repeater_b_id),
+        )
+        .await?;
+        imported += 1;
+    }
+
+    info!(
+        file = path.to_string_lossy().as_ref(),
+        imported = imported,
+        "Imported repeater links"
+    );
+
     Ok(())
 }
 

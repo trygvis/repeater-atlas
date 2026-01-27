@@ -1,3 +1,4 @@
+DROP TABLE repeater_link;
 DROP TABLE repeater_service_dmr_talkgroup;
 DROP TABLE repeater_service;
 DROP TABLE repeater_system;

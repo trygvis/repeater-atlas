@@ -122,3 +122,17 @@ CREATE TABLE repeater_service_dmr_talkgroup
 
     UNIQUE (service_id, time_slot, talkgroup)
 );
+
+-- Represents an undirected link between two repeater systems (e.g. RF links).
+-- Stored as (a,b) where a<b to avoid duplicates.
+CREATE TABLE repeater_link
+(
+    id            BIGSERIAL PRIMARY KEY,
+    repeater_a_id BIGINT NOT NULL REFERENCES repeater_system (id) ON DELETE CASCADE,
+    repeater_b_id BIGINT NOT NULL REFERENCES repeater_system (id) ON DELETE CASCADE,
+    note          TEXT   NOT NULL DEFAULT '',
+
+    CHECK (repeater_a_id <> repeater_b_id),
+    CHECK (repeater_a_id < repeater_b_id),
+    UNIQUE (repeater_a_id, repeater_b_id)
+);

@@ -48,6 +48,15 @@ diesel::table! {
 }
 
 diesel::table! {
+    repeater_link (id) {
+        id -> Int8,
+        repeater_a_id -> Int8,
+        repeater_b_id -> Int8,
+        note -> Text,
+    }
+}
+
+diesel::table! {
     use diesel::sql_types::*;
     use super::sql_types::RepeaterServiceKind;
     use super::sql_types::FmBandwidth;
@@ -123,6 +132,7 @@ diesel::joinable!(repeater_system -> ham_club (ham_club_id));
 diesel::allow_tables_to_appear_in_same_query!(
     app_user,
     ham_club,
+    repeater_link,
     repeater_service,
     repeater_service_dmr_talkgroup,
     repeater_system,
