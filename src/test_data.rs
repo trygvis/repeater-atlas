@@ -116,19 +116,13 @@ async fn narrow_fm(
     c: &mut AsyncPgConnection,
     r: &RepeaterFixture,
     label: impl Into<String>,
-    tx_frequency: i64,
-    offset: i64,
+    tx_hz: Frequency,
+    offset_hz: i64,
     subtone: Option<f32>,
 ) -> Result<(), RepeaterAtlasError> {
     let label = label.into();
     let tone = subtone.map(Tone::CTCSS).unwrap_or(Tone::None);
-    let tx_hz = Frequency::new_hz(tx_frequency).map_err(|e| {
-        RepeaterAtlasError::Other(
-            Box::new(e),
-            format!("invalid tx frequency for call_sign={}", r.call_sign),
-        )
-    })?;
-    let rx_hz = Frequency::new_hz(tx_frequency + offset).map_err(|e| {
+    let rx_hz = tx_hz.offset(offset_hz).map_err(|e| {
         RepeaterAtlasError::Other(
             Box::new(e),
             format!("invalid rx frequency for call_sign={}", r.call_sign),
@@ -150,15 +144,9 @@ async fn igate(
     c: &mut AsyncPgConnection,
     r: &RepeaterFixture,
     label: impl Into<String>,
-    frequency: i64,
+    hz: Frequency,
 ) -> Result<(), RepeaterAtlasError> {
     let label = label.into();
-    let hz = Frequency::new_hz(frequency).map_err(|e| {
-        RepeaterAtlasError::Other(
-            Box::new(e),
-            format!("invalid aprs frequency for call_sign={}", r.call_sign),
-        )
-    })?;
     let service = RepeaterService::Aprs {
         label,
         rx_hz: hz,
@@ -174,15 +162,9 @@ async fn digipeater(
     c: &mut AsyncPgConnection,
     r: &RepeaterFixture,
     label: impl Into<String>,
-    frequency: i64,
+    hz: Frequency,
 ) -> Result<(), RepeaterAtlasError> {
     let label = label.into();
-    let hz = Frequency::new_hz(frequency).map_err(|e| {
-        RepeaterAtlasError::Other(
-            Box::new(e),
-            format!("invalid aprs frequency for call_sign={}", r.call_sign),
-        )
-    })?;
     let service = RepeaterService::Aprs {
         label,
         rx_hz: hz,
@@ -192,16 +174,6 @@ async fn digipeater(
         note: None,
     };
     create_service(c, r.system.id, service).await
-}
-
-fn label_for_frequency(frequency: i64) -> &'static str {
-    if frequency < 200_000_000 {
-        "VHF"
-    } else if frequency < 1_000_000_000 {
-        "UHF"
-    } else {
-        "SHF"
-    }
 }
 
 fn split_call_sign(input: &str) -> (String, Option<String>) {
@@ -521,7 +493,7 @@ pub async fn load_repeaters(
                 (Some(tx), Some(rx)) => Some(rx.hz() - tx.hz()),
                 _ => None,
             })
-            .or_else(|| tx_frequency.map(|value| value.hz()).and_then(default_offset));
+            .or_else(|| tx_frequency.and_then(default_offset));
         let ctcss = row
             .get("ctcss_tx")
             .and_then(|value| parse_ctcss(value))
@@ -547,8 +519,8 @@ pub async fn load_repeaters(
                 };
                 let label = port_label
                     .as_deref()
-                    .unwrap_or(label_for_frequency(tx_frequency.hz()));
-                narrow_fm(c, &repeater, label, tx_frequency.hz(), offset, ctcss).await?;
+                    .unwrap_or(tx_frequency.band_label());
+                narrow_fm(c, &repeater, label, tx_frequency, offset, ctcss).await?;
                 imported += 1;
             }
             Some("APRS_IGATE") => {
@@ -563,8 +535,8 @@ pub async fn load_repeaters(
                 };
                 let label = port_label
                     .as_deref()
-                    .unwrap_or(label_for_frequency(tx_frequency.hz()));
-                igate(c, &repeater, label, tx_frequency.hz()).await?;
+                    .unwrap_or(tx_frequency.band_label());
+                igate(c, &repeater, label, tx_frequency).await?;
                 imported += 1;
             }
             Some("APRS_DIGIPEATER") => {
@@ -579,8 +551,8 @@ pub async fn load_repeaters(
                 };
                 let label = port_label
                     .as_deref()
-                    .unwrap_or(label_for_frequency(tx_frequency.hz()));
-                digipeater(c, &repeater, label, tx_frequency.hz()).await?;
+                    .unwrap_or(tx_frequency.band_label());
+                digipeater(c, &repeater, label, tx_frequency).await?;
                 imported += 1;
             }
             Some("DMR") => {
@@ -595,8 +567,8 @@ pub async fn load_repeaters(
                 };
                 let label = port_label
                     .as_deref()
-                    .unwrap_or(label_for_frequency(tx_frequency.hz()));
-                let rx_hz = match Frequency::new_hz(tx_frequency.hz() + offset) {
+                    .unwrap_or(tx_frequency.band_label());
+                let rx_hz = match tx_frequency.offset(offset) {
                     Ok(value) => value,
                     Err(_) => {
                         info!(
@@ -632,8 +604,8 @@ pub async fn load_repeaters(
                 };
                 let label = port_label
                     .as_deref()
-                    .unwrap_or(label_for_frequency(tx_frequency.hz()));
-                let rx_hz = match Frequency::new_hz(tx_frequency.hz() + offset) {
+                    .unwrap_or(tx_frequency.band_label());
+                let rx_hz = match tx_frequency.offset(offset) {
                     Ok(value) => value,
                     Err(_) => {
                         info!(
@@ -720,10 +692,10 @@ fn parse_rx_frequency(row: &HashMap<String, String>) -> Option<Frequency> {
     rx_hz.and_then(|value| Frequency::new_hz(value).ok())
 }
 
-fn default_offset(tx_hz: i64) -> Option<i64> {
-    if (144_000_000..148_000_000).contains(&tx_hz) {
+fn default_offset(tx_hz: Frequency) -> Option<i64> {
+    if tx_hz.contained_in(144_000_000..148_000_000) {
         Some(-600_000)
-    } else if (430_000_000..450_000_000).contains(&tx_hz) {
+    } else if tx_hz.contained_in(430_000_000..450_000_000) {
         Some(-2_000_000)
     } else {
         None

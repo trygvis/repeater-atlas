@@ -26,7 +26,7 @@ async fn inserts_repeater_row() -> Result<(), Box<dyn std::error::Error + Send +
     let repeater = dao::repeater_system::insert(&mut c, new_repeater).await?;
 
     let tx_hz = Frequency::new_hz(145_775_000)?;
-    let rx_hz = Frequency::new_hz(tx_hz.hz() - 600_000)?;
+    let rx_hz = tx_hz.offset(-600_000)?;
     let service = RepeaterService::Fm {
         label: "VHF".to_string(),
         rx_hz,

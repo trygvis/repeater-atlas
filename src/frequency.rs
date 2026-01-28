@@ -12,12 +12,20 @@ pub struct Frequency(i64);
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub enum FrequencyError {
     NegativeHz(i64),
+    Overflow { base_hz: i64, offset_hz: i64 },
 }
 
 impl fmt::Display for FrequencyError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             FrequencyError::NegativeHz(hz) => write!(f, "frequency must be >= 0 Hz, got {hz}"),
+            FrequencyError::Overflow {
+                base_hz,
+                offset_hz,
+            } => write!(
+                f,
+                "frequency overflow when adding offset: {base_hz} + {offset_hz}"
+            ),
         }
     }
 }
@@ -30,6 +38,34 @@ impl Frequency {
             return Err(FrequencyError::NegativeHz(hz));
         }
         Ok(Self(hz))
+    }
+
+    pub fn band_label(&self) -> &'static str {
+        let hz = self.hz();
+        if hz < 30_000_000 {
+            "HF"
+        } else if hz < 300_000_000 {
+            "VHF"
+        } else if hz < 3_000_000_000 {
+            "UHF"
+        } else {
+            "SHF"
+        }
+    }
+
+    pub fn contained_in(&self, range: std::ops::Range<i64>) -> bool {
+        range.contains(&self.0)
+    }
+
+    pub fn offset(&self, offset_hz: i64) -> Result<Self, FrequencyError> {
+        let hz = self
+            .0
+            .checked_add(offset_hz)
+            .ok_or(FrequencyError::Overflow {
+                base_hz: self.0,
+                offset_hz,
+            })?;
+        Self::new_hz(hz)
     }
 
     pub fn hz(&self) -> i64 {
@@ -100,6 +136,7 @@ impl FromSql<BigInt, Pg> for Frequency {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::ops::Range;
 
     #[test]
     fn formats_mhz_with_three_decimals() {
@@ -146,5 +183,34 @@ mod tests {
     #[test]
     fn rejects_negative() {
         assert!(Frequency::new_hz(-1).is_err());
+    }
+
+    #[test]
+    fn offset_adds_hz() {
+        let f = Frequency::new_hz(145_500_000).unwrap();
+        assert_eq!(f.offset(600_000).unwrap().hz(), 146_100_000);
+    }
+
+    #[test]
+    fn offset_rejects_negative_result() {
+        let f = Frequency::new_hz(100).unwrap();
+        assert!(matches!(f.offset(-101), Err(FrequencyError::NegativeHz(_))));
+    }
+
+    #[test]
+    fn offset_rejects_overflow() {
+        let f = Frequency::new_hz(i64::MAX).unwrap();
+        assert!(matches!(
+            f.offset(1),
+            Err(FrequencyError::Overflow { .. })
+        ));
+    }
+
+    #[test]
+    fn contained_in_half_open_range() {
+        let f = Frequency::new_hz(30_000_000).unwrap();
+        let r: Range<i64> = 30_000_000..300_000_000;
+        assert!(f.contained_in(r));
+        assert!(!f.contained_in(0..30_000_000));
     }
 }
