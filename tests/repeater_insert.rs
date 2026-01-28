@@ -3,8 +3,8 @@ mod utils;
 use diesel::prelude::*;
 use diesel::sql_query;
 use diesel_async::RunQueryDsl;
-use repeater_atlas::dao;
 use repeater_atlas::Frequency;
+use repeater_atlas::dao;
 use repeater_atlas::repeater_service::RepeaterService;
 use repeater_atlas::schema::repeater_system;
 

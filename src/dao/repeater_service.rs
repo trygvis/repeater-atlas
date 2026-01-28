@@ -58,6 +58,15 @@ pub enum FmBandwidth {
     Wide,
 }
 
+impl std::fmt::Display for FmBandwidth {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            FmBandwidth::Narrow => write!(f, "Narrow"),
+            FmBandwidth::Wide => write!(f, "Wide"),
+        }
+    }
+}
+
 impl ToSql<crate::schema::sql_types::FmBandwidth, Pg> for FmBandwidth {
     fn to_sql<'b>(&'b self, out: &mut Output<'b, '_, Pg>) -> serialize::Result {
         let value = match self {
@@ -117,6 +126,15 @@ pub enum DstarMode {
     Dd,
 }
 
+impl std::fmt::Display for DstarMode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            DstarMode::Dv => write!(f, "DV"),
+            DstarMode::Dd => write!(f, "DD"),
+        }
+    }
+}
+
 impl ToSql<crate::schema::sql_types::DstarMode, Pg> for DstarMode {
     fn to_sql<'b>(&'b self, out: &mut Output<'b, '_, Pg>) -> serialize::Result {
         let value = match self {
@@ -145,6 +163,15 @@ pub enum AprsMode {
     Digipeater,
 }
 
+impl std::fmt::Display for AprsMode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            AprsMode::Igate => write!(f, "Igate"),
+            AprsMode::Digipeater => write!(f, "Digipeater"),
+        }
+    }
+}
+
 impl ToSql<crate::schema::sql_types::AprsMode, Pg> for AprsMode {
     fn to_sql<'b>(&'b self, out: &mut Output<'b, '_, Pg>) -> serialize::Result {
         let value = match self {
@@ -171,6 +198,15 @@ impl FromSql<crate::schema::sql_types::AprsMode, Pg> for AprsMode {
 pub enum SsbSideband {
     Lsb,
     Usb,
+}
+
+impl std::fmt::Display for SsbSideband {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            SsbSideband::Lsb => write!(f, "LSB"),
+            SsbSideband::Usb => write!(f, "USB"),
+        }
+    }
 }
 
 impl ToSql<crate::schema::sql_types::SsbSideband, Pg> for SsbSideband {

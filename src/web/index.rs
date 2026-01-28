@@ -1,5 +1,6 @@
 use super::AppState;
 use super::auth::auth_header;
+use crate::dao::repeater_service::{AprsMode, DstarMode, FmBandwidth, SsbSideband};
 use crate::repeater_service::RepeaterService;
 use crate::Frequency;
 use crate::MaidenheadLocator;
@@ -182,7 +183,13 @@ pub struct RepeaterDetailPath {
 struct DetailTemplate {
     auth: super::AuthHeader,
     repeater: dao::repeater_system::RepeaterSystem,
-    services: Vec<RepeaterServiceListItem>,
+    fm_services: Vec<FmServiceItem>,
+    dmr_services: Vec<DmrServiceItem>,
+    dstar_services: Vec<DstarServiceItem>,
+    c4fm_services: Vec<C4fmServiceItem>,
+    aprs_services: Vec<AprsServiceItem>,
+    ssb_services: Vec<SsbServiceItem>,
+    am_services: Vec<AmServiceItem>,
     status: String,
     description: String,
     maidenhead: String,
@@ -190,11 +197,74 @@ struct DetailTemplate {
     map_context: Option<MapContext>,
 }
 
-struct RepeaterServiceListItem {
-    kind: String,
+struct FmServiceItem {
     label: String,
+    enabled: bool,
     rx_hz: Frequency,
     tx_hz: Frequency,
+    bandwidth: FmBandwidth,
+    rx_tone: crate::repeater_service::Tone,
+    tx_tone: crate::repeater_service::Tone,
+    note: String,
+}
+
+struct DmrServiceItem {
+    label: String,
+    enabled: bool,
+    rx_hz: Frequency,
+    tx_hz: Frequency,
+    color_code: i16,
+    dmr_repeater_id: Option<i64>,
+    network: String,
+    note: String,
+}
+
+struct DstarServiceItem {
+    label: String,
+    enabled: bool,
+    rx_hz: Frequency,
+    tx_hz: Frequency,
+    mode: DstarMode,
+    gateway_call_sign: Option<String>,
+    reflector: Option<String>,
+    note: String,
+}
+
+struct C4fmServiceItem {
+    label: String,
+    enabled: bool,
+    rx_hz: Frequency,
+    tx_hz: Frequency,
+    wires_x_node_id: Option<i32>,
+    room: Option<String>,
+    note: String,
+}
+
+struct AprsServiceItem {
+    label: String,
+    enabled: bool,
+    rx_hz: Frequency,
+    tx_hz: Frequency,
+    mode: Option<AprsMode>,
+    path: Option<String>,
+    note: String,
+}
+
+struct SsbServiceItem {
+    label: String,
+    enabled: bool,
+    rx_hz: Frequency,
+    tx_hz: Frequency,
+    sideband: Option<SsbSideband>,
+    note: String,
+}
+
+struct AmServiceItem {
+    label: String,
+    enabled: bool,
+    rx_hz: Frequency,
+    tx_hz: Frequency,
+    note: String,
 }
 
 pub async fn detail(
@@ -210,16 +280,131 @@ pub async fn detail(
     };
 
     let services = dao::repeater_service::select_by_repeater_id(&mut c, repeater.id).await?;
-    let services = services
-        .into_iter()
-        .map(RepeaterService::from)
-        .map(|service| RepeaterServiceListItem {
-            kind: service.kind_label().to_string(),
-            label: service.label().to_string(),
-            rx_hz: service.rx_hz(),
-            tx_hz: service.tx_hz(),
-        })
-        .collect();
+    let mut fm_services = Vec::new();
+    let mut dmr_services = Vec::new();
+    let mut dstar_services = Vec::new();
+    let mut c4fm_services = Vec::new();
+    let mut aprs_services = Vec::new();
+    let mut ssb_services = Vec::new();
+    let mut am_services = Vec::new();
+
+    for row in services {
+        let enabled = row.enabled;
+        let note = row.note.clone();
+        let service = RepeaterService::from(row);
+
+        match service {
+            RepeaterService::Fm {
+                label,
+                rx_hz,
+                tx_hz,
+                bandwidth,
+                rx_tone,
+                tx_tone,
+                ..
+            } => fm_services.push(FmServiceItem {
+                label,
+                enabled,
+                rx_hz,
+                tx_hz,
+                bandwidth,
+                rx_tone,
+                tx_tone,
+                note,
+            }),
+            RepeaterService::Dmr {
+                label,
+                rx_hz,
+                tx_hz,
+                color_code,
+                dmr_repeater_id,
+                network,
+                ..
+            } => dmr_services.push(DmrServiceItem {
+                label,
+                enabled,
+                rx_hz,
+                tx_hz,
+                color_code,
+                dmr_repeater_id,
+                network,
+                note,
+            }),
+            RepeaterService::Dstar {
+                label,
+                rx_hz,
+                tx_hz,
+                mode,
+                gateway_call_sign,
+                reflector,
+                ..
+            } => dstar_services.push(DstarServiceItem {
+                label,
+                enabled,
+                rx_hz,
+                tx_hz,
+                mode,
+                gateway_call_sign,
+                reflector,
+                note,
+            }),
+            RepeaterService::C4fm {
+                label,
+                rx_hz,
+                tx_hz,
+                wires_x_node_id,
+                room,
+                ..
+            } => c4fm_services.push(C4fmServiceItem {
+                label,
+                enabled,
+                rx_hz,
+                tx_hz,
+                wires_x_node_id,
+                room,
+                note,
+            }),
+            RepeaterService::Aprs {
+                label,
+                rx_hz,
+                tx_hz,
+                mode,
+                path,
+                ..
+            } => aprs_services.push(AprsServiceItem {
+                label,
+                enabled,
+                rx_hz,
+                tx_hz,
+                mode,
+                path,
+                note,
+            }),
+            RepeaterService::Ssb {
+                label,
+                rx_hz,
+                tx_hz,
+                sideband,
+                ..
+            } => ssb_services.push(SsbServiceItem {
+                label,
+                enabled,
+                rx_hz,
+                tx_hz,
+                sideband,
+                note,
+            }),
+            RepeaterService::Am {
+                label, rx_hz, tx_hz, ..
+            } => am_services.push(AmServiceItem {
+                label,
+                enabled,
+                rx_hz,
+                tx_hz,
+                note,
+            }),
+        }
+    }
     let status = repeater.status.clone();
     let description = repeater
         .description
@@ -262,7 +447,13 @@ pub async fn detail(
     let template = DetailTemplate {
         auth,
         repeater,
-        services,
+        fm_services,
+        dmr_services,
+        dstar_services,
+        c4fm_services,
+        aprs_services,
+        ssb_services,
+        am_services,
         status,
         description,
         maidenhead: resolved.maidenhead,

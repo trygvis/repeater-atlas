@@ -58,31 +58,147 @@
       </section>
       <section>
         <h2>Services</h2>
-        {% if services.len() == 0 %}
+        {% if fm_services.len() == 0
+          && dmr_services.len() == 0
+          && dstar_services.len() == 0
+          && c4fm_services.len() == 0
+          && aprs_services.len() == 0
+          && ssb_services.len() == 0
+          && am_services.len() == 0 %}
           <p>No services defined.</p>
         {% else %}
-          <figure>
-            <table>
-              <thead>
-                <tr>
-                  <th scope="col">Kind</th>
-                  <th scope="col">Label</th>
-                  <th scope="col">TX</th>
-                  <th scope="col">RX</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for service in services %}
-                  <tr>
-                    <td>{{ service.kind }}</td>
-                    <td>{{ service.label }}</td>
-                    <td>{{ service.tx_hz }}</td>
-                    <td>{{ service.rx_hz }}</td>
-                  </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </figure>
+          {% if fm_services.len() > 0 %}
+            <h3>FM</h3>
+            {% for service in fm_services %}
+              <article>
+                <header>
+                  <strong>{{ service.label }}</strong>
+                  {% if !service.enabled %} (disabled){% endif %}
+                </header>
+                <dl class="kv-list">
+                  <div><dt>TX</dt><dd>{{ service.tx_hz }}</dd></div>
+                  <div><dt>RX</dt><dd>{{ service.rx_hz }}</dd></div>
+                  <div><dt>Bandwidth</dt><dd>{{ service.bandwidth }}</dd></div>
+                  <div><dt>RX tone</dt><dd>{{ service.rx_tone }}</dd></div>
+                  <div><dt>TX tone</dt><dd>{{ service.tx_tone }}</dd></div>
+                  <div><dt>Note</dt><dd>{% if service.note.trim().is_empty() %}-{% else %}{{ service.note }}{% endif %}</dd></div>
+                </dl>
+              </article>
+            {% endfor %}
+          {% endif %}
+
+          {% if dmr_services.len() > 0 %}
+            <h3>DMR</h3>
+            {% for service in dmr_services %}
+              <article>
+                <header>
+                  <strong>{{ service.label }}</strong>
+                  {% if !service.enabled %} (disabled){% endif %}
+                </header>
+                <dl class="kv-list">
+                  <div><dt>TX</dt><dd>{{ service.tx_hz }}</dd></div>
+                  <div><dt>RX</dt><dd>{{ service.rx_hz }}</dd></div>
+                  <div><dt>Color code</dt><dd>{{ service.color_code }}</dd></div>
+                  <div><dt>Network</dt><dd>{{ service.network }}</dd></div>
+                  <div><dt>Repeater ID</dt><dd>{% if service.dmr_repeater_id.is_some() %}{{ service.dmr_repeater_id.as_ref().unwrap() }}{% else %}-{% endif %}</dd></div>
+                  <div><dt>Note</dt><dd>{% if service.note.trim().is_empty() %}-{% else %}{{ service.note }}{% endif %}</dd></div>
+                </dl>
+              </article>
+            {% endfor %}
+          {% endif %}
+
+          {% if dstar_services.len() > 0 %}
+            <h3>D-STAR</h3>
+            {% for service in dstar_services %}
+              <article>
+                <header>
+                  <strong>{{ service.label }}</strong>
+                  {% if !service.enabled %} (disabled){% endif %}
+                </header>
+                <dl class="kv-list">
+                  <div><dt>TX</dt><dd>{{ service.tx_hz }}</dd></div>
+                  <div><dt>RX</dt><dd>{{ service.rx_hz }}</dd></div>
+                  <div><dt>Mode</dt><dd>{{ service.mode }}</dd></div>
+                  <div><dt>Gateway</dt><dd>{% if service.gateway_call_sign.is_some() %}{{ service.gateway_call_sign.as_ref().unwrap() }}{% else %}-{% endif %}</dd></div>
+                  <div><dt>Reflector</dt><dd>{% if service.reflector.is_some() %}{{ service.reflector.as_ref().unwrap() }}{% else %}-{% endif %}</dd></div>
+                  <div><dt>Note</dt><dd>{% if service.note.trim().is_empty() %}-{% else %}{{ service.note }}{% endif %}</dd></div>
+                </dl>
+              </article>
+            {% endfor %}
+          {% endif %}
+
+          {% if c4fm_services.len() > 0 %}
+            <h3>C4FM</h3>
+            {% for service in c4fm_services %}
+              <article>
+                <header>
+                  <strong>{{ service.label }}</strong>
+                  {% if !service.enabled %} (disabled){% endif %}
+                </header>
+                <dl class="kv-list">
+                  <div><dt>TX</dt><dd>{{ service.tx_hz }}</dd></div>
+                  <div><dt>RX</dt><dd>{{ service.rx_hz }}</dd></div>
+                  <div><dt>WIRES-X node</dt><dd>{% if service.wires_x_node_id.is_some() %}{{ service.wires_x_node_id.as_ref().unwrap() }}{% else %}-{% endif %}</dd></div>
+                  <div><dt>Room</dt><dd>{% if service.room.is_some() %}{{ service.room.as_ref().unwrap() }}{% else %}-{% endif %}</dd></div>
+                  <div><dt>Note</dt><dd>{% if service.note.trim().is_empty() %}-{% else %}{{ service.note }}{% endif %}</dd></div>
+                </dl>
+              </article>
+            {% endfor %}
+          {% endif %}
+
+          {% if aprs_services.len() > 0 %}
+            <h3>APRS</h3>
+            {% for service in aprs_services %}
+              <article>
+                <header>
+                  <strong>{{ service.label }}</strong>
+                  {% if !service.enabled %} (disabled){% endif %}
+                </header>
+                <dl class="kv-list">
+                  <div><dt>TX</dt><dd>{{ service.tx_hz }}</dd></div>
+                  <div><dt>RX</dt><dd>{{ service.rx_hz }}</dd></div>
+                  <div><dt>Mode</dt><dd>{% if service.mode.is_some() %}{{ service.mode.as_ref().unwrap() }}{% else %}-{% endif %}</dd></div>
+                  <div><dt>Path</dt><dd>{% if service.path.is_some() %}{{ service.path.as_ref().unwrap() }}{% else %}-{% endif %}</dd></div>
+                  <div><dt>Note</dt><dd>{% if service.note.trim().is_empty() %}-{% else %}{{ service.note }}{% endif %}</dd></div>
+                </dl>
+              </article>
+            {% endfor %}
+          {% endif %}
+
+          {% if ssb_services.len() > 0 %}
+            <h3>SSB</h3>
+            {% for service in ssb_services %}
+              <article>
+                <header>
+                  <strong>{{ service.label }}</strong>
+                  {% if !service.enabled %} (disabled){% endif %}
+                </header>
+                <dl class="kv-list">
+                  <div><dt>TX</dt><dd>{{ service.tx_hz }}</dd></div>
+                  <div><dt>RX</dt><dd>{{ service.rx_hz }}</dd></div>
+                  <div><dt>Sideband</dt><dd>{% if service.sideband.is_some() %}{{ service.sideband.as_ref().unwrap() }}{% else %}-{% endif %}</dd></div>
+                  <div><dt>Note</dt><dd>{% if service.note.trim().is_empty() %}-{% else %}{{ service.note }}{% endif %}</dd></div>
+                </dl>
+              </article>
+            {% endfor %}
+          {% endif %}
+
+          {% if am_services.len() > 0 %}
+            <h3>AM</h3>
+            {% for service in am_services %}
+              <article>
+                <header>
+                  <strong>{{ service.label }}</strong>
+                  {% if !service.enabled %} (disabled){% endif %}
+                </header>
+                <dl class="kv-list">
+                  <div><dt>TX</dt><dd>{{ service.tx_hz }}</dd></div>
+                  <div><dt>RX</dt><dd>{{ service.rx_hz }}</dd></div>
+                  <div><dt>Note</dt><dd>{% if service.note.trim().is_empty() %}-{% else %}{{ service.note }}{% endif %}</dd></div>
+                </dl>
+              </article>
+            {% endfor %}
+          {% endif %}
         {% endif %}
       </section>
     </div>

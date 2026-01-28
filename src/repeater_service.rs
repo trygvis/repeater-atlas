@@ -11,6 +11,16 @@ pub enum Tone {
     DCS(i32),
 }
 
+impl std::fmt::Display for Tone {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Tone::None => write!(f, "None"),
+            Tone::CTCSS(hz) => write!(f, "CTCSS {hz} Hz"),
+            Tone::DCS(code) => write!(f, "DCS {code}"),
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub enum RepeaterService {
     Fm {
