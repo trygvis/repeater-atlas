@@ -103,6 +103,16 @@
 - Server-rendered pages for public routes.
 - Descriptive titles, meta descriptions, and structured data (if feasible).
 
+### Geocoding (Optional)
+
+- When saving/importing a repeater that has `address` set but no `maidenhead`,
+  the service can (optionally) use Nominatim to geocode the address to
+  lat/lon, derive Maidenhead from that, and persist all three fields.
+- Controlled by env:
+  - `NOMINATIM_ENABLED` (default: on; set to `0` to disable)
+  - `NOMINATIM_BASE_URL` (default: public OSM Nominatim)
+  - `NOMINATIM_USER_AGENT` (default: `Repeater Atlas`)
+
 ### Admin
 
 - Create/edit repeater entries with validation.

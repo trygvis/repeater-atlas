@@ -3,6 +3,7 @@ use crate::dao::entity::{EntityKind, NewEntity};
 use crate::dao::repeater_service::{AprsMode, FmBandwidth};
 use crate::dao::repeater_system::{NewRepeaterSystem, RepeaterSystem};
 use crate::repeater_service::{RepeaterService, Tone};
+use crate::service;
 use crate::{Frequency, MaidenheadLocator, RepeaterAtlasError, dao};
 use csv::StringRecord;
 use diesel::QueryResult;
@@ -88,6 +89,9 @@ async fn repeater_with_site(
                 format!("invalid maidenhead locator for call_sign={call_sign}"),
             )
         })?;
+
+    let geocoder = service::geocoding::nominatim_geocoder_from_env()?;
+    service::repeater_system::enrich_location(geocoder, &call_sign, &mut repeater).await?;
 
     info!("Creating repeater system call sign {call_sign}");
 

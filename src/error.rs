@@ -24,6 +24,9 @@ pub enum RepeaterAtlasError {
     #[error("csv error")]
     Csv(#[from] csv::Error),
 
+    #[error("http error")]
+    Http(#[from] reqwest::Error),
+
     #[error("not found")]
     NotFound,
 
@@ -75,6 +78,10 @@ impl IntoResponse for RepeaterAtlasError {
             }
             RepeaterAtlasError::Csv(error) => {
                 warn!(error = ?error, "Csv error");
+                Self::render_500().into_response()
+            }
+            RepeaterAtlasError::Http(error) => {
+                warn!(error = ?error, "HTTP error");
                 Self::render_500().into_response()
             }
             RepeaterAtlasError::Io(error) => {
