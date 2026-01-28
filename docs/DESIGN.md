@@ -67,10 +67,10 @@ Describe the components and their interactions. Initial strawman:
 
 ## Data Model (if applicable)
 
-- Entities: Repeater, User, Ham Club, Club Membership, Repeater Change Log
+- Entities: Repeater, User, Contact, Contact Membership, Repeater Change Log
   Entry.
-- Relationships: Repeaters belong to clubs; users manage repeaters via club
-  roles.
+- Relationships: Repeaters are associated with contacts; users manage repeaters
+  via contact roles.
 - Core fields (MVP draft): callsign, location (lat/lon, region), band, RX/TX
   freq, offset, tone (CTCSS/DCS), modes, power, status, description, changelog,
   last-updated.

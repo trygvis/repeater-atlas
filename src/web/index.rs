@@ -113,12 +113,12 @@ pub async fn home(
     State(state): State<AppState>,
 ) -> Result<Html<String>, RepeaterAtlasError> {
     let mut c = state.pool.get().await?;
-    let repeaters = dao::repeater_system::select(&mut c).await?;
+    let repeaters = dao::repeater_system::select_with_call_sign(&mut c).await?;
     let mut map_repeaters = Vec::new();
 
     for repeater in repeaters {
         let call_sign = repeater.call_sign.clone();
-        let resolved = resolve_site_fields(&repeater);
+        let resolved = resolve_site_fields(&repeater.system);
         if let (Some(latitude), Some(longitude)) = (resolved.latitude, resolved.longitude) {
             map_repeaters.push(MapRepeater {
                 call_sign,
@@ -145,13 +145,13 @@ pub async fn repeaters(
 ) -> Result<Html<String>, RepeaterAtlasError> {
     let mut c = state.pool.get().await?;
 
-    let repeaters = dao::repeater_system::select(&mut c).await?;
+    let repeaters = dao::repeater_system::select_with_call_sign(&mut c).await?;
     let mut items = Vec::with_capacity(repeaters.len());
     for repeater in repeaters {
-        let resolved = resolve_site_fields(&repeater);
+        let resolved = resolve_site_fields(&repeater.system);
         let call_sign = repeater.call_sign.clone();
-        let status = repeater.status.clone();
-        let description = repeater.description.clone();
+        let status = repeater.system.status.clone();
+        let description = repeater.system.description.clone();
 
         items.push(RepeaterListItem {
             call_sign,
@@ -182,7 +182,10 @@ pub struct RepeaterDetailPath {
 #[template(path = "pages/repeater_detail.html")]
 struct DetailTemplate {
     auth: super::AuthHeader,
+    call_sign: String,
     repeater: dao::repeater_system::RepeaterSystem,
+    owner: Option<ContactItem>,
+    tech_contact: Option<ContactItem>,
     fm_services: Vec<FmServiceItem>,
     dmr_services: Vec<DmrServiceItem>,
     dstar_services: Vec<DstarServiceItem>,
@@ -195,6 +198,15 @@ struct DetailTemplate {
     maidenhead: String,
     location: String,
     map_context: Option<MapContext>,
+}
+
+#[derive(Clone)]
+struct ContactItem {
+    display_name: String,
+    call_sign: Option<String>,
+    email: Option<String>,
+    phone: Option<String>,
+    web_url: Option<String>,
 }
 
 struct FmServiceItem {
@@ -273,10 +285,37 @@ pub async fn detail(
     State(state): State<AppState>,
 ) -> Result<Html<String>, RepeaterAtlasError> {
     let mut c = state.pool.get().await?;
+    let requested_call_sign = call_sign.clone();
 
     let repeater = match dao::repeater_system::find_by_call_sign(&mut c, call_sign).await? {
         Some(row) => row,
         None => return Err(RepeaterAtlasError::NotFound),
+    };
+
+    let owner = match repeater.owner {
+        Some(contact_id) => dao::contact::find_with_call_sign(&mut c, contact_id)
+            .await?
+            .map(|row| ContactItem {
+                display_name: row.contact.display_name,
+                call_sign: row.call_sign,
+                email: row.contact.email,
+                phone: row.contact.phone,
+                web_url: row.contact.web_url,
+            }),
+        None => None,
+    };
+
+    let tech_contact = match repeater.tech_contact {
+        Some(contact_id) => dao::contact::find_with_call_sign(&mut c, contact_id)
+            .await?
+            .map(|row| ContactItem {
+                display_name: row.contact.display_name,
+                call_sign: row.call_sign,
+                email: row.contact.email,
+                phone: row.contact.phone,
+                web_url: row.contact.web_url,
+            }),
+        None => None,
     };
 
     let services = dao::repeater_service::select_by_repeater_id(&mut c, repeater.id).await?;
@@ -413,11 +452,11 @@ pub async fn detail(
     let resolved = resolve_site_fields(&repeater);
     let map_context =
         if let (Some(center_lat), Some(center_lon)) = (resolved.latitude, resolved.longitude) {
-            let all_repeaters = dao::repeater_system::select(&mut c).await?;
+            let all_repeaters = dao::repeater_system::select_with_call_sign(&mut c).await?;
             let mut nearby_repeaters = Vec::new();
 
             for candidate in all_repeaters {
-                let candidate_resolved = resolve_site_fields(&candidate);
+                let candidate_resolved = resolve_site_fields(&candidate.system);
                 if let (Some(lat), Some(lon)) =
                     (candidate_resolved.latitude, candidate_resolved.longitude)
                 {
@@ -446,7 +485,10 @@ pub async fn detail(
     let auth = auth_header(&jar, &state);
     let template = DetailTemplate {
         auth,
+        call_sign: requested_call_sign,
         repeater,
+        owner,
+        tech_contact,
         fm_services,
         dmr_services,
         dstar_services,

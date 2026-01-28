@@ -1,5 +1,6 @@
-use crate::dao::ham_club::{HamClub, NewHamClub};
-use crate::dao::repeater_service::{AprsMode, DstarMode, FmBandwidth};
+use crate::dao::contact::{Contact, ContactKind, NewContact};
+use crate::dao::entity::{EntityKind, NewEntity};
+use crate::dao::repeater_service::{AprsMode, FmBandwidth};
 use crate::dao::repeater_system::{NewRepeaterSystem, RepeaterSystem};
 use crate::repeater_service::{RepeaterService, Tone};
 use crate::{Frequency, MaidenheadLocator, RepeaterAtlasError, dao};
@@ -9,6 +10,12 @@ use diesel_async::AsyncPgConnection;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use tracing::info;
+
+#[derive(Clone)]
+struct RepeaterFixture {
+    call_sign: String,
+    system: RepeaterSystem,
+}
 
 fn row_from_record(
     headers: &StringRecord,
@@ -45,15 +52,28 @@ fn parse_ctcss(value: &str) -> Option<f32> {
 
 async fn repeater_with_site(
     c: &mut AsyncPgConnection,
-    club: &Option<HamClub>,
     call_sign: impl Into<String> + std::fmt::Display,
+    owner: Option<&Contact>,
     address: impl Into<String>,
     maidenhead: Option<&str>,
-) -> Result<RepeaterSystem, RepeaterAtlasError> {
+) -> Result<RepeaterFixture, RepeaterAtlasError> {
     let call_sign = call_sign.into();
-    let mut repeater = NewRepeaterSystem::new(call_sign.clone());
-    if let Some(club) = club {
-        repeater = repeater.ham_club_id(club.id);
+
+    let entity = dao::entity::insert(
+        c,
+        NewEntity {
+            kind: EntityKind::Repeater,
+            call_sign: Some(call_sign.clone()),
+        },
+    )
+    .await
+    .map_err(|e| {
+        RepeaterAtlasError::DatabaseOther(e, format!("entity kind=repeater call_sign={call_sign}"))
+    })?;
+
+    let mut repeater = NewRepeaterSystem::new(entity.id);
+    if let Some(owner) = owner {
+        repeater = repeater.owner(owner.id);
     }
     let address = address.into();
     if !address.trim().is_empty() {
@@ -71,11 +91,13 @@ async fn repeater_with_site(
 
     info!("Creating repeater system call sign {call_sign}");
 
-    dao::repeater_system::insert(c, repeater)
+    let system = dao::repeater_system::insert(c, repeater)
         .await
         .map_err(|e| {
             RepeaterAtlasError::DatabaseOther(e, format!("repeater system call_sign={call_sign}"))
-        })
+        })?;
+
+    Ok(RepeaterFixture { call_sign, system })
 }
 
 async fn create_service(
@@ -90,9 +112,9 @@ async fn create_service(
         .map_err(|e| RepeaterAtlasError::DatabaseOther(e, format!("Error adding service {label}")))
 }
 
-pub async fn narrow_fm(
+async fn narrow_fm(
     c: &mut AsyncPgConnection,
-    r: &RepeaterSystem,
+    r: &RepeaterFixture,
     label: impl Into<String>,
     tx_frequency: i64,
     offset: i64,
@@ -121,44 +143,12 @@ pub async fn narrow_fm(
         tx_tone: tone,
         note: None,
     };
-    create_service(c, r.id, service).await
+    create_service(c, r.system.id, service).await
 }
 
-pub async fn dstar(
+async fn igate(
     c: &mut AsyncPgConnection,
-    r: &RepeaterSystem,
-    label: impl Into<String>,
-    tx_frequency: i64,
-    offset: i64,
-) -> Result<(), RepeaterAtlasError> {
-    let label = label.into();
-    let tx_hz = Frequency::new_hz(tx_frequency).map_err(|e| {
-        RepeaterAtlasError::Other(
-            Box::new(e),
-            format!("invalid tx frequency for call_sign={}", r.call_sign),
-        )
-    })?;
-    let rx_hz = Frequency::new_hz(tx_frequency + offset).map_err(|e| {
-        RepeaterAtlasError::Other(
-            Box::new(e),
-            format!("invalid rx frequency for call_sign={}", r.call_sign),
-        )
-    })?;
-    let service = RepeaterService::Dstar {
-        label,
-        rx_hz,
-        tx_hz,
-        mode: DstarMode::Dv,
-        gateway_call_sign: None,
-        reflector: None,
-        note: None,
-    };
-    create_service(c, r.id, service).await
-}
-
-pub async fn igate(
-    c: &mut AsyncPgConnection,
-    r: &RepeaterSystem,
+    r: &RepeaterFixture,
     label: impl Into<String>,
     frequency: i64,
 ) -> Result<(), RepeaterAtlasError> {
@@ -177,12 +167,12 @@ pub async fn igate(
         path: None,
         note: None,
     };
-    create_service(c, r.id, service).await
+    create_service(c, r.system.id, service).await
 }
 
-pub async fn digipeater(
+async fn digipeater(
     c: &mut AsyncPgConnection,
-    r: &RepeaterSystem,
+    r: &RepeaterFixture,
     label: impl Into<String>,
     frequency: i64,
 ) -> Result<(), RepeaterAtlasError> {
@@ -201,7 +191,7 @@ pub async fn digipeater(
         path: None,
         note: None,
     };
-    create_service(c, r.id, service).await
+    create_service(c, r.system.id, service).await
 }
 
 fn label_for_frequency(frequency: i64) -> &'static str {
@@ -247,7 +237,7 @@ fn load_csv(path: &Path) -> Result<(StringRecord, Vec<StringRecord>), RepeaterAt
 }
 
 pub async fn generate(c: &mut AsyncPgConnection) -> Result<(), RepeaterAtlasError> {
-    let clubs = load_ham_clubs(c, PathBuf::from("data/ham_clubs.csv")).await?;
+    let contacts = load_contacts(c, PathBuf::from("data/ham_clubs.csv")).await?;
 
     let mut repeater_files = Vec::new();
     for d in Path::new("data").read_dir()? {
@@ -261,7 +251,7 @@ pub async fn generate(c: &mut AsyncPgConnection) -> Result<(), RepeaterAtlasErro
 
     repeater_files.sort();
     for path in repeater_files {
-        load_repeaters(c, &clubs, path).await?;
+        load_repeaters(c, &contacts, path).await?;
     }
 
     let links_path = PathBuf::from("data/repeater-links.csv");
@@ -352,12 +342,12 @@ pub async fn load_repeater_links(
     Ok(())
 }
 
-pub async fn load_ham_clubs(
+pub async fn load_contacts(
     c: &mut AsyncPgConnection,
     path: PathBuf,
-) -> Result<HashMap<String, HamClub>, RepeaterAtlasError> {
+) -> Result<HashMap<String, Contact>, RepeaterAtlasError> {
     let (headers, records) = load_csv(&path)?;
-    let mut clubs = HashMap::new();
+    let mut contacts = HashMap::new();
 
     for (row_index, record) in records.iter().enumerate() {
         let row_index = row_index + 2;
@@ -388,11 +378,11 @@ pub async fn load_ham_clubs(
             continue;
         }
 
-        if clubs.contains_key(&call_sign) {
+        if contacts.contains_key(&call_sign) {
             info!(
                 row = row_index,
                 call_sign = call_sign,
-                "Skipping duplicate club row"
+                "Skipping duplicate contact row"
             );
             continue;
         }
@@ -413,30 +403,43 @@ pub async fn load_ham_clubs(
             .filter(|value| !value.is_empty())
             .map(|value| value.to_string());
 
-        let club = dao::ham_club::insert(
+        let entity = dao::entity::insert(
             c,
-            NewHamClub {
-                name: call_sign.clone(),
-                description: name,
-                web_url,
-                email,
+            NewEntity {
+                kind: EntityKind::Contact,
+                call_sign: Some(call_sign.clone()),
             },
         )
         .await?;
 
-        clubs.insert(call_sign, club);
+        let contact = dao::contact::insert(
+            c,
+            NewContact {
+                entity: entity.id,
+                kind: ContactKind::Organization,
+                display_name: name.unwrap_or_else(|| call_sign.clone()),
+                description: None,
+                web_url,
+                email,
+                phone: None,
+                address: None,
+            },
+        )
+        .await?;
+
+        contacts.insert(call_sign, contact);
     }
 
-    Ok(clubs)
+    Ok(contacts)
 }
 
 pub async fn load_repeaters(
     c: &mut AsyncPgConnection,
-    clubs: &HashMap<String, HamClub>,
+    contacts: &HashMap<String, Contact>,
     path: PathBuf,
 ) -> Result<(), RepeaterAtlasError> {
     let mut imported = 0usize;
-    let mut repeaters = HashMap::<String, RepeaterSystem>::new();
+    let mut repeaters = HashMap::<String, RepeaterFixture>::new();
 
     let (headers, records) = load_csv(&path)?;
 
@@ -465,9 +468,9 @@ pub async fn load_repeaters(
             .get("owner")
             .map(|value| value.trim())
             .filter(|value| !value.is_empty());
-        let club = owner
+        let contact = owner
             .map(normalize_call_sign)
-            .and_then(|value| clubs.get(&value).cloned());
+            .and_then(|value| contacts.get(&value).cloned());
 
         let repeater = if let Some(existing) = repeaters.get(&call_sign) {
             existing.clone()
@@ -482,15 +485,16 @@ pub async fn load_repeaters(
                 .map(|value| value.trim())
                 .filter(|value| !value.is_empty());
             let mut repeater =
-                repeater_with_site(c, &club, call_sign.clone(), address, maidenhead).await?;
+                repeater_with_site(c, call_sign.clone(), contact.as_ref(), address, maidenhead)
+                    .await?;
 
             if let Some(name) = row
                 .get("name")
                 .map(|value| value.trim())
                 .filter(|value| !value.is_empty())
             {
-                repeater.name = Some(name.to_string());
-                repeater = dao::repeater_system::update(c, repeater).await?;
+                repeater.system.name = Some(name.to_string());
+                repeater.system = dao::repeater_system::update(c, repeater.system.clone()).await?;
             }
 
             if let Some(status) = row
@@ -498,8 +502,8 @@ pub async fn load_repeaters(
                 .map(|value| value.trim())
                 .filter(|value| !value.is_empty())
             {
-                repeater.status = status.to_string();
-                repeater = dao::repeater_system::update(c, repeater).await?;
+                repeater.system.status = status.to_string();
+                repeater.system = dao::repeater_system::update(c, repeater.system.clone()).await?;
             }
 
             repeaters.insert(call_sign.clone(), repeater.clone());
@@ -613,7 +617,7 @@ pub async fn load_repeaters(
                     network: "unknown".to_string(),
                     note: None,
                 };
-                create_service(c, repeater.id, service).await?;
+                create_service(c, repeater.system.id, service).await?;
                 imported += 1;
             }
             Some("C4FM") => {
@@ -649,7 +653,7 @@ pub async fn load_repeaters(
                     room: None,
                     note: None,
                 };
-                create_service(c, repeater.id, service).await?;
+                create_service(c, repeater.system.id, service).await?;
                 imported += 1;
             }
             None => {

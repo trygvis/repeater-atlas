@@ -72,10 +72,36 @@ repeater_system (identity + site)
 
 ```sql
 -- Physical system identity (what people refer to)
+-- Note: the call sign is stored in the global `entity` table.
+CREATE TABLE entity (
+  id        BIGSERIAL PRIMARY KEY,
+  kind      entity_kind NOT NULL, -- 'repeater' | 'contact'
+  call_sign TEXT UNIQUE,
+
+  CHECK (call_sign = upper(call_sign)),
+  CHECK (kind IS DISTINCT FROM 'repeater' OR call_sign IS NOT NULL)
+);
+
+CREATE TABLE contact (
+  id           BIGSERIAL PRIMARY KEY,
+  entity       BIGINT NOT NULL UNIQUE REFERENCES entity(id) ON DELETE CASCADE,
+  kind         contact_kind NOT NULL, -- 'organization' | 'individual'
+  display_name TEXT NOT NULL,
+  description  TEXT,
+  web_url      TEXT,
+  email        TEXT,
+  phone        TEXT,
+  address      TEXT
+);
+
 CREATE TABLE repeater_system (
   id            BIGSERIAL PRIMARY KEY,
-  ham_club_id   BIGINT REFERENCES ham_club(id),
-  call_sign     TEXT NOT NULL,
+  entity        BIGINT NOT NULL UNIQUE REFERENCES entity(id) ON DELETE CASCADE,
+
+  -- Optional responsibility/contacts (similar to DNS SOA admin/tech roles).
+  owner         BIGINT REFERENCES contact(id) ON DELETE SET NULL,
+  tech_contact  BIGINT REFERENCES contact(id) ON DELETE SET NULL,
+
   name          TEXT,
   description   TEXT,
   address       TEXT,
@@ -85,9 +111,7 @@ CREATE TABLE repeater_system (
   elevation_m   INTEGER,
   country       TEXT,
   region        TEXT,
-  status        TEXT NOT NULL DEFAULT 'active',
-  created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+  status        TEXT NOT NULL DEFAULT 'active'
 );
 
 CREATE TYPE repeater_service_kind AS ENUM (

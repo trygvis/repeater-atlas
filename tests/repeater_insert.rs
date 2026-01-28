@@ -5,14 +5,23 @@ use diesel_async::RunQueryDsl;
 use repeater_atlas::Frequency;
 use repeater_atlas::dao;
 use repeater_atlas::repeater_service::RepeaterService;
-use repeater_atlas::schema::{repeater_service, repeater_system};
+use repeater_atlas::schema::{entity, repeater_service, repeater_system};
 
 #[tokio::test]
 async fn inserts_repeater_row() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let pool = utils::pool().await;
     let mut c = pool.get().await?;
 
-    let new_repeater = dao::repeater_system::NewRepeaterSystem::new("LA1ABC");
+    let repeater_entity = dao::entity::insert(
+        &mut c,
+        dao::entity::NewEntity {
+            kind: dao::entity::EntityKind::Repeater,
+            call_sign: Some("LA1ABC".to_string()),
+        },
+    )
+    .await?;
+
+    let new_repeater = dao::repeater_system::NewRepeaterSystem::new(repeater_entity.id);
 
     let repeater = dao::repeater_system::insert(&mut c, new_repeater).await?;
 
@@ -32,11 +41,18 @@ async fn inserts_repeater_row() -> Result<(), Box<dyn std::error::Error + Send +
     let count: i64 = repeater_system::table.count().get_result(&mut c).await?;
     assert!(count >= 1, "expected at least one repeater system row");
 
-    // Delete only the row we created; this also exercises ON DELETE CASCADE
-    // for repeater_service and related rows.
-    diesel::delete(repeater_system::table.filter(repeater_system::id.eq(repeater.id)))
+    // Delete only the entity row we created; this exercises ON DELETE CASCADE
+    // (entity -> repeater_system -> repeater_service).
+    diesel::delete(entity::table.filter(entity::id.eq(repeater_entity.id)))
         .execute(&mut c)
         .await?;
+
+    let repeater_exists: i64 = repeater_system::table
+        .filter(repeater_system::id.eq(repeater.id))
+        .count()
+        .get_result(&mut c)
+        .await?;
+    assert_eq!(repeater_exists, 0, "expected repeater_system row to be removed");
 
     // Ensure the service row is removed via ON DELETE CASCADE.
     let service_count: i64 = repeater_service::table

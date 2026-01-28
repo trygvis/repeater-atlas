@@ -1,20 +1,23 @@
 CREATE TABLE repeater_system
 (
-    id          BIGSERIAL PRIMARY KEY,
-    ham_club_id BIGINT REFERENCES ham_club (id),
-    call_sign   TEXT        NOT NULL UNIQUE,
-    name        TEXT,
-    description TEXT,
-    address     TEXT,
-    maidenhead  TEXT,
-    latitude    DOUBLE PRECISION,
-    longitude   DOUBLE PRECISION,
-    elevation_m INTEGER,
-    country     TEXT,
-    region      TEXT,
-    status      TEXT        NOT NULL DEFAULT 'active',
-    created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
-    updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+    id           BIGSERIAL PRIMARY KEY,
+    -- Link to the global entity/call sign registry. One entity per repeater system.
+    entity       BIGINT NOT NULL UNIQUE REFERENCES entity (id) ON DELETE CASCADE,
+
+    -- Responsibility/contacts (optional).
+    owner        BIGINT REFERENCES contact (id) ON DELETE SET NULL,
+    tech_contact BIGINT REFERENCES contact (id) ON DELETE SET NULL,
+
+    name         TEXT,
+    description  TEXT,
+    address      TEXT,
+    maidenhead   TEXT,
+    latitude     DOUBLE PRECISION,
+    longitude    DOUBLE PRECISION,
+    elevation_m  INTEGER,
+    country      TEXT,
+    region       TEXT,
+    status       TEXT   NOT NULL DEFAULT 'active'
 );
 
 CREATE TYPE REPEATER_SERVICE_KIND AS ENUM (

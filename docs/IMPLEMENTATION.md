@@ -46,23 +46,23 @@
 - Technical: bands, frequencies, tones, one or more modes.
 - Status: active/offline/planned/seasonal.
 - Location: coordinates, region, country.
-- Metadata: description, timestamps, club ownership.
+- Metadata: description, contact responsibility.
 
 ### User
 
 - Identity: email, callsign, display name.
 - Auth: password hash, last login.
-- Memberships: club roles.
+- Memberships: contact roles.
 
-### Ham Club
+### Contact
 
-- Identity: name, short name, callsign (if applicable).
+- Identity: organization/individual, display name, callsign (optional).
 - Contact: website, email.
-- Metadata: timestamps.
+- Metadata: notes.
 
-### Club Membership
+### Contact Membership
 
-- Link: user, club.
+- Link: user, contact.
 - Role: admin, editor.
 
 ### Repeater Change Log Entry

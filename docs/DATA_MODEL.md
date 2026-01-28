@@ -11,17 +11,19 @@ in the database schema.
 - Repeater: A single repeater listing with technical settings, status, and
   location.
 - User: Authenticated user who can manage repeaters via club membership.
-- Ham Club: Organization that owns repeaters.
-- Membership/Role: Links users to clubs with permissions.
+- Entity: Global call sign registry (repeaters + contacts).
+- Contact: Organization or individual responsible for repeaters.
+- Membership/Role: Links users to contacts with permissions.
 - Repeater Change Log Entry: Textual audit entry for repeater changes.
 
 ## Relationships
 
-- A repeater belongs to exactly one ham club.
+- A repeater has an entity (call sign lives on the entity).
+- A repeater can have an owner contact and a technical contact (both optional).
 - A repeater always has a location (modeled on the repeater entity).
-- A user can be a member of multiple ham clubs.
-- A ham club has many members and many repeaters.
-- Admin members can edit all repeaters owned by their club.
+- A user can be a member of multiple contacts.
+- A contact can have many members and many repeaters.
+- Admin members can edit all repeaters owned by their contact.
 - A repeater has many change log entries.
 - A change log entry belongs to one repeater and one user (author).
 
@@ -33,7 +35,7 @@ in the database schema.
 - Technical settings: band, RX/TX frequencies, offset, tones.
 - Status: active/offline/planned, last updated.
 - Location: coordinates, region, country.
-- Metadata: description (freeform), changelog, timestamps, provenance.
+- Metadata: description (freeform), changelog, provenance.
 
 ### Modes (one or more)
 
@@ -65,21 +67,21 @@ in the database schema.
 
 - Identity: email, callsign, display name.
 - Auth: password hash, last login.
-- Memberships: club roles.
+- Memberships: contact roles.
 
-## Ham Club
+## Contact
 
 ### Field Categories (non-exhaustive)
 
-- Identity: name, short name, callsign (if applicable).
+- Identity: display name, callsign (optional).
 - Contact: website, email.
-- Metadata: notes, timestamps.
+- Metadata: notes.
 
 ## Membership/Role
 
 ### Field Categories (non-exhaustive)
 
-- Link: user, club.
+- Link: user, contact.
 - Role: admin, editor (or similar).
 
 ## Repeater Change Log Entry
