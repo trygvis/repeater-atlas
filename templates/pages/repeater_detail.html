@@ -249,6 +249,22 @@
           {% endif %}
         {% endif %}
       </section>
+
+      {% if links.len() > 0 %}
+        <section>
+          <h2>Linked repeaters</h2>
+          <ul>
+            {% for link in links %}
+              <li>
+                <a href="/repeater/{{ link.call_sign }}">{{ link.call_sign }}</a>
+                {% if !link.note.trim().is_empty() %}
+                  — {{ link.note }}
+                {% endif %}
+              </li>
+            {% endfor %}
+          </ul>
+        </section>
+      {% endif %}
     </div>
     {% if map_context.is_some() %}
     <section>

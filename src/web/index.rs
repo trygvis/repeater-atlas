@@ -186,6 +186,7 @@ struct DetailTemplate {
     repeater: dao::repeater_system::RepeaterSystem,
     owner: Option<ContactItem>,
     tech_contact: Option<ContactItem>,
+    links: Vec<LinkedRepeaterItem>,
     fm_services: Vec<FmServiceItem>,
     dmr_services: Vec<DmrServiceItem>,
     dstar_services: Vec<DstarServiceItem>,
@@ -207,6 +208,12 @@ struct ContactItem {
     email: Option<String>,
     phone: Option<String>,
     web_url: Option<String>,
+}
+
+#[derive(Clone)]
+struct LinkedRepeaterItem {
+    call_sign: String,
+    note: String,
 }
 
 impl ContactItem {
@@ -316,6 +323,15 @@ pub async fn detail(
             .map(ContactItem::from),
         None => None,
     };
+
+    let links = dao::repeater_link::select_with_other_call_sign(&mut c, repeater.id)
+        .await?
+        .into_iter()
+        .map(|row| LinkedRepeaterItem {
+            call_sign: row.other_call_sign,
+            note: row.note,
+        })
+        .collect();
 
     let services = dao::repeater_service::select_by_repeater_id(&mut c, repeater.id).await?;
     let mut fm_services = Vec::new();
@@ -488,6 +504,7 @@ pub async fn detail(
         repeater,
         owner,
         tech_contact,
+        links,
         fm_services,
         dmr_services,
         dstar_services,

@@ -29,6 +29,13 @@ pub struct RepeaterLink {
     pub note: String,
 }
 
+#[derive(Clone)]
+pub struct RepeaterLinkWithOtherCallSign {
+    pub other_repeater_id: i64,
+    pub other_call_sign: String,
+    pub note: String,
+}
+
 pub async fn insert(c: &mut AsyncPgConnection, link: NewRepeaterLink) -> QueryResult<usize> {
     use crate::schema::repeater_link::dsl as l;
 
@@ -54,3 +61,40 @@ pub async fn select_by_repeater_id(
         .await
 }
 
+pub async fn select_with_other_call_sign(
+    c: &mut AsyncPgConnection,
+    repeater_id: i64,
+) -> QueryResult<Vec<RepeaterLinkWithOtherCallSign>> {
+    use crate::schema::entity::dsl as e;
+    use crate::schema::repeater_link::dsl as l;
+    use crate::schema::repeater_system::dsl as rs;
+
+    // Two queries keeps this simple in Diesel: one for "A is self", one for "B is self".
+    let a_rows: Vec<(i64, Option<String>, String)> = l::repeater_link
+        .filter(l::repeater_a_id.eq(repeater_id))
+        .inner_join(rs::repeater_system.on(rs::id.eq(l::repeater_b_id)))
+        .inner_join(e::entity.on(e::id.eq(rs::entity)))
+        .select((l::repeater_b_id, e::call_sign, l::note))
+        .get_results(c)
+        .await?;
+
+    let b_rows: Vec<(i64, Option<String>, String)> = l::repeater_link
+        .filter(l::repeater_b_id.eq(repeater_id))
+        .inner_join(rs::repeater_system.on(rs::id.eq(l::repeater_a_id)))
+        .inner_join(e::entity.on(e::id.eq(rs::entity)))
+        .select((l::repeater_a_id, e::call_sign, l::note))
+        .get_results(c)
+        .await?;
+
+    let mut out = Vec::with_capacity(a_rows.len() + b_rows.len());
+    for (other_repeater_id, call_sign, note) in a_rows.into_iter().chain(b_rows) {
+        out.push(RepeaterLinkWithOtherCallSign {
+            other_repeater_id,
+            other_call_sign: call_sign.unwrap_or_else(|| "<missing>".to_string()),
+            note,
+        });
+    }
+
+    out.sort_by(|a, b| a.other_call_sign.cmp(&b.other_call_sign));
+    Ok(out)
+}
