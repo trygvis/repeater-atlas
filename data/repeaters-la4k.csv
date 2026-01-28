@@ -1,4 +1,4 @@
-call_sign,owner,status,address,name,service,tx,rx,ctcss,dtmf_tone
-LA6FR,LA4K,active,Storestø,Flekkefjord Repeater,FM_NARROW,145.625,145.025,123
-LA9MR,LA4K,active,Varmestø,Mandal Repeater,FM_NARROW,145.675,145.075,123,
-LA7ER,LA4K,active,Sjåvassknuten,Åseral Repeater,FM_NARROW,145.650,145.050,,1750
+call_sign,owner,status,address,maidenhead,name,service,tx,rx,ctcss,dtmf_tone,note
+LA6FR,LA4K,active,Storestø,JO38HH,Flekkefjord Repeater,FM_NARROW,145.625,145.025,123,,maidenhead by trygvis
+LA9MR,LA4K,active,Varmestø,JO38RC,Mandal Repeater,FM_NARROW,145.675,145.075,123,,maidenhead by trygvis
+LA7ER,LA4K,active,Sjåvassknuten,JO38QO,Åseral Repeater,FM_NARROW,145.650,145.050,,1750,maidenhead by trygvis
