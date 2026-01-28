@@ -20,6 +20,20 @@ pub enum RepeaterServiceKind {
     Aprs,
 }
 
+impl RepeaterServiceKind {
+    pub fn label(&self) -> &'static str {
+        match self {
+            RepeaterServiceKind::Fm => "FM",
+            RepeaterServiceKind::Am => "AM",
+            RepeaterServiceKind::Ssb => "SSB",
+            RepeaterServiceKind::Dstar => "D-STAR",
+            RepeaterServiceKind::Dmr => "DMR",
+            RepeaterServiceKind::C4fm => "C4FM",
+            RepeaterServiceKind::Aprs => "APRS",
+        }
+    }
+}
+
 impl ToSql<crate::schema::sql_types::RepeaterServiceKind, Pg> for RepeaterServiceKind {
     fn to_sql<'b>(&'b self, out: &mut Output<'b, '_, Pg>) -> serialize::Result {
         let value = match self {
@@ -317,4 +331,25 @@ pub async fn select_by_repeater_id(
         .order_by(s::label.asc())
         .get_results(c)
         .await
+}
+
+pub async fn select_kinds_by_repeater_ids(
+    c: &mut AsyncPgConnection,
+    repeater_ids: &[i64],
+) -> QueryResult<Vec<(i64, RepeaterServiceKind)>> {
+    use crate::schema::repeater_service::dsl as s;
+
+    if repeater_ids.is_empty() {
+        return Ok(Vec::new());
+    }
+
+    let rows: Vec<(i64, RepeaterServiceKind)> = s::repeater_service
+        .filter(s::repeater_id.eq_any(repeater_ids))
+        .filter(s::kind.is_not_null())
+        .select((s::repeater_id, s::kind.assume_not_null()))
+        .distinct()
+        .get_results(c)
+        .await?;
+
+    Ok(rows)
 }

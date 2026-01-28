@@ -10,6 +10,7 @@ use axum::{extract::State, response::Html};
 use axum_extra::extract::cookie::CookieJar;
 use axum_extra::routing::TypedPath;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 #[derive(TypedPath)]
 #[typed_path("/")]
@@ -62,6 +63,8 @@ struct MapRepeater {
     call_sign: String,
     latitude: f64,
     longitude: f64,
+    status: String,
+    services: Vec<String>,
 }
 
 #[derive(Serialize)]
@@ -132,18 +135,45 @@ pub async fn home(
 ) -> Result<Html<String>, RepeaterAtlasError> {
     let mut c = state.pool.get().await?;
     let repeaters = dao::repeater_system::select_with_call_sign(&mut c).await?;
-    let mut map_repeaters = Vec::new();
+    let mut candidates = Vec::new();
 
     for repeater in repeaters {
-        let call_sign = repeater.call_sign.clone();
         let resolved = resolve_site_fields(&repeater.system);
         if let (Some(latitude), Some(longitude)) = (resolved.latitude, resolved.longitude) {
-            map_repeaters.push(MapRepeater {
-                call_sign,
+            candidates.push((
+                repeater.system.id,
+                repeater.call_sign,
+                repeater.system.status,
                 latitude,
                 longitude,
-            });
+            ));
         }
+    }
+
+    let repeater_ids: Vec<i64> = candidates.iter().map(|(id, _, _, _, _)| *id).collect();
+    let mut kinds_by_id: HashMap<i64, Vec<String>> = HashMap::new();
+    for (repeater_id, kind) in
+        dao::repeater_service::select_kinds_by_repeater_ids(&mut c, &repeater_ids).await?
+    {
+        kinds_by_id
+            .entry(repeater_id)
+            .or_default()
+            .push(kind.label().to_string());
+    }
+
+    let mut map_repeaters = Vec::with_capacity(candidates.len());
+    for (id, call_sign, status, latitude, longitude) in candidates {
+        let mut services = kinds_by_id.remove(&id).unwrap_or_default();
+        services.sort();
+        services.dedup();
+
+        map_repeaters.push(MapRepeater {
+            call_sign,
+            latitude,
+            longitude,
+            status,
+            services,
+        });
     }
 
     let auth = auth_header(&jar, &state);
@@ -637,6 +667,8 @@ async fn render_repeater_detail(
                             call_sign: candidate.call_sign,
                             latitude: lat,
                             longitude: lon,
+                            status: candidate.system.status,
+                            services: Vec::new(),
                         });
                     }
                 }

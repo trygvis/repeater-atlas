@@ -120,13 +120,13 @@ impl RepeaterService {
 
     pub fn kind_label(&self) -> &'static str {
         match self {
-            RepeaterService::Fm { .. } => "FM",
-            RepeaterService::Am { .. } => "AM",
-            RepeaterService::Ssb { .. } => "SSB",
-            RepeaterService::Dstar { .. } => "D-STAR",
-            RepeaterService::Dmr { .. } => "DMR",
-            RepeaterService::C4fm { .. } => "C4FM",
-            RepeaterService::Aprs { .. } => "APRS",
+            RepeaterService::Fm { .. } => RepeaterServiceKind::Fm.label(),
+            RepeaterService::Am { .. } => RepeaterServiceKind::Am.label(),
+            RepeaterService::Ssb { .. } => RepeaterServiceKind::Ssb.label(),
+            RepeaterService::Dstar { .. } => RepeaterServiceKind::Dstar.label(),
+            RepeaterService::Dmr { .. } => RepeaterServiceKind::Dmr.label(),
+            RepeaterService::C4fm { .. } => RepeaterServiceKind::C4fm.label(),
+            RepeaterService::Aprs { .. } => RepeaterServiceKind::Aprs.label(),
         }
     }
 

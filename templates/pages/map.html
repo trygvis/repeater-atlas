@@ -40,10 +40,33 @@
       width: min(320px, calc(100vw - 32px));
     }
 
+    .repeater-details-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      padding-right: 28px;
+    }
+
+    .repeater-details-close {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      height: 24px;
+      width: 24px;
+      padding: 0;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      line-height: 1;
+    }
+
     .repeater-details h2 {
       margin-bottom: 12px;
     }
 
+    .repeater-details-header h2 {
+      margin: 0;
+    }
 
     .repeater-details a {
       display: inline-block;
@@ -68,28 +91,27 @@
     {% endif %}
   </p>
 </aside>
-<aside class="map-overlay repeater-details" id="repeater-details">
-  <h2>Repeater</h2>
-  bla bla
-  <dl class="kv-list">
+<aside class="map-overlay repeater-details" id="repeater-details" hidden>
+  <div class="repeater-details-header">
+    <h2>Repeater</h2>
+    <button type="button" class="repeater-details-close" id="repeater-details-close" aria-label="Close" hidden>X</button>
+  </div>
+  <p id="repeater-details-empty">Select a repeater.</p>
+  <dl class="kv-list" id="repeater-details-fields" hidden>
     <div>
       <dt>Call sign</dt>
       <dd>
         <span data-field="call-sign">-</span>
-        <a data-field="details-link" href="#" target="_blank" rel="noopener">Open repeater</a>
+        <a data-field="details-link" href="#">Open</a>
       </dd>
     </div>
     <div>
       <dt>Status</dt>
-      <dd data-field="status">Select a repeater</dd>
+      <dd data-field="status">-</dd>
     </div>
     <div>
-      <dt>Mode</dt>
-      <dd data-field="mode">-</dd>
-    </div>
-    <div>
-      <dt>Notes</dt>
-      <dd data-field="notes">Temporary placeholder data.</dd>
+      <dt>Services</dt>
+      <dd data-field="services">-</dd>
     </div>
   </dl>
 </aside>
@@ -107,17 +129,57 @@
 
     const map = buildLeafletMap(document.getElementById("repeater-map-host"));
     const repeaterDetails = document.getElementById("repeater-details");
+    const repeaterDetailsClose = document.getElementById("repeater-details-close");
+    const repeaterDetailsEmpty = document.getElementById("repeater-details-empty");
+    const repeaterDetailsFields = document.getElementById("repeater-details-fields");
+
+    function clearRepeaterDetails() {
+      if (!repeaterDetails) {
+        return;
+      }
+
+      repeaterDetails.hidden = true;
+
+      const callSign = repeaterDetails.querySelector('[data-field="call-sign"]');
+      const detailsLink = repeaterDetails.querySelector('[data-field="details-link"]');
+      const status = repeaterDetails.querySelector('[data-field="status"]');
+      const services = repeaterDetails.querySelector('[data-field="services"]');
+
+      if (callSign) {
+        callSign.textContent = "-";
+      }
+      if (detailsLink) {
+        detailsLink.href = "#";
+      }
+      if (status) {
+        status.textContent = "Select a repeater";
+      }
+      if (services) {
+        services.textContent = "-";
+      }
+
+      if (repeaterDetailsFields) {
+        repeaterDetailsFields.hidden = true;
+      }
+      if (repeaterDetailsEmpty) {
+        repeaterDetailsEmpty.hidden = false;
+      }
+      if (repeaterDetailsClose) {
+        repeaterDetailsClose.hidden = true;
+      }
+    }
 
     function updateRepeaterDetails(item) {
       if (!repeaterDetails) {
         return;
       }
 
+      repeaterDetails.hidden = false;
+
       const callSign = repeaterDetails.querySelector('[data-field="call-sign"]');
       const detailsLink = repeaterDetails.querySelector('[data-field="details-link"]');
       const status = repeaterDetails.querySelector('[data-field="status"]');
-      const mode = repeaterDetails.querySelector('[data-field="mode"]');
-      const notes = repeaterDetails.querySelector('[data-field="notes"]');
+      const services = repeaterDetails.querySelector('[data-field="services"]');
 
       if (callSign) {
         callSign.textContent = item.call_sign;
@@ -126,15 +188,37 @@
         detailsLink.href = `/call-sign/${encodeURIComponent(item.call_sign)}`;
       }
       if (status) {
-        status.textContent = "Active (sample)";
+        status.textContent = item.status || "-";
       }
-      if (mode) {
-        mode.textContent = "FM (sample)";
+      if (services) {
+        if (Array.isArray(item.services) && item.services.length > 0) {
+          services.textContent = item.services.join(", ");
+        } else {
+          services.textContent = "No services";
+        }
       }
-      if (notes) {
-        notes.textContent = "Temporary placeholder data.";
+
+      if (repeaterDetailsFields) {
+        repeaterDetailsFields.hidden = false;
+      }
+      if (repeaterDetailsEmpty) {
+        repeaterDetailsEmpty.hidden = true;
+      }
+      if (repeaterDetailsClose) {
+        repeaterDetailsClose.hidden = false;
       }
     }
+
+    if (repeaterDetailsClose) {
+      repeaterDetailsClose.addEventListener("click", clearRepeaterDetails);
+    }
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        clearRepeaterDetails();
+      }
+    });
+
+    clearRepeaterDetails();
 
     if (data.length === 0) {
       map.setView([64.4, 11.7], 4);
