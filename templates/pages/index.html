@@ -146,7 +146,7 @@
       const bounds = [];
       data.forEach((item) => {
         const marker = L.marker([item.latitude, item.longitude]);
-        // marker.bindPopup(item.call_sign);
+        addCallSignLabel(marker, item.call_sign);
         marker.on("click", () => updateRepeaterDetails(item));
         bounds.push([item.latitude, item.longitude]);
         clusterGroup.addLayer(marker);

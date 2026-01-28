@@ -293,7 +293,7 @@
 
       mapContext.repeaters.forEach((item) => {
         const marker = L.marker([item.latitude, item.longitude]);
-        marker.bindPopup(item.call_sign);
+        addCallSignLabel(marker, item.call_sign);
         marker.addTo(map);
         bounds.push([item.latitude, item.longitude]);
       });

@@ -13,7 +13,20 @@ function buildLeafletMap(host) {
   clusterDefaultStylesheet.href = "/static/vendor/leaflet.markercluster/MarkerCluster.Default.css";
   root.append(clusterDefaultStylesheet);
   const style = document.createElement("style");
-  style.textContent = "#repeater-map { height: 100%; width: 100%; }";
+  style.textContent = `
+    #repeater-map { height: 100%; width: 100%; }
+    .ra-marker-label.leaflet-tooltip {
+      border: 1px solid rgba(0, 0, 0, 0.25);
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.9);
+      color: #111;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      padding: 2px 6px;
+      box-shadow: 0 1px 6px rgba(0, 0, 0, 0.2);
+    }
+  `;
   root.append(style);
   const mapElement = document.createElement("div");
   mapElement.id = "repeater-map";
@@ -28,6 +41,16 @@ function buildLeafletMap(host) {
   layer.addTo(map);
 
   return map;
+}
+
+function addCallSignLabel(marker, callSign) {
+  marker.bindTooltip(callSign, {
+    permanent: true,
+    direction: "right",
+    offset: [6, 0],
+    opacity: 0.9,
+    className: "ra-marker-label",
+  });
 }
 
 function initializeRepeaterAtlas() {
