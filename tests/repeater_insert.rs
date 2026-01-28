@@ -1,12 +1,11 @@
 mod utils;
 
 use diesel::prelude::*;
-use diesel::sql_query;
 use diesel_async::RunQueryDsl;
 use repeater_atlas::Frequency;
 use repeater_atlas::dao;
 use repeater_atlas::repeater_service::RepeaterService;
-use repeater_atlas::schema::repeater_system;
+use repeater_atlas::schema::{repeater_service, repeater_system};
 
 #[tokio::test]
 async fn inserts_repeater_row() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
@@ -33,9 +32,22 @@ async fn inserts_repeater_row() -> Result<(), Box<dyn std::error::Error + Send +
     let count: i64 = repeater_system::table.count().get_result(&mut c).await?;
     assert!(count >= 1, "expected at least one repeater system row");
 
-    sql_query("DELETE FROM repeater_system")
+    // Delete only the row we created; this also exercises ON DELETE CASCADE
+    // for repeater_service and related rows.
+    diesel::delete(repeater_system::table.filter(repeater_system::id.eq(repeater.id)))
         .execute(&mut c)
         .await?;
+
+    // Ensure the service row is removed via ON DELETE CASCADE.
+    let service_count: i64 = repeater_service::table
+        .filter(repeater_service::repeater_id.eq(repeater.id))
+        .count()
+        .get_result(&mut c)
+        .await?;
+    assert_eq!(
+        service_count, 0,
+        "expected cascading delete of repeater_service rows"
+    );
 
     Ok(())
 }
