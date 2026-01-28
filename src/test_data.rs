@@ -266,7 +266,11 @@ pub async fn load_repeater_links(
         let call_sign_a_raw = record.get(call_sign_a_index).unwrap_or("").trim();
         let call_sign_b_raw = record.get(call_sign_b_index).unwrap_or("").trim();
         if call_sign_a_raw.is_empty() || call_sign_b_raw.is_empty() {
-            info!(row = row_index, reason = "missing call signs", "Skipping link row");
+            info!(
+                row = row_index,
+                reason = "missing call signs",
+                "Skipping link row"
+            );
             continue;
         }
 
@@ -517,9 +521,7 @@ pub async fn load_repeaters(
                     );
                     continue;
                 };
-                let label = port_label
-                    .as_deref()
-                    .unwrap_or(tx_frequency.band_label());
+                let label = port_label.as_deref().unwrap_or(tx_frequency.band_label());
                 narrow_fm(c, &repeater, label, tx_frequency, offset, ctcss).await?;
                 imported += 1;
             }
@@ -533,9 +535,7 @@ pub async fn load_repeaters(
                     );
                     continue;
                 };
-                let label = port_label
-                    .as_deref()
-                    .unwrap_or(tx_frequency.band_label());
+                let label = port_label.as_deref().unwrap_or(tx_frequency.band_label());
                 igate(c, &repeater, label, tx_frequency).await?;
                 imported += 1;
             }
@@ -549,9 +549,7 @@ pub async fn load_repeaters(
                     );
                     continue;
                 };
-                let label = port_label
-                    .as_deref()
-                    .unwrap_or(tx_frequency.band_label());
+                let label = port_label.as_deref().unwrap_or(tx_frequency.band_label());
                 digipeater(c, &repeater, label, tx_frequency).await?;
                 imported += 1;
             }
@@ -565,9 +563,7 @@ pub async fn load_repeaters(
                     );
                     continue;
                 };
-                let label = port_label
-                    .as_deref()
-                    .unwrap_or(tx_frequency.band_label());
+                let label = port_label.as_deref().unwrap_or(tx_frequency.band_label());
                 let rx_hz = match tx_frequency.offset(offset) {
                     Ok(value) => value,
                     Err(_) => {
@@ -602,9 +598,7 @@ pub async fn load_repeaters(
                     );
                     continue;
                 };
-                let label = port_label
-                    .as_deref()
-                    .unwrap_or(tx_frequency.band_label());
+                let label = port_label.as_deref().unwrap_or(tx_frequency.band_label());
                 let rx_hz = match tx_frequency.offset(offset) {
                     Ok(value) => value,
                     Err(_) => {
@@ -665,7 +659,10 @@ fn parse_offset(row: &HashMap<String, String>) -> Option<i64> {
 }
 
 fn parse_hz_field(row: &HashMap<String, String>, key: &str) -> Option<i64> {
-    let raw = row.get(key).map(|value| value.trim()).filter(|value| !value.is_empty())?;
+    let raw = row
+        .get(key)
+        .map(|value| value.trim())
+        .filter(|value| !value.is_empty())?;
 
     // Prefer explicit Hz integers.
     if let Ok(value) = raw.parse::<i64>() {

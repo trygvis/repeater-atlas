@@ -123,7 +123,7 @@
         callSign.textContent = item.call_sign;
       }
       if (detailsLink) {
-        detailsLink.href = `/repeater/${encodeURIComponent(item.call_sign)}`;
+        detailsLink.href = `/call-sign/${encodeURIComponent(item.call_sign)}`;
       }
       if (status) {
         status.textContent = "Active (sample)";

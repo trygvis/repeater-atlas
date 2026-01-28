@@ -47,19 +47,14 @@
             <dd>
               {% if owner.is_some() %}
                 {% let o = owner.as_ref().unwrap() %}
-                {% if o.call_sign.is_some() && o.display_name != o.call_sign.as_ref().unwrap().as_str() %}
-                  {{ o.display_name }} ({{ o.call_sign.as_ref().unwrap() }})
+                {% if o.call_sign.is_some() %}
+                  {% let cs = o.call_sign.as_ref().unwrap() %}
+                  <a href="/call-sign/{{ cs }}">{{ o.display_name }}</a>
+                  {% if o.display_name != cs.as_str() %}
+                    ({{ cs }})
+                  {% endif %}
                 {% else %}
                   {{ o.display_name }}
-                {% endif %}
-                {% if o.email.is_some() %}
-                  <br>{{ o.email.as_ref().unwrap() }}
-                {% endif %}
-                {% if o.phone.is_some() %}
-                  <br>{{ o.phone.as_ref().unwrap() }}
-                {% endif %}
-                {% if o.web_url.is_some() %}
-                  <br>{{ o.web_url.as_ref().unwrap() }}
                 {% endif %}
               {% else %}
                 -
@@ -71,19 +66,14 @@
             <dd>
               {% if tech_contact.is_some() %}
                 {% let t = tech_contact.as_ref().unwrap() %}
-                {% if t.call_sign.is_some() && t.display_name != t.call_sign.as_ref().unwrap().as_str() %}
-                  {{ t.display_name }} ({{ t.call_sign.as_ref().unwrap() }})
+                {% if t.call_sign.is_some() %}
+                  {% let cs = t.call_sign.as_ref().unwrap() %}
+                  <a href="/call-sign/{{ cs }}">{{ t.display_name }}</a>
+                  {% if t.display_name != cs.as_str() %}
+                    ({{ cs }})
+                  {% endif %}
                 {% else %}
                   {{ t.display_name }}
-                {% endif %}
-                {% if t.email.is_some() %}
-                  <br>{{ t.email.as_ref().unwrap() }}
-                {% endif %}
-                {% if t.phone.is_some() %}
-                  <br>{{ t.phone.as_ref().unwrap() }}
-                {% endif %}
-                {% if t.web_url.is_some() %}
-                  <br>{{ t.web_url.as_ref().unwrap() }}
                 {% endif %}
               {% else %}
                 -
@@ -256,7 +246,7 @@
           <ul>
             {% for link in links %}
               <li>
-                <a href="/repeater/{{ link.call_sign }}">{{ link.call_sign }}</a>
+                <a href="/call-sign/{{ link.call_sign }}">{{ link.call_sign }}</a>
                 {% if !link.note.trim().is_empty() %}
                   — {{ link.note }}
                 {% endif %}

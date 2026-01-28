@@ -1,8 +1,8 @@
+use crate::Frequency;
 use crate::dao::repeater_service::{
     AprsMode, DstarMode, FmBandwidth, NewRepeaterServiceDao, RepeaterServiceDao,
     RepeaterServiceKind, SsbSideband, ToneKind,
 };
-use crate::Frequency;
 
 #[derive(Debug, Clone)]
 pub enum Tone {
