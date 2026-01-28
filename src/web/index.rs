@@ -209,6 +209,18 @@ struct ContactItem {
     web_url: Option<String>,
 }
 
+impl ContactItem {
+    fn from(row: dao::contact::ContactWithCallSign) -> Self {
+        Self {
+            display_name: row.contact.display_name,
+            call_sign: row.call_sign,
+            email: row.contact.email,
+            phone: row.contact.phone,
+            web_url: row.contact.web_url,
+        }
+    }
+}
+
 struct FmServiceItem {
     label: String,
     enabled: bool,
@@ -285,9 +297,8 @@ pub async fn detail(
     State(state): State<AppState>,
 ) -> Result<Html<String>, RepeaterAtlasError> {
     let mut c = state.pool.get().await?;
-    let requested_call_sign = call_sign.clone();
 
-    let repeater = match dao::repeater_system::find_by_call_sign(&mut c, call_sign).await? {
+    let repeater = match dao::repeater_system::find_by_call_sign(&mut c, call_sign.clone()).await? {
         Some(row) => row,
         None => return Err(RepeaterAtlasError::NotFound),
     };
@@ -295,26 +306,14 @@ pub async fn detail(
     let owner = match repeater.owner {
         Some(contact_id) => dao::contact::find_with_call_sign(&mut c, contact_id)
             .await?
-            .map(|row| ContactItem {
-                display_name: row.contact.display_name,
-                call_sign: row.call_sign,
-                email: row.contact.email,
-                phone: row.contact.phone,
-                web_url: row.contact.web_url,
-            }),
+            .map(ContactItem::from),
         None => None,
     };
 
     let tech_contact = match repeater.tech_contact {
         Some(contact_id) => dao::contact::find_with_call_sign(&mut c, contact_id)
             .await?
-            .map(|row| ContactItem {
-                display_name: row.contact.display_name,
-                call_sign: row.call_sign,
-                email: row.contact.email,
-                phone: row.contact.phone,
-                web_url: row.contact.web_url,
-            }),
+            .map(ContactItem::from),
         None => None,
     };
 
@@ -485,7 +484,7 @@ pub async fn detail(
     let auth = auth_header(&jar, &state);
     let template = DetailTemplate {
         auth,
-        call_sign: requested_call_sign,
+        call_sign,
         repeater,
         owner,
         tech_contact,
