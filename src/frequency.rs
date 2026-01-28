@@ -19,10 +19,7 @@ impl fmt::Display for FrequencyError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             FrequencyError::NegativeHz(hz) => write!(f, "frequency must be >= 0 Hz, got {hz}"),
-            FrequencyError::Overflow {
-                base_hz,
-                offset_hz,
-            } => write!(
+            FrequencyError::Overflow { base_hz, offset_hz } => write!(
                 f,
                 "frequency overflow when adding offset: {base_hz} + {offset_hz}"
             ),
@@ -200,10 +197,7 @@ mod tests {
     #[test]
     fn offset_rejects_overflow() {
         let f = Frequency::new_hz(i64::MAX).unwrap();
-        assert!(matches!(
-            f.offset(1),
-            Err(FrequencyError::Overflow { .. })
-        ));
+        assert!(matches!(f.offset(1), Err(FrequencyError::Overflow { .. })));
     }
 
     #[test]

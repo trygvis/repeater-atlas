@@ -52,7 +52,10 @@ async fn inserts_repeater_row() -> Result<(), Box<dyn std::error::Error + Send +
         .count()
         .get_result(&mut c)
         .await?;
-    assert_eq!(repeater_exists, 0, "expected repeater_system row to be removed");
+    assert_eq!(
+        repeater_exists, 0,
+        "expected repeater_system row to be removed"
+    );
 
     // Ensure the service row is removed via ON DELETE CASCADE.
     let service_count: i64 = repeater_service::table

@@ -1,0 +1,35 @@
+{% extends "layouts/main.html" %}
+
+{% block title %}Organizations{% endblock %}
+
+{% block content %}
+<main class="container">
+  <hgroup>
+    <h1>Organizations</h1>
+    <p>Groups responsible for repeaters.</p>
+  </hgroup>
+
+  <section>
+    {% if organizations.len() == 0 %}
+      <p>No organizations yet.</p>
+    {% else %}
+      {% for org in organizations %}
+        <article>
+          <header>
+            <h3>
+              {% if org.call_sign.is_some() %}
+                {% let cs = org.call_sign.as_ref().unwrap() %}
+                <a href="/call-sign/{{ cs }}">{{ cs }}</a>
+              {% else %}
+                -
+              {% endif %}
+            </h3>
+          </header>
+          <p>{{ org.display_name }}</p>
+        </article>
+      {% endfor %}
+    {% endif %}
+  </section>
+</main>
+{% endblock %}
+

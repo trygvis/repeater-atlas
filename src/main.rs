@@ -25,6 +25,8 @@ async fn main() {
         .nest_service("/static", ServeDir::new("static"))
         .typed_get(index::home)
         .typed_get(index::repeaters)
+        .typed_get(index::organizations)
+        .typed_get(index::call_sign)
         .typed_get(index::detail)
         .typed_get(auth::login_form)
         .typed_post(auth::login_submit)

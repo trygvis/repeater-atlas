@@ -54,7 +54,11 @@ pub async fn select_by_repeater_id(
     use crate::schema::repeater_link::dsl as l;
 
     l::repeater_link
-        .filter(l::repeater_a_id.eq(repeater_id).or(l::repeater_b_id.eq(repeater_id)))
+        .filter(
+            l::repeater_a_id
+                .eq(repeater_id)
+                .or(l::repeater_b_id.eq(repeater_id)),
+        )
         .select(RepeaterLink::as_select())
         .order_by((l::repeater_a_id.asc(), l::repeater_b_id.asc()))
         .get_results(c)

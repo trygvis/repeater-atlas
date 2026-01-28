@@ -1,9 +1,9 @@
 use super::AppState;
 use super::auth::auth_header;
-use crate::dao::repeater_service::{AprsMode, DstarMode, FmBandwidth, SsbSideband};
-use crate::repeater_service::RepeaterService;
 use crate::Frequency;
 use crate::MaidenheadLocator;
+use crate::dao::repeater_service::{AprsMode, DstarMode, FmBandwidth, SsbSideband};
+use crate::repeater_service::RepeaterService;
 use crate::{RepeaterAtlasError, dao};
 use askama::Template;
 use axum::{extract::State, response::Html};
@@ -13,10 +13,10 @@ use serde::{Deserialize, Serialize};
 
 #[derive(TypedPath)]
 #[typed_path("/")]
-pub struct HomePath;
+pub struct MapPath;
 
 #[derive(Template)]
-#[template(path = "pages/index.html")]
+#[template(path = "pages/map.html")]
 struct HomeTemplate {
     auth: super::AuthHeader,
     repeater_data: Vec<MapRepeater>,
@@ -24,13 +24,29 @@ struct HomeTemplate {
 
 #[derive(TypedPath)]
 #[typed_path("/repeater")]
-pub struct RepeatersPath;
+pub struct RepeaterListPath;
 
 #[derive(Template)]
-#[template(path = "pages/repeaters.html")]
+#[template(path = "pages/repeater_list.html")]
 struct RepeatersTemplate {
     auth: super::AuthHeader,
     repeaters: Vec<RepeaterListItem>,
+}
+
+#[derive(TypedPath)]
+#[typed_path("/organization")]
+pub struct OrganizationListPath;
+
+#[derive(Template)]
+#[template(path = "pages/organization_list.html")]
+struct OrganizationsTemplate {
+    auth: super::AuthHeader,
+    organizations: Vec<OrganizationListItem>,
+}
+
+struct OrganizationListItem {
+    call_sign: Option<String>,
+    display_name: String,
 }
 
 struct RepeaterListItem {
@@ -87,7 +103,9 @@ fn resolve_site_fields(repeater: &dao::repeater_system::RepeaterSystem) -> Resol
     };
 
     ResolvedSite {
-        maidenhead: grid.map(|value| format!("{value}")).unwrap_or_else(|| "-".to_string()),
+        maidenhead: grid
+            .map(|value| format!("{value}"))
+            .unwrap_or_else(|| "-".to_string()),
         location,
         latitude,
         longitude,
@@ -108,7 +126,7 @@ fn distance_km(lat1: f64, lon1: f64, lat2: f64, lon2: f64) -> f64 {
 }
 
 pub async fn home(
-    _: HomePath,
+    _: MapPath,
     jar: CookieJar,
     State(state): State<AppState>,
 ) -> Result<Html<String>, RepeaterAtlasError> {
@@ -139,9 +157,16 @@ pub async fn home(
 }
 
 pub async fn repeaters(
-    _: RepeatersPath,
+    _: RepeaterListPath,
     jar: CookieJar,
     State(state): State<AppState>,
+) -> Result<Html<String>, RepeaterAtlasError> {
+    render_repeaters_list(jar, state).await
+}
+
+async fn render_repeaters_list(
+    jar: CookieJar,
+    state: AppState,
 ) -> Result<Html<String>, RepeaterAtlasError> {
     let mut c = state.pool.get().await?;
 
@@ -174,12 +199,18 @@ pub async fn repeaters(
 
 #[derive(TypedPath, Deserialize)]
 #[typed_path("/repeater/{call_sign}")]
-pub struct RepeaterDetailPath {
+pub struct RepeaterDetailPagePath {
+    pub call_sign: String,
+}
+
+#[derive(TypedPath, Deserialize)]
+#[typed_path("/call-sign/{call_sign}")]
+pub struct CallSignDetailPath {
     pub call_sign: String,
 }
 
 #[derive(Template)]
-#[template(path = "pages/repeater_detail.html")]
+#[template(path = "pages/repeater.html")]
 struct DetailTemplate {
     auth: super::AuthHeader,
     call_sign: String,
@@ -205,9 +236,6 @@ struct DetailTemplate {
 struct ContactItem {
     display_name: String,
     call_sign: Option<String>,
-    email: Option<String>,
-    phone: Option<String>,
-    web_url: Option<String>,
 }
 
 #[derive(Clone)]
@@ -221,11 +249,57 @@ impl ContactItem {
         Self {
             display_name: row.contact.display_name,
             call_sign: row.call_sign,
-            email: row.contact.email,
-            phone: row.contact.phone,
-            web_url: row.contact.web_url,
         }
     }
+}
+
+#[derive(Template)]
+#[template(path = "pages/contact.html")]
+struct ContactDetailTemplate {
+    auth: super::AuthHeader,
+    call_sign: String,
+    contact: dao::contact::Contact,
+    owned_repeaters: Vec<ContactRepeaterItem>,
+    tech_contact_repeaters: Vec<ContactRepeaterItem>,
+}
+
+struct ContactRepeaterItem {
+    call_sign: String,
+    status: String,
+    description: String,
+}
+
+pub async fn organizations(
+    _: OrganizationListPath,
+    jar: CookieJar,
+    State(state): State<AppState>,
+) -> Result<Html<String>, RepeaterAtlasError> {
+    render_organizations_list(jar, state).await
+}
+
+async fn render_organizations_list(
+    jar: CookieJar,
+    state: AppState,
+) -> Result<Html<String>, RepeaterAtlasError> {
+    let mut c = state.pool.get().await?;
+
+    let organizations = dao::contact::select_organizations_with_call_sign(&mut c)
+        .await?
+        .into_iter()
+        .map(|row| OrganizationListItem {
+            call_sign: row.call_sign,
+            display_name: row.contact.display_name,
+        })
+        .collect::<Vec<_>>();
+
+    let auth = auth_header(&jar, &state);
+    let template = OrganizationsTemplate {
+        auth,
+        organizations,
+    };
+    let body = template.render()?;
+
+    Ok(Html(body))
 }
 
 struct FmServiceItem {
@@ -299,9 +373,89 @@ struct AmServiceItem {
 }
 
 pub async fn detail(
-    RepeaterDetailPath { call_sign }: RepeaterDetailPath,
+    RepeaterDetailPagePath { call_sign }: RepeaterDetailPagePath,
     jar: CookieJar,
     State(state): State<AppState>,
+) -> Result<Html<String>, RepeaterAtlasError> {
+    let call_sign = call_sign.to_uppercase();
+    render_repeater_detail(call_sign, jar, state).await
+}
+
+pub async fn call_sign(
+    CallSignDetailPath { call_sign }: CallSignDetailPath,
+    jar: CookieJar,
+    State(state): State<AppState>,
+) -> Result<Html<String>, RepeaterAtlasError> {
+    let call_sign = call_sign.to_uppercase();
+
+    let kind = {
+        let mut c = state.pool.get().await?;
+        dao::entity::find_by_call_sign(&mut c, call_sign.clone())
+            .await?
+            .map(|row| row.kind)
+    };
+
+    match kind {
+        Some(dao::entity::EntityKind::Repeater) => {
+            render_repeater_detail(call_sign, jar, state).await
+        }
+        Some(dao::entity::EntityKind::Contact) => {
+            render_contact_detail(call_sign, jar, state).await
+        }
+        None => Err(RepeaterAtlasError::NotFound),
+    }
+}
+
+async fn render_contact_detail(
+    call_sign: String,
+    jar: CookieJar,
+    state: AppState,
+) -> Result<Html<String>, RepeaterAtlasError> {
+    let mut c = state.pool.get().await?;
+
+    let contact = match dao::contact::find_by_call_sign(&mut c, call_sign.clone()).await? {
+        Some(row) => row,
+        None => return Err(RepeaterAtlasError::NotFound),
+    };
+
+    let owned_repeaters = dao::repeater_system::select_with_call_sign_by_owner(&mut c, contact.id)
+        .await?
+        .into_iter()
+        .map(|row| ContactRepeaterItem {
+            call_sign: row.call_sign,
+            status: row.system.status,
+            description: row.system.description.unwrap_or_else(|| "-".to_string()),
+        })
+        .collect::<Vec<_>>();
+
+    let tech_contact_repeaters =
+        dao::repeater_system::select_with_call_sign_by_tech_contact(&mut c, contact.id)
+            .await?
+            .into_iter()
+            .map(|row| ContactRepeaterItem {
+                call_sign: row.call_sign,
+                status: row.system.status,
+                description: row.system.description.unwrap_or_else(|| "-".to_string()),
+            })
+            .collect::<Vec<_>>();
+
+    let auth = auth_header(&jar, &state);
+    let template = ContactDetailTemplate {
+        auth,
+        call_sign,
+        contact,
+        owned_repeaters,
+        tech_contact_repeaters,
+    };
+    let body = template.render()?;
+
+    Ok(Html(body))
+}
+
+async fn render_repeater_detail(
+    call_sign: String,
+    jar: CookieJar,
+    state: AppState,
 ) -> Result<Html<String>, RepeaterAtlasError> {
     let mut c = state.pool.get().await?;
 
@@ -449,7 +603,10 @@ pub async fn detail(
                 note,
             }),
             RepeaterService::Am {
-                label, rx_hz, tx_hz, ..
+                label,
+                rx_hz,
+                tx_hz,
+                ..
             } => am_services.push(AmServiceItem {
                 label,
                 enabled,

@@ -2,7 +2,7 @@ use diesel::prelude::*;
 use diesel_async::{AsyncPgConnection, RunQueryDsl};
 
 use crate::MaidenheadLocator;
-use crate::dao::entity::{EntityKind};
+use crate::dao::entity::EntityKind;
 
 #[derive(Insertable)]
 #[diesel(table_name = crate::schema::repeater_system)]
@@ -153,6 +153,56 @@ pub async fn select_with_call_sign(
     let rows: Vec<(RepeaterSystem, Option<String>)> = r::repeater_system
         .inner_join(e::entity.on(e::id.eq(r::entity)))
         .filter(e::kind.eq(EntityKind::Repeater))
+        .select((RepeaterSystem::as_select(), e::call_sign))
+        .order_by(e::call_sign.asc())
+        .get_results(c)
+        .await?;
+
+    Ok(rows
+        .into_iter()
+        .map(|(system, call_sign)| RepeaterSystemWithCallSign {
+            system,
+            call_sign: call_sign.unwrap_or_else(|| "<missing>".to_string()),
+        })
+        .collect())
+}
+
+pub async fn select_with_call_sign_by_owner(
+    c: &mut AsyncPgConnection,
+    contact_id: i64,
+) -> QueryResult<Vec<RepeaterSystemWithCallSign>> {
+    use crate::schema::entity::dsl as e;
+    use crate::schema::repeater_system::dsl as r;
+
+    let rows: Vec<(RepeaterSystem, Option<String>)> = r::repeater_system
+        .inner_join(e::entity.on(e::id.eq(r::entity)))
+        .filter(e::kind.eq(EntityKind::Repeater))
+        .filter(r::owner.eq(contact_id))
+        .select((RepeaterSystem::as_select(), e::call_sign))
+        .order_by(e::call_sign.asc())
+        .get_results(c)
+        .await?;
+
+    Ok(rows
+        .into_iter()
+        .map(|(system, call_sign)| RepeaterSystemWithCallSign {
+            system,
+            call_sign: call_sign.unwrap_or_else(|| "<missing>".to_string()),
+        })
+        .collect())
+}
+
+pub async fn select_with_call_sign_by_tech_contact(
+    c: &mut AsyncPgConnection,
+    contact_id: i64,
+) -> QueryResult<Vec<RepeaterSystemWithCallSign>> {
+    use crate::schema::entity::dsl as e;
+    use crate::schema::repeater_system::dsl as r;
+
+    let rows: Vec<(RepeaterSystem, Option<String>)> = r::repeater_system
+        .inner_join(e::entity.on(e::id.eq(r::entity)))
+        .filter(e::kind.eq(EntityKind::Repeater))
+        .filter(r::tech_contact.eq(contact_id))
         .select((RepeaterSystem::as_select(), e::call_sign))
         .order_by(e::call_sign.asc())
         .get_results(c)

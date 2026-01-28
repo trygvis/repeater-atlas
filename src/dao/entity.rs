@@ -83,4 +83,3 @@ pub async fn find_by_call_sign(
         .await
         .optional()
 }
-

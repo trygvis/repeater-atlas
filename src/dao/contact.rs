@@ -134,3 +134,23 @@ pub async fn find_by_call_sign(
         .await
         .optional()
 }
+
+pub async fn select_organizations_with_call_sign(
+    c: &mut AsyncPgConnection,
+) -> QueryResult<Vec<ContactWithCallSign>> {
+    use crate::schema::contact::dsl as ct;
+    use crate::schema::entity::dsl as e;
+
+    let rows: Vec<(Contact, Option<String>)> = ct::contact
+        .inner_join(e::entity.on(e::id.eq(ct::entity)))
+        .filter(ct::kind.eq(ContactKind::Organization))
+        .select((Contact::as_select(), e::call_sign))
+        .order_by(e::call_sign.asc())
+        .get_results(c)
+        .await?;
+
+    Ok(rows
+        .into_iter()
+        .map(|(contact, call_sign)| ContactWithCallSign { contact, call_sign })
+        .collect())
+}

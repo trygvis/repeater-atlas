@@ -75,9 +75,12 @@
 
 ### Public
 
-- `/` home/overview with search entry point.
-- `/repeaters` list with filters and map toggle.
-- `/repeaters/:id` detail page.
+- `/` map page (primary entry point).
+- `/repeater` repeater list.
+- `/call-sign/:call_sign` entity detail resolver:
+  - repeater -> repeater page
+  - contact -> organization page
+- `/organization` organization list.
 - `/embed/club/:id` embeddable club-scoped list/detail (minimal layout).
 
 ### Admin

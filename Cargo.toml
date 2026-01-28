@@ -27,3 +27,5 @@ uuid = { version = "1.19", features = ["v4"] }
 
 [dev-dependencies]
 diesel_migrations = "2.3.1"
+tower = "0.5"
+http-body-util = "0.1"

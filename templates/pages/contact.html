@@ -1,0 +1,79 @@
+{% extends "layouts/main.html" %}
+
+{% block title %}{{ call_sign }}{% endblock %}
+
+{% block content %}
+<main class="container">
+  <hgroup>
+    <h1>{{ call_sign }}</h1>
+    {% if contact.display_name != call_sign.as_str() %}
+      <p>{{ contact.display_name }}</p>
+    {% endif %}
+  </hgroup>
+
+  <section>
+    <h2>Details</h2>
+    <dl class="kv-list">
+      <div>
+        <dt>Description</dt>
+        <dd>{% if contact.description.is_some() %}{{ contact.description.as_ref().unwrap() }}{% else %}-{% endif %}</dd>
+      </div>
+      <div>
+        <dt>Web</dt>
+        <dd>{% if contact.web_url.is_some() %}{{ contact.web_url.as_ref().unwrap() }}{% else %}-{% endif %}</dd>
+      </div>
+      <div>
+        <dt>Email</dt>
+        <dd>{% if contact.email.is_some() %}{{ contact.email.as_ref().unwrap() }}{% else %}-{% endif %}</dd>
+      </div>
+      <div>
+        <dt>Phone</dt>
+        <dd>{% if contact.phone.is_some() %}{{ contact.phone.as_ref().unwrap() }}{% else %}-{% endif %}</dd>
+      </div>
+      <div>
+        <dt>Address</dt>
+        <dd>{% if contact.address.is_some() %}{{ contact.address.as_ref().unwrap() }}{% else %}-{% endif %}</dd>
+      </div>
+    </dl>
+  </section>
+
+  <section>
+    <h2>Repeaters</h2>
+
+    {% if owned_repeaters.len() == 0 && tech_contact_repeaters.len() == 0 %}
+      <p>No repeaters linked to this contact.</p>
+    {% endif %}
+
+    {% if owned_repeaters.len() > 0 %}
+      <h3>Owned</h3>
+      <ul>
+        {% for item in owned_repeaters %}
+          <li>
+            <a href="/call-sign/{{ item.call_sign }}">{{ item.call_sign }}</a>
+            — {{ item.status }}
+            {% if item.description.trim() != "-" %}
+              — {{ item.description }}
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+
+    {% if tech_contact_repeaters.len() > 0 %}
+      <h3>Technical contact</h3>
+      <ul>
+        {% for item in tech_contact_repeaters %}
+          <li>
+            <a href="/call-sign/{{ item.call_sign }}">{{ item.call_sign }}</a>
+            — {{ item.status }}
+            {% if item.description.trim() != "-" %}
+              — {{ item.description }}
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  </section>
+</main>
+{% endblock %}
+

@@ -14,7 +14,7 @@ use serde::Deserialize;
 
 #[derive(TypedPath)]
 #[typed_path("/login")]
-pub struct LoginPath;
+pub struct LoginPagePath;
 
 #[derive(Deserialize)]
 pub struct LoginForm {
@@ -31,7 +31,7 @@ struct LoginTemplate {
 }
 
 pub async fn login_form(
-    _: LoginPath,
+    _: LoginPagePath,
     jar: CookieJar,
     State(state): State<AppState>,
 ) -> Result<Html<String>, RepeaterAtlasError> {
@@ -45,7 +45,7 @@ pub async fn login_form(
 }
 
 pub async fn login_submit(
-    _: LoginPath,
+    _: LoginPagePath,
     jar: CookieJar,
     State(state): State<AppState>,
     Form(form): Form<LoginForm>,
@@ -75,14 +75,14 @@ pub async fn login_submit(
     Ok((jar, Redirect::to("/")).into_response())
 }
 
-pub async fn logout(_: LogoutPath, jar: CookieJar) -> Result<Response, RepeaterAtlasError> {
+pub async fn logout(_: LogoutActionPath, jar: CookieJar) -> Result<Response, RepeaterAtlasError> {
     let jar = jar.add(auth::build_logout_cookie());
     Ok((jar, Redirect::to("/")).into_response())
 }
 
 #[derive(TypedPath)]
 #[typed_path("/logout")]
-pub struct LogoutPath;
+pub struct LogoutActionPath;
 
 async fn login_error(
     jar: CookieJar,

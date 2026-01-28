@@ -23,7 +23,7 @@
 ### HTTP Integration Tests
 
 - Spin up Axum app in test mode.
-- Test public routes (`/`, `/repeaters`, `/repeaters/:id`).
+- Test public routes (`/`, `/repeater`, `/organization`, `/call-sign/:call_sign`).
 - Test admin auth flow and permissions.
 - Verify HTMX partial responses for filters.
 
