@@ -1,3 +1,4 @@
+use crate::dao::entity::Entity;
 use crate::dao::contact::{Contact, ContactKind, NewContact};
 use crate::dao::entity::{EntityKind, NewEntity};
 use crate::dao::repeater_service::{AprsMode, FmBandwidth};
@@ -213,7 +214,7 @@ fn load_csv(path: &Path) -> Result<(StringRecord, Vec<StringRecord>), RepeaterAt
 }
 
 pub async fn generate(c: &mut AsyncPgConnection) -> Result<(), RepeaterAtlasError> {
-    let contacts = load_contacts(c, PathBuf::from("data/ham_clubs.csv")).await?;
+    let contacts = load_contacts(c, PathBuf::from("data/contacts.csv")).await?;
 
     let mut repeater_files = Vec::new();
     for d in Path::new("data").read_dir()? {
@@ -233,6 +234,28 @@ pub async fn generate(c: &mut AsyncPgConnection) -> Result<(), RepeaterAtlasErro
     let links_path = PathBuf::from("data/repeater-links.csv");
     if links_path.exists() {
         load_repeater_links(c, links_path).await?;
+    }
+
+    let repeaters = dao::repeater_system::select_all(c).await?;
+
+    let mut writer = csv::Writer::from_path(PathBuf::from("data/out/repeater-systems.csv"))?;
+    writer.write_record(["call_sign", "owner", "status"])?;
+
+    async fn load_entity(c: &mut AsyncPgConnection, id: Option<i64>) ->QueryResult<Option<Entity>> {
+        match id {
+            None => Ok(None),
+            Some(id) => Ok(Some(dao::entity::get(c, id).await?)),
+        }
+    }
+
+    for rs in repeaters {
+        let entity = load_entity(c, Some(rs.entity)).await?;
+
+        writer.serialize([
+            entity.and_then(|owner|owner.call_sign).unwrap_or_default(),
+            load_entity(c, rs.owner).await?.and_then(|owner|owner.call_sign).unwrap_or_default(),
+            rs.status,
+        ])?;
     }
 
     Ok(())

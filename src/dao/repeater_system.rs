@@ -79,7 +79,8 @@ pub struct RepeaterSystem {
 #[derive(Clone)]
 pub struct RepeaterSystemWithCallSign {
     pub system: RepeaterSystem,
-    pub call_sign: String,
+    pub call_sign: String, // TODO: this should either be Option<String> or the query should remove
+                           // NULL values.
 }
 
 pub async fn insert(
@@ -215,4 +216,14 @@ pub async fn select_with_call_sign_by_tech_contact(
             call_sign: call_sign.unwrap_or_else(|| "<missing>".to_string()),
         })
         .collect())
+}
+
+pub(crate) async fn select_all(c: &mut AsyncPgConnection) -> QueryResult<Vec<RepeaterSystem>> {
+    use crate::schema::repeater_system::dsl as rs;
+
+    rs::repeater_system
+        .select(RepeaterSystem::as_select())
+        .order_by(rs::name)
+        .get_results(c)
+        .await
 }
