@@ -343,7 +343,7 @@ pub async fn load_contacts(
                 info!(
                     row = row_index,
                     reason = "missing call_sign",
-                    "Skipping club row"
+                    "Skipping contact row"
                 );
                 continue;
             }
@@ -353,7 +353,7 @@ pub async fn load_contacts(
             info!(
                 row = row_index,
                 reason = "empty call_sign",
-                "Skipping club row"
+                "Skipping contact row"
             );
             continue;
         }
