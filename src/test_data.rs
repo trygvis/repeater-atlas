@@ -341,7 +341,7 @@ pub async fn load_data(c: &mut AsyncPgConnection) -> Result<(), RepeaterAtlasErr
 
     // This is a bigger dataset, but of lower quality. Import this first, then let the latter data
     // override them
-    // load_repeaters(c, &contacts, PathBuf::from("data/Relestasjoner.csv")).await?;
+    // load_nrrl_repeaters(c, &contacts, PathBuf::from("data/NRRL-Relestasjoner.csv")).await?;
 
     let mut repeater_files = Vec::new();
     for d in Path::new("data").read_dir()? {
