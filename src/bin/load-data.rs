@@ -13,7 +13,7 @@ async fn main() -> Result<(), RepeaterAtlasError> {
 
     let mut c = pool.get().await?;
 
-    repeater_atlas::test_data::generate(&mut c).await?;
+    repeater_atlas::test_data::load_data(&mut c).await?;
 
     repeater_atlas::test_data::generate_users(&mut c).await?;
 

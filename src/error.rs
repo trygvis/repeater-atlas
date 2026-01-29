@@ -35,6 +35,9 @@ pub enum RepeaterAtlasError {
 
     #[error("other error")]
     Other(#[source] Box<dyn std::error::Error>, String),
+
+    #[error("other error")]
+    OtherMsg(String),
 }
 
 impl RepeaterAtlasError {
@@ -90,6 +93,10 @@ impl IntoResponse for RepeaterAtlasError {
             }
             RepeaterAtlasError::Other(error, msg) => {
                 warn!(error = ?error, "Other error: {msg}");
+                Self::render_500().into_response()
+            }
+            RepeaterAtlasError::OtherMsg(msg) => {
+                warn!("Other error: {msg}");
                 Self::render_500().into_response()
             }
         }

@@ -1,6 +1,5 @@
-use crate::dao::entity::Entity;
 use crate::dao::contact::{Contact, ContactKind, NewContact};
-use crate::dao::entity::{EntityKind, NewEntity};
+use crate::dao::entity::{Entity, EntityKind, NewEntity};
 use crate::dao::repeater_service::{AprsMode, FmBandwidth};
 use crate::dao::repeater_system::{NewRepeaterSystem, RepeaterSystem, RepeaterSystemWithCallSign};
 use crate::repeater_service::{RepeaterService, Tone};
@@ -12,7 +11,7 @@ use diesel_async::AsyncPgConnection;
 use serde::Serialize;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
-use tracing::info;
+use tracing::{Level, info, span};
 
 #[derive(Clone)]
 struct RepeaterFixture {
@@ -20,36 +19,9 @@ struct RepeaterFixture {
     system: RepeaterSystem,
 }
 
-fn row_from_record(
-    headers: &StringRecord,
-    record: &StringRecord,
-) -> Result<HashMap<String, String>, RepeaterAtlasError> {
-    let mut row = HashMap::new();
-
-    for (header, value) in headers.iter().zip(record.iter()) {
-        let key = header.trim().to_string();
-        if row.contains_key(&key) {
-            return Err(RepeaterAtlasError::Other(
-                Box::new(std::io::Error::new(
-                    std::io::ErrorKind::InvalidData,
-                    "duplicate header in csv",
-                )),
-                format!("duplicate header {key}"),
-            ));
-        }
-        row.insert(key, value.to_string());
-    }
-
-    Ok(row)
-}
-
-fn parse_ctcss(value: &str) -> Option<f32> {
-    let trimmed = value.trim();
-    if trimmed.is_empty() {
-        return None;
-    }
+fn parse_ctcss(value: String) -> Option<f32> {
     // Accept "123", "123.0", "123.0 Hz".
-    let first = trimmed.split_whitespace().next().unwrap_or(trimmed);
+    let first = value.split_whitespace().next().unwrap_or(value.as_str());
     first.parse::<f32>().ok()
 }
 
@@ -58,7 +30,7 @@ async fn repeater_with_site(
     call_sign: impl Into<String> + std::fmt::Display,
     owner: Option<&Contact>,
     address: impl Into<String>,
-    maidenhead: Option<&str>,
+    maidenhead: Option<String>,
 ) -> Result<RepeaterFixture, RepeaterAtlasError> {
     let call_sign = call_sign.into();
 
@@ -124,10 +96,12 @@ async fn narrow_fm(
     label: impl Into<String>,
     tx_hz: Frequency,
     offset_hz: i64,
-    subtone: Option<f32>,
+    rx_tone: Option<f32>,
+    tx_tone: Option<f32>,
 ) -> Result<(), RepeaterAtlasError> {
     let label = label.into();
-    let tone = subtone.map(Tone::CTCSS).unwrap_or(Tone::None);
+    let rx_tone = rx_tone.map(Tone::CTCSS).unwrap_or(Tone::None);
+    let tx_tone = tx_tone.map(Tone::CTCSS).unwrap_or(Tone::None);
     let rx_hz = tx_hz.offset(offset_hz).map_err(|e| {
         RepeaterAtlasError::Other(
             Box::new(e),
@@ -139,8 +113,8 @@ async fn narrow_fm(
         rx_hz,
         tx_hz,
         bandwidth: FmBandwidth::Narrow,
-        rx_tone: tone.clone(),
-        tx_tone: tone,
+        rx_tone,
+        tx_tone,
         note: None,
     };
     create_service(c, r.system.id, service).await
@@ -182,10 +156,8 @@ async fn digipeater(
     create_service(c, r.system.id, service).await
 }
 
-fn split_call_sign(input: &str) -> (String, Option<String>) {
-    let trimmed = input.trim();
-    if let Some((head, tail)) = trimmed.split_once('-') {
-        let label = tail.trim();
+fn split_call_sign(input: String) -> (String, Option<String>) {
+    if let Some((head, label)) = input.split_once('-') {
         let label = if label.is_empty() {
             None
         } else {
@@ -193,25 +165,41 @@ fn split_call_sign(input: &str) -> (String, Option<String>) {
         };
         (head.trim().to_ascii_uppercase(), label)
     } else {
-        (trimmed.to_ascii_uppercase(), None)
+        (input.to_ascii_uppercase(), None)
     }
 }
 
-fn normalize_call_sign(input: &str) -> String {
+fn normalize_call_sign(input: String) -> String {
     input.trim().to_ascii_uppercase()
 }
 
-fn load_csv(path: &Path) -> Result<(StringRecord, Vec<StringRecord>), RepeaterAtlasError> {
+fn load_csv(path: &Path) -> Result<CsvFile, RepeaterAtlasError> {
     let mut reader = csv::ReaderBuilder::new()
         .trim(csv::Trim::All)
         .flexible(true)
         .from_path(path)?;
 
-    let headers = reader.headers()?.clone();
+    let headers = reader
+        .headers()?
+        .clone()
+        .iter()
+        .map(|header| header.trim().to_lowercase())
+        .zip(0usize..)
+        .filter(|(header, _)| !header.is_empty())
+        .collect();
 
-    let records: Result<Vec<StringRecord>, csv::Error> = reader.records().collect();
+    let records: Vec<StringRecord> = reader
+        .records()
+        .collect::<Result<Vec<StringRecord>, csv::Error>>()?;
+    let records: Vec<Vec<String>> = records
+        .iter()
+        .map(|row| row.iter().map(|cell| cell.trim().to_string()).collect())
+        .collect();
 
-    Ok((headers, records?))
+    Ok(CsvFile {
+        headers,
+        data: records,
+    })
 }
 
 pub async fn dump_data(c: &mut AsyncPgConnection) -> Result<(), RepeaterAtlasError> {
@@ -253,12 +241,10 @@ pub async fn dump_data(c: &mut AsyncPgConnection) -> Result<(), RepeaterAtlasErr
     {
         let owner = load_entity(c, rs.owner)
             .await?
-            .and_then(|owner| owner.call_sign)
-            .filter(|cs| !cs.is_empty());
+            .and_then(|owner| owner.call_sign);
         let tech_contact = load_entity(c, rs.tech_contact)
             .await?
-            .and_then(|tc| tc.call_sign)
-            .filter(|cs| !cs.is_empty());
+            .and_then(|tc| tc.call_sign);
 
         writer.serialize(RepeaterSystemRow {
             call_sign: call_sign.clone(),
@@ -349,9 +335,13 @@ pub async fn dump_data(c: &mut AsyncPgConnection) -> Result<(), RepeaterAtlasErr
     Ok(())
 }
 
-pub async fn generate(c: &mut AsyncPgConnection) -> Result<(), RepeaterAtlasError> {
+pub async fn load_data(c: &mut AsyncPgConnection) -> Result<(), RepeaterAtlasError> {
     let contacts = load_contacts(c, PathBuf::from("data/contacts.csv")).await?;
     info!("Loaded {} contacts", contacts.len());
+
+    // This is a bigger dataset, but of lower quality. Import this first, then let the latter data
+    // override them
+    // load_repeaters(c, &contacts, PathBuf::from("data/Relestasjoner.csv")).await?;
 
     let mut repeater_files = Vec::new();
     for d in Path::new("data").read_dir()? {
@@ -365,6 +355,11 @@ pub async fn generate(c: &mut AsyncPgConnection) -> Result<(), RepeaterAtlasErro
 
     repeater_files.sort();
     for path in repeater_files {
+        let _ = span!(
+            Level::INFO,
+            "load_repeaters",
+            path = path.to_string_lossy().to_string()
+        );
         load_repeaters(c, path).await?;
     }
 
@@ -380,41 +375,32 @@ pub async fn load_repeater_links(
     c: &mut AsyncPgConnection,
     path: PathBuf,
 ) -> Result<(), RepeaterAtlasError> {
-    let (headers, records) = load_csv(&path)?;
+    let csv = load_csv(&path)?;
 
-    let mut call_sign_a_index = None;
-    let mut call_sign_b_index = None;
-    for (idx, header) in headers.iter().enumerate() {
-        match header.trim() {
-            "call_sign_a" => call_sign_a_index = Some(idx),
-            "call_sign_b" => call_sign_b_index = Some(idx),
-            _ => {}
-        }
-    }
-    let (Some(call_sign_a_index), Some(call_sign_b_index)) = (call_sign_a_index, call_sign_b_index)
-    else {
-        return Err(RepeaterAtlasError::Other(
-            Box::new(std::io::Error::new(
-                std::io::ErrorKind::InvalidData,
-                "missing required headers call_sign_a/call_sign_b",
-            )),
-            format!("invalid repeater links csv: {}", path.to_string_lossy()),
-        ));
-    };
+    let call_sign_a_index = csv
+        .get_header("call_sign_a")
+        .expect("Missing required column: call_sign_a")
+        .clone();
+    let call_sign_b_index = csv
+        .get_header("call_sign_b")
+        .expect("Missing required column: call_sign_b")
+        .clone();
 
     let mut imported = 0usize;
-    for (row_index, record) in records.iter().enumerate() {
+    for (row_index, record) in csv.data.iter().enumerate() {
         let row_index = row_index + 2;
-        let call_sign_a_raw = record.get(call_sign_a_index).unwrap_or("").trim();
-        let call_sign_b_raw = record.get(call_sign_b_index).unwrap_or("").trim();
-        if call_sign_a_raw.is_empty() || call_sign_b_raw.is_empty() {
-            info!(
-                row = row_index,
-                reason = "missing call signs",
-                "Skipping link row"
-            );
-            continue;
-        }
+        let (call_sign_a_raw, call_sign_b_raw) =
+            match (record.get(call_sign_a_index), record.get(call_sign_b_index)) {
+                (Some(a), Some(b)) => (a.clone(), b.clone()),
+                (_, _) => {
+                    info!(
+                        row = row_index,
+                        reason = "missing call signs",
+                        "Skipping link row"
+                    );
+                    continue;
+                }
+            };
 
         let (call_sign_a, _) = split_call_sign(call_sign_a_raw);
         let (call_sign_b, _) = split_call_sign(call_sign_b_raw);
@@ -464,18 +450,23 @@ pub async fn load_contacts(
     c: &mut AsyncPgConnection,
     path: PathBuf,
 ) -> Result<HashMap<String, Contact>, RepeaterAtlasError> {
-    let (headers, records) = load_csv(&path)?;
+    let csv = load_csv(&path)?;
     let mut contacts = HashMap::new();
 
-    for (row_index, record) in records.iter().enumerate() {
-        let row_index = row_index + 2;
-        let row = row_from_record(&headers, record)?;
+    let call_sign_idx = match csv
+        .get_header("call_sign")
+        .or(csv.get_header("Kallesignal"))
+    {
+        Ok(idx) => idx,
+        Err(e) => return Err(e),
+    };
 
-        let call_sign_raw = match row
-            .get("call_sign")
-            .map(|value| value.trim())
-            .filter(|value| !value.is_empty())
-        {
+    let name_idx = csv.get_header("name")?;
+    let web_url_idx = csv.get_header("web_url")?;
+    let email_idx = csv.get_header("email")?;
+
+    for (row, row_index) in csv.data.iter().zip(2..) {
+        let call_sign_raw = match row.get(call_sign_idx) {
             Some(value) => value.to_string(),
             None => {
                 info!(
@@ -486,7 +477,7 @@ pub async fn load_contacts(
                 continue;
             }
         };
-        let call_sign = normalize_call_sign(&call_sign_raw);
+        let call_sign = normalize_call_sign(call_sign_raw);
         if call_sign.is_empty() {
             info!(
                 row = row_index,
@@ -505,21 +496,9 @@ pub async fn load_contacts(
             continue;
         }
 
-        let name = row
-            .get("name")
-            .map(|value| value.trim())
-            .filter(|value| !value.is_empty())
-            .map(|value| value.to_string());
-        let web_url = row
-            .get("web_url")
-            .map(|value| value.trim())
-            .filter(|value| !value.is_empty())
-            .map(|value| value.to_string());
-        let email = row
-            .get("email")
-            .map(|value| value.trim())
-            .filter(|value| !value.is_empty())
-            .map(|value| value.to_string());
+        let name = row.get(name_idx);
+        let web_url = row.get(web_url_idx);
+        let email = row.get(email_idx);
 
         let entity = dao::entity::insert(
             c,
@@ -535,10 +514,10 @@ pub async fn load_contacts(
             NewContact {
                 entity: entity.id,
                 kind: ContactKind::Organization,
-                display_name: name.unwrap_or_else(|| call_sign.clone()),
+                display_name: name.unwrap_or_else(|| &call_sign).to_string(),
                 description: None,
-                web_url,
-                email,
+                web_url: web_url.cloned(),
+                email:email.cloned(),
                 phone: None,
                 address: None,
             },
@@ -558,34 +537,37 @@ pub async fn load_repeaters(
     let mut imported = 0usize;
     let mut repeaters = HashMap::<String, RepeaterFixture>::new();
 
-    let (headers, records) = load_csv(&path)?;
+    let csv = load_csv(&path)?;
 
-    for (row_index, record) in records.iter().enumerate() {
-        let row_index = row_index + 2;
-        let row = row_from_record(&headers, record)?;
+    let call_sign_idx = csv.get_header("call_sign")?;
+    let owner_idx = csv.get_header("owner")?;
+    let address_idx = csv.get_header("address");
+    let maidenhead_idx = csv.get_header("maidenhead");
+    let name_idx = csv.get_header("name");
+    let status_idx = csv.get_header("status");
+    let service_idx = csv.get_header("service")?;
+    let tx_frequency_idx = csv.get_first_header(vec!["tx", "tx_hz", "tx_mhz"])?;
+    let rx_frequency_idx = csv.get_first_header(vec!["rx", "rx_hz", "rx_mhz"]);
+    let offset_idx = csv.get_header("offset");
+    let ctcss_tx_idx = csv.get_header("ctcss_tx").or(csv.get_header("ctcss"));
+    let ctcss_rx_idx = csv.get_header("ctcss_rx").or(csv.get_header("ctcss"));
+    let dmr_id_idx = csv.get_header("dmr_id");
 
-        let call_sign_raw = match row
-            .get("call_sign")
-            .map(|value| value.trim())
-            .filter(|value| !value.is_empty())
-        {
+    for (_, row) in csv.data.iter().zip(0..) {
+        let call_sign_raw = match csv.get(row, call_sign_idx) {
             Some(value) => value.to_string(),
             None => {
                 info!(
-                    row = row_index,
+                    row = row + 2,
                     reason = "missing call_sign",
                     "Skipping repeater row"
                 );
                 continue;
             }
         };
-        let (call_sign, port_label) = split_call_sign(&call_sign_raw);
+        let (call_sign, port_label) = split_call_sign(call_sign_raw);
 
-        let owner = row
-            .get("owner")
-            .map(|value| value.trim())
-            .map(normalize_call_sign)
-            .filter(|value| !value.is_empty());
+        let owner = csv.get(row, owner_idx).map(normalize_call_sign);
 
         let contact = match owner {
             Some(call_sign) => dao::contact::find_by_call_sign(c, call_sign).await?,
@@ -595,33 +577,18 @@ pub async fn load_repeaters(
         let repeater = if let Some(existing) = repeaters.get(&call_sign) {
             existing.clone()
         } else {
-            let address = row
-                .get("address")
-                .map(|value| value.trim())
-                .filter(|value| !value.is_empty())
-                .unwrap_or("");
-            let maidenhead = row
-                .get("maidenhead")
-                .map(|value| value.trim())
-                .filter(|value| !value.is_empty());
+            let address = csv.get_opt(row, &address_idx).unwrap_or_default();
+            let maidenhead = csv.get_opt(row, &maidenhead_idx);
             let mut repeater =
                 repeater_with_site(c, call_sign.clone(), contact.as_ref(), address, maidenhead)
                     .await?;
 
-            if let Some(name) = row
-                .get("name")
-                .map(|value| value.trim())
-                .filter(|value| !value.is_empty())
-            {
-                repeater.system.name = Some(name.to_string());
+            if let Some(name) = csv.get_opt(row, &name_idx) {
+                repeater.system.name = Some(name);
                 repeater.system = dao::repeater_system::update(c, repeater.system.clone()).await?;
             }
 
-            if let Some(status) = row
-                .get("status")
-                .map(|value| value.trim())
-                .filter(|value| !value.is_empty())
-            {
+            if let Some(status) = csv.get_opt(row, &status_idx) {
                 repeater.system.status = status.to_string();
                 repeater.system = dao::repeater_system::update(c, repeater.system.clone()).await?;
             }
@@ -630,49 +597,60 @@ pub async fn load_repeaters(
             repeater
         };
 
-        let service = row
-            .get("service")
-            .map(|value| value.trim())
-            .filter(|value| !value.is_empty());
-        let tx_frequency = parse_tx_frequency(&row);
-        let rx_frequency = parse_rx_frequency(&row);
-        let offset = parse_offset(&row)
+        let service = csv.get(row, service_idx);
+        let tx_frequency = csv.get(row, tx_frequency_idx).and_then(parse_hz_field);
+
+        let rx_frequency = csv.get_opt(row, &rx_frequency_idx).and_then(parse_hz_field);
+
+        let offset = csv
+            .get_opt(row, &offset_idx)
+            .and_then(|s| s.parse::<i64>().ok())
             .or_else(|| match (tx_frequency, rx_frequency) {
                 (Some(tx), Some(rx)) => Some(rx.hz() - tx.hz()),
                 _ => None,
             })
             .or_else(|| tx_frequency.and_then(default_offset));
-        let ctcss = row
-            .get("ctcss_tx")
-            .and_then(|value| parse_ctcss(value))
-            .or_else(|| row.get("ctcss_rx").and_then(|value| parse_ctcss(value)))
-            .or_else(|| row.get("ctcss").and_then(|value| parse_ctcss(value)))
-            .or_else(|| row.get("CTCSS").and_then(|value| parse_ctcss(value)));
-        let dmr_id = row
-            .get("dmr_id")
-            .map(|value| value.trim())
-            .filter(|value| !value.is_empty())
+        let ctcss_tx = csv
+            .get_opt(row, &ctcss_tx_idx)
+            .and_then(|value| parse_ctcss(value));
+        let ctcss_rx = csv
+            .get_opt(row, &ctcss_rx_idx)
+            .and_then(|value| parse_ctcss(value));
+        let dmr_id = csv
+            .get_opt(row, &dmr_id_idx)
             .and_then(|value| value.parse::<i64>().ok());
 
+        let service = service.unwrap_or_default();
+        let service = service.as_str();
         match service {
-            Some("FM_NARROW") => {
+            "FM_NARROW" => {
                 let (Some(tx_frequency), Some(offset)) = (tx_frequency, offset) else {
                     info!(
-                        row = row_index,
+                        row = row + 2,
                         call_sign = call_sign,
+                        file = path.to_string_lossy().as_ref(),
                         reason = "missing tx/offset",
                         "Skipping repeater row"
                     );
                     continue;
                 };
                 let label = port_label.as_deref().unwrap_or(tx_frequency.band_label());
-                narrow_fm(c, &repeater, label, tx_frequency, offset, ctcss).await?;
+                narrow_fm(
+                    c,
+                    &repeater,
+                    label,
+                    tx_frequency,
+                    offset,
+                    ctcss_rx,
+                    ctcss_tx,
+                )
+                .await?;
                 imported += 1;
             }
-            Some("APRS_IGATE") => {
+            "APRS_IGATE" => {
                 let Some(tx_frequency) = tx_frequency else {
                     info!(
-                        row = row_index,
+                        row = row + 2,
                         call_sign = call_sign,
                         reason = "missing tx",
                         "Skipping repeater row"
@@ -683,10 +661,10 @@ pub async fn load_repeaters(
                 igate(c, &repeater, label, tx_frequency).await?;
                 imported += 1;
             }
-            Some("APRS_DIGIPEATER") => {
+            "APRS_DIGIPEATER" => {
                 let Some(tx_frequency) = tx_frequency else {
                     info!(
-                        row = row_index,
+                        row = row + 2,
                         call_sign = call_sign,
                         reason = "missing tx",
                         "Skipping repeater row"
@@ -697,10 +675,10 @@ pub async fn load_repeaters(
                 digipeater(c, &repeater, label, tx_frequency).await?;
                 imported += 1;
             }
-            Some("DMR") => {
+            "DMR" => {
                 let (Some(tx_frequency), Some(offset)) = (tx_frequency, offset) else {
                     info!(
-                        row = row_index,
+                        row = row + 2,
                         call_sign = call_sign,
                         reason = "missing tx/offset",
                         "Skipping repeater row"
@@ -712,7 +690,7 @@ pub async fn load_repeaters(
                     Ok(value) => value,
                     Err(_) => {
                         info!(
-                            row = row_index,
+                            row = row + 2,
                             call_sign = call_sign,
                             reason = "invalid rx frequency",
                             "Skipping repeater row"
@@ -732,10 +710,10 @@ pub async fn load_repeaters(
                 create_service(c, repeater.system.id, service).await?;
                 imported += 1;
             }
-            Some("C4FM") => {
+            "C4FM" => {
                 let (Some(tx_frequency), Some(offset)) = (tx_frequency, offset) else {
                     info!(
-                        row = row_index,
+                        row = row + 2,
                         call_sign = call_sign,
                         reason = "missing tx/offset",
                         "Skipping repeater row"
@@ -747,7 +725,7 @@ pub async fn load_repeaters(
                     Ok(value) => value,
                     Err(_) => {
                         info!(
-                            row = row_index,
+                            row = row + 2,
                             call_sign = call_sign,
                             reason = "invalid rx frequency",
                             "Skipping repeater row"
@@ -766,17 +744,17 @@ pub async fn load_repeaters(
                 create_service(c, repeater.system.id, service).await?;
                 imported += 1;
             }
-            None => {
+            "" => {
                 info!(
-                    row = row_index,
+                    row = row + 2,
                     call_sign = call_sign,
                     reason = "missing service",
                     "Skipping repeater row"
                 );
             }
-            Some(service) => {
+            service => {
                 info!(
-                    row = row_index,
+                    row = row + 2,
                     call_sign = call_sign,
                     service = service,
                     reason = "unsupported service",
@@ -795,42 +773,22 @@ pub async fn load_repeaters(
     Ok(())
 }
 
-fn parse_offset(row: &HashMap<String, String>) -> Option<i64> {
-    row.get("offset")
-        .map(|value| value.trim())
-        .filter(|value| !value.is_empty())
-        .and_then(|value| value.parse::<i64>().ok())
-}
-
-fn parse_hz_field(row: &HashMap<String, String>, key: &str) -> Option<i64> {
-    let raw = row
-        .get(key)
-        .map(|value| value.trim())
-        .filter(|value| !value.is_empty())?;
-
+fn parse_hz_field(raw: String) -> Option<Frequency> {
     // Prefer explicit Hz integers.
     if let Ok(value) = raw.parse::<i64>() {
-        return Some(value);
+        return Frequency::new_hz(value).ok();
     }
 
+    let raw = raw //
+        .replace("Hz", "")
+        .replace("hz", "");
+
     // Otherwise interpret as MHz with decimals (e.g. "145.625").
-    raw.parse::<f64>()
+    raw.trim()
+        .parse::<f64>()
         .ok()
         .map(|value| (value * 1_000_000.0).round() as i64)
-}
-
-fn parse_tx_frequency(row: &HashMap<String, String>) -> Option<Frequency> {
-    let tx_hz = parse_hz_field(row, "tx")
-        .or_else(|| parse_hz_field(row, "tx_hz"))
-        .or_else(|| parse_hz_field(row, "tx_mhz"));
-    tx_hz.and_then(|value| Frequency::new_hz(value).ok())
-}
-
-fn parse_rx_frequency(row: &HashMap<String, String>) -> Option<Frequency> {
-    let rx_hz = parse_hz_field(row, "rx")
-        .or_else(|| parse_hz_field(row, "rx_hz"))
-        .or_else(|| parse_hz_field(row, "rx_mhz"));
-    rx_hz.and_then(|value| Frequency::new_hz(value).ok())
+        .and_then(|f| Frequency::new_hz(f).ok())
 }
 
 fn default_offset(tx_hz: Frequency) -> Option<i64> {
@@ -844,6 +802,57 @@ fn default_offset(tx_hz: Frequency) -> Option<i64> {
 }
 
 pub async fn generate_users(c: &mut AsyncPgConnection) -> QueryResult<()> {
-    crate::service::user::create_user(c, "LA8PV", "la8pv@example.org", "la8pv").await?;
+    service::user::create_user(c, "LA8PV", "la8pv@example.org", "la8pv").await?;
     Ok(())
+}
+
+struct CsvFile {
+    pub headers: HashMap<String, usize>,
+    pub data: Vec<Vec<String>>,
+}
+
+impl CsvFile {
+    pub(crate) fn get_header(&self, name: &str) -> Result<usize, RepeaterAtlasError> {
+        self.headers
+            .get(name)
+            .map(|sz| sz.clone())
+            .ok_or(RepeaterAtlasError::OtherMsg(format!(
+                "Missing required column: {name}"
+            )))
+    }
+
+    pub(crate) fn get_first_header(&self, names: Vec<&str>) -> Result<usize, RepeaterAtlasError> {
+        let ns = names.clone().join(",");
+
+        let names = names.iter().map(|s| s.to_string()).collect::<Vec<String>>();
+
+        for n in names {
+            if let Some(idx) = self.headers.get(&n) {
+                return Ok(*idx);
+            }
+        }
+
+        Err(RepeaterAtlasError::OtherMsg(format!(
+            "Missing required column (one of): {ns}"
+        )))
+    }
+
+    pub fn get(&self, row: usize, column: usize) -> Option<String> {
+        let row = self.data.get(row)?;
+        row.get(column)
+            .map(|s| s.trim().to_string())
+            .filter(|s| !s.is_empty())
+            .map(|s| s.to_string())
+    }
+
+    pub fn get_opt(
+        &self,
+        row: usize,
+        column: &Result<usize, RepeaterAtlasError>,
+    ) -> Option<String> {
+        match column {
+            Ok(column) => self.get(row, *column),
+            Err(_) => None,
+        }
+    }
 }
