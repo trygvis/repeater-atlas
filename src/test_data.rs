@@ -351,6 +351,7 @@ pub async fn dump_data(c: &mut AsyncPgConnection) -> Result<(), RepeaterAtlasErr
 
 pub async fn generate(c: &mut AsyncPgConnection) -> Result<(), RepeaterAtlasError> {
     let contacts = load_contacts(c, PathBuf::from("data/contacts.csv")).await?;
+    info!("Loaded {} contacts", contacts.len());
 
     let mut repeater_files = Vec::new();
     for d in Path::new("data").read_dir()? {
@@ -364,7 +365,7 @@ pub async fn generate(c: &mut AsyncPgConnection) -> Result<(), RepeaterAtlasErro
 
     repeater_files.sort();
     for path in repeater_files {
-        load_repeaters(c, &contacts, path).await?;
+        load_repeaters(c, path).await?;
     }
 
     let links_path = PathBuf::from("data/repeater-links.csv");
@@ -552,7 +553,6 @@ pub async fn load_contacts(
 
 pub async fn load_repeaters(
     c: &mut AsyncPgConnection,
-    contacts: &HashMap<String, Contact>,
     path: PathBuf,
 ) -> Result<(), RepeaterAtlasError> {
     let mut imported = 0usize;
@@ -584,10 +584,13 @@ pub async fn load_repeaters(
         let owner = row
             .get("owner")
             .map(|value| value.trim())
-            .filter(|value| !value.is_empty());
-        let contact = owner
             .map(normalize_call_sign)
-            .and_then(|value| contacts.get(&value).cloned());
+            .filter(|value| !value.is_empty());
+
+        let contact = match owner {
+            Some(call_sign) => dao::contact::find_by_call_sign(c, call_sign).await?,
+            None => None,
+        };
 
         let repeater = if let Some(existing) = repeaters.get(&call_sign) {
             existing.clone()
