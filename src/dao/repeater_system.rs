@@ -56,6 +56,7 @@ impl NewRepeaterSystem {
     }
 }
 
+// When updating this, remember to update RepeaterSystemRow (the CSV dump structure).
 #[derive(Clone, Queryable, Selectable, AsChangeset)]
 #[diesel(table_name = crate::schema::repeater_system)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
@@ -216,14 +217,4 @@ pub async fn select_with_call_sign_by_tech_contact(
             call_sign: call_sign.unwrap_or_else(|| "<missing>".to_string()),
         })
         .collect())
-}
-
-pub(crate) async fn select_all(c: &mut AsyncPgConnection) -> QueryResult<Vec<RepeaterSystem>> {
-    use crate::schema::repeater_system::dsl as rs;
-
-    rs::repeater_system
-        .select(RepeaterSystem::as_select())
-        .order_by(rs::name)
-        .get_results(c)
-        .await
 }

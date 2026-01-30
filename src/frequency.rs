@@ -3,11 +3,21 @@ use diesel::pg::{Pg, PgValue};
 use diesel::serialize::{self, Output, ToSql};
 use diesel::sql_types::BigInt;
 use diesel::{AsExpression, FromSqlRow};
+use serde::Serialize;
 use std::fmt;
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, AsExpression, FromSqlRow)]
 #[diesel(sql_type = BigInt)]
 pub struct Frequency(i64);
+
+impl Serialize for Frequency {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_i64(self.hz())
+    }
+}
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub enum FrequencyError {

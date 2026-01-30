@@ -2,13 +2,14 @@ use crate::dao::entity::Entity;
 use crate::dao::contact::{Contact, ContactKind, NewContact};
 use crate::dao::entity::{EntityKind, NewEntity};
 use crate::dao::repeater_service::{AprsMode, FmBandwidth};
-use crate::dao::repeater_system::{NewRepeaterSystem, RepeaterSystem};
+use crate::dao::repeater_system::{NewRepeaterSystem, RepeaterSystem, RepeaterSystemWithCallSign};
 use crate::repeater_service::{RepeaterService, Tone};
 use crate::service;
 use crate::{Frequency, MaidenheadLocator, RepeaterAtlasError, dao};
 use csv::StringRecord;
 use diesel::QueryResult;
 use diesel_async::AsyncPgConnection;
+use serde::Serialize;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use tracing::info;
@@ -213,6 +214,141 @@ fn load_csv(path: &Path) -> Result<(StringRecord, Vec<StringRecord>), RepeaterAt
     Ok((headers, records?))
 }
 
+pub async fn dump_data(c: &mut AsyncPgConnection) -> Result<(), RepeaterAtlasError> {
+    async fn load_entity(
+        c: &mut AsyncPgConnection,
+        id: Option<i64>,
+    ) -> QueryResult<Option<Entity>> {
+        match id {
+            None => Ok(None),
+            Some(id) => Ok(Some(dao::entity::get(c, id).await?)),
+        }
+    }
+
+    let repeaters = dao::repeater_system::select_with_call_sign(c).await?;
+
+    #[derive(Serialize)]
+    struct RepeaterSystemRow {
+        call_sign: String,
+        owner: Option<String>,
+        tech_contact: Option<String>,
+        name: Option<String>,
+        description: Option<String>,
+        address: Option<String>,
+        maidenhead: Option<String>,
+        latitude: Option<f64>,
+        longitude: Option<f64>,
+        elevation_m: Option<i32>,
+        country: Option<String>,
+        region: Option<String>,
+        status: String,
+    }
+
+    let mut writer = csv::Writer::from_path(PathBuf::from("data/out/repeater-systems.csv"))?;
+
+    for RepeaterSystemWithCallSign {
+        call_sign,
+        system: rs,
+    } in &repeaters
+    {
+        let owner = load_entity(c, rs.owner)
+            .await?
+            .and_then(|owner| owner.call_sign)
+            .filter(|cs| !cs.is_empty());
+        let tech_contact = load_entity(c, rs.tech_contact)
+            .await?
+            .and_then(|tc| tc.call_sign)
+            .filter(|cs| !cs.is_empty());
+
+        writer.serialize(RepeaterSystemRow {
+            call_sign: call_sign.clone(),
+            owner,
+            tech_contact,
+            name: rs.name.clone(),
+            description: rs.description.clone(),
+            address: rs.address.clone(),
+            maidenhead: rs.maidenhead.as_ref().map(|mh| mh.to_string()),
+            latitude: rs.latitude,
+            longitude: rs.longitude,
+            elevation_m: rs.elevation_m,
+            country: rs.country.clone(),
+            region: rs.region.clone(),
+            status: rs.status.clone(),
+        })?;
+    }
+
+    #[derive(Serialize)]
+    struct RepeaterServiceRow {
+        repeater_call_sign: String,
+        kind: Option<dao::repeater_service::RepeaterServiceKind>,
+        enabled: bool,
+        label: String,
+        note: String,
+        rx_hz: Frequency,
+        tx_hz: Frequency,
+        fm_bandwidth: Option<dao::repeater_service::FmBandwidth>,
+        rx_tone_kind: Option<dao::repeater_service::ToneKind>,
+        rx_ctcss_hz: Option<f32>,
+        rx_dcs_code: Option<i32>,
+        tx_tone_kind: Option<dao::repeater_service::ToneKind>,
+        tx_ctcss_hz: Option<f32>,
+        tx_dcs_code: Option<i32>,
+        dmr_color_code: Option<i16>,
+        dmr_repeater_id: Option<i64>,
+        dmr_network: Option<String>,
+        dstar_mode: Option<dao::repeater_service::DstarMode>,
+        dstar_gateway_call_sign: Option<String>,
+        dstar_reflector: Option<String>,
+        c4fm_wires_x_node_id: Option<i32>,
+        c4fm_room: Option<String>,
+        aprs_mode: Option<dao::repeater_service::AprsMode>,
+        aprs_path: Option<String>,
+        ssb_sideband: Option<dao::repeater_service::SsbSideband>,
+    }
+
+    let mut writer = csv::Writer::from_path(PathBuf::from("data/out/repeater-services.csv"))?;
+
+    for RepeaterSystemWithCallSign {
+        call_sign,
+        system: rs,
+    } in repeaters
+    {
+        let service = dao::repeater_service::select_by_repeater_id(c, rs.id).await?;
+
+        for s in service {
+            writer.serialize(RepeaterServiceRow {
+                repeater_call_sign: call_sign.clone(),
+                kind: s.kind,
+                enabled: s.enabled,
+                label: s.label,
+                note: s.note,
+                rx_hz: s.rx_hz,
+                tx_hz: s.tx_hz,
+                fm_bandwidth: s.fm_bandwidth,
+                rx_tone_kind: s.rx_tone_kind,
+                rx_ctcss_hz: s.rx_ctcss_hz,
+                rx_dcs_code: s.rx_dcs_code,
+                tx_tone_kind: s.tx_tone_kind,
+                tx_ctcss_hz: s.tx_ctcss_hz,
+                tx_dcs_code: s.tx_dcs_code,
+                dmr_color_code: s.dmr_color_code,
+                dmr_repeater_id: s.dmr_repeater_id,
+                dmr_network: s.dmr_network,
+                dstar_mode: s.dstar_mode,
+                dstar_gateway_call_sign: s.dstar_gateway_call_sign,
+                dstar_reflector: s.dstar_reflector,
+                c4fm_wires_x_node_id: s.c4fm_wires_x_node_id,
+                c4fm_room: s.c4fm_room,
+                aprs_mode: s.aprs_mode,
+                aprs_path: s.aprs_path,
+                ssb_sideband: s.ssb_sideband,
+            })?;
+        }
+    }
+
+    Ok(())
+}
+
 pub async fn generate(c: &mut AsyncPgConnection) -> Result<(), RepeaterAtlasError> {
     let contacts = load_contacts(c, PathBuf::from("data/contacts.csv")).await?;
 
@@ -234,28 +370,6 @@ pub async fn generate(c: &mut AsyncPgConnection) -> Result<(), RepeaterAtlasErro
     let links_path = PathBuf::from("data/repeater-links.csv");
     if links_path.exists() {
         load_repeater_links(c, links_path).await?;
-    }
-
-    let repeaters = dao::repeater_system::select_all(c).await?;
-
-    let mut writer = csv::Writer::from_path(PathBuf::from("data/out/repeater-systems.csv"))?;
-    writer.write_record(["call_sign", "owner", "status"])?;
-
-    async fn load_entity(c: &mut AsyncPgConnection, id: Option<i64>) ->QueryResult<Option<Entity>> {
-        match id {
-            None => Ok(None),
-            Some(id) => Ok(Some(dao::entity::get(c, id).await?)),
-        }
-    }
-
-    for rs in repeaters {
-        let entity = load_entity(c, Some(rs.entity)).await?;
-
-        writer.serialize([
-            entity.and_then(|owner|owner.call_sign).unwrap_or_default(),
-            load_entity(c, rs.owner).await?.and_then(|owner|owner.call_sign).unwrap_or_default(),
-            rs.status,
-        ])?;
     }
 
     Ok(())

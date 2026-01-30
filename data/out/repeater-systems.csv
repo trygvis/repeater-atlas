@@ -1,58 +1,58 @@
-call_sign,owner,status
-LA7ER,LA4K,active
-LA6FR,LA4K,active
-LA9MR,LA4K,active
-LA5GR,LA1T,active
-LA5ER,LA1T,active
-LA5SR,LA1T,active
-LA3NRR,LA1T,active
-LD3GL,LA1T,active
-LD3ST,LA1T,active
-LD3TD,LA1T,active
-LA3DRR,LA1T,active
-LA3VRR,LA1T,active
-LA6HR,LA1T,active
-LA3JRR,LA1T,active
-LA7SR,LA1T,active
-LA6YR,LA1T,active
-LA7LR,LA1T,active
-LA9NR,LA1T,active
-LD7TD,LA2T,active
-LA7RR,LA2T,active
-LD7TG,LA2T,active
-LA8TR,LA2T,active
-LD7TR,LA2T,active
-LA8QR,LA2T,active
-LD7TB,LA2T,active
-LA7ORR,LA2T,active
-LD7TO,LA2T,active
-LD7TT,LA2T,active
-LD7TS,LA2T,active
-LA8PR,LA2T,active
-LD7TH,LA2T,active
-LD4AA,LA4A,active
-LD4AT,LA4A,active
-LD4LF,LA4A,active
-LD4SH,LA4A,active
-LD4VS,LA4A,active
-LD4GS,LA4A,active
-LD4AI,LA4A,active
-LA5AR,LA4A,active
-LA6SR,LA4A,active
-LA4FRR,LA4A,active
-LA4A_,LA4A,active
-LA5OR,LA4O,QRV
-LA7OR,LA4O,QRV
-LD1OA,LA4O,QRV
-LD1OT,LA4O,QRV
-LA1OS,LA4O,QRV
-LD1OE,LA4O,QRV
-LA3XRR,LA1T,active
-LA3SRR,LA1T,active
-LA6KR,LA9K,QRV
-LA4ARR,LA9K,QRV
-LA4ORR,LA9K,QRV
-LA3BRR,LA1T,active
-LA6JR,LA9K,QRV
-LA3GRR,LA1T,active
-LA5HR,LA1T,active
+call_sign,owner,tech_contact,name,description,address,maidenhead,latitude,longitude,elevation_m,country,region,status
+LA1OS,LA4O,,,,Oslo sentrum,JO59iv,,,,,,QRV
+LA3BRR,LA1T,,,,Drangedal,JO49lc,,,,,,active
+LA3DRR,LA1T,,,,"Vealøs, Skien",JO49uf,,,,,,active
+LA3GRR,LA1T,,,,Gaustatoppen,JO49hu,,,,,,active
+LA3JRR,LA1T,,,,"Kvelde, Jordstøyp",JO49xe,,,,,,active
+LA3NRR,LA1T,,,,"Notodden, Sem",JO49on,,,,,,active
+LA3SRR,LA1T,,,,Korpås (Brunlanes),JO59xa,,,,,,active
+LA3VRR,LA1T,,,,"Skien, Vealøs",JO59uf,,,,,,active
+LA3XRR,LA1T,,,,Hvittingen,JO59cn,,,,,,active
+LA4A_,LA4A,,,,"Fjæreheia, Grimstad",JO48gj,,,,,,active
+LA4ARR,LA9K,,,,"Hesteheia, Kristiansand",JO38wf,,,,,,QRV
+LA4FRR,LA4A,,,,Stormyrheia (HØRTE),JO48fk,,,,,,active
+LA4ORR,LA9K,,,,"Odderøya, Kristiansand",JO48ad,,,,,,QRV
+LA5AR,LA4A,,,,"Vaktårnheia, Arendal",JO48jl,,,,,,active
+LA5ER,LA1T,,,,"Eirefjell, Tokke",JO49bl,,,,,,active
+LA5GR,LA1T,,,,"Skien, Vealøs",JO49uf,,,,,,active
+LA5HR,LA1T,,,,"Horten, Skottås",JO59ej,,,,,,active
+LA5OR,LA4O,,,,"Tryvann, Oslo",JO59ix,,,,,,QRV
+LA5SR,LA1T,,,,"Sandefjord, Mokollen",JO59cd,,,,,,active
+LA6FR,LA4K,,Flekkefjord Repeater,,Storestø,JO38hh,,,,,,active
+LA6HR,LA1T,,,,"Holmestrand, Hvittingen",JO59cn,,,,,,active
+LA6JR,LA9K,,,,"Hovassfjell, Ose i Setesdal",JO48bh,,,,,,QRV
+LA6KR,LA9K,,,,"Hesteheia, Kristiansand",JO38wf,,,,,,QRV
+LA6SR,LA4A,,,,"Heiberg, Søndeled",JO48ns,,,,,,active
+LA6YR,LA1T,,,,"Kragerø, Storkollen",JO48qu,,,,,,active
+LA7ER,LA4K,,Åseral Repeater,,Sjåvassknuten,JO38qo,,,,,,active
+LA7LR,LA1T,,,,"Lifjell, Bø",JO49ml,,,,,,active
+LA7OR,LA4O,,,,"Brannfjell, Oslo",JO59jv,,,,,,QRV
+LA7ORR,LA2T,,,,Oppdal,JP42un,,,,,,active
+LA7RR,LA2T,,,,Gråkallen,JP53dk,,,,,,active
+LA7SR,LA1T,,,,"Sandefjord, Kjerringberget",JO59ca,,,,,,active
+LA8PR,LA2T,,,,Lialøkken,JP53fi,,,,,,active
+LA8QR,LA2T,,,,Bringen,JP53nb,,,,,,active
+LA8TR,LA2T,,,,Ruten,JP43ne,,,,,,active
+LA9MR,LA4K,,Mandal Repeater,,Varmestø,JO38rc,,,,,,active
+LA9NR,LA1T,,,,"Tønsberg, Frodeåsen",JO59eg,,,,,,active
+LD1OA,LA4O,,,,"Røverkollen, Oslo",JO59kx,,,,,,QRV
+LD1OE,LA4O,,,,"Brannfjell, Oslo",JO59jv,,,,,,QRV
+LD1OT,LA4O,,,,"Tryvann, Oslo",JO59ix,,,,,,QRV
+LD3GL,LA1T,,,,"Skien, Vealøs",JO49uf,,,,,,active
+LD3ST,LA1T,,,,"Tønsberg, Frodeåsen",JO59eg,,,,,,active
+LD3TD,LA1T,,,,Tønsberg,JO59de,,,,,,active
+LD4AA,LA4A,,,,"Tveitheia, Åmli",JO48gs,,,,,,active
+LD4AI,LA4A,,,,"Fjæreheia, Grimstad",JO48gj,,,,,,active
+LD4AT,LA4A,,,,"Vardåsen, Tromøy",JO48jk,,,,,,active
+LD4GS,LA4A,,,,Stormyrheia (Hørte),JO48fk,,,,,,active
+LD4LF,LA4A,,,,"Justøy, Lillesand",JO48ee,,,,,,active
+LD4SH,LA4A,,,,"Viddefjell, Risør",JO48or,,,,,,active
+LD4VS,LA4A,,,,"Slettåsheia, Vegårshei",JO48jq,,,,,,active
+LD7TB,LA2T,,,,Bringen,JP53nb,,,,,,active
+LD7TD,LA2T,,,,Vassfjellet,JP53fi,,,,,,active
+LD7TG,LA2T,,,,Gråkallen,JP53dk,,,,,,active
+LD7TH,LA2T,,,,Tydal,JP52vv,,,,,,active
+LD7TO,LA2T,,,,Oppdal,JP42un,,,,,,active
+LD7TR,LA2T,,,,Ruten,JP43ne,,,,,,active
+LD7TS,LA2T,,,,Støren,JP53da,,,,,,active
+LD7TT,LA2T,,,,Tyholt,JP53fk,,,,,,active

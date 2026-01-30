@@ -4,11 +4,12 @@ use diesel::prelude::*;
 use diesel::serialize::{self, IsNull, Output, ToSql};
 use diesel::{AsExpression, FromSqlRow};
 use diesel_async::{AsyncPgConnection, RunQueryDsl};
+use serde::Serialize;
 use std::io::Write;
 
 use crate::Frequency;
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq, AsExpression, FromSqlRow)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, AsExpression, FromSqlRow, Serialize)]
 #[diesel(sql_type = crate::schema::sql_types::RepeaterServiceKind)]
 pub enum RepeaterServiceKind {
     Fm,
@@ -65,7 +66,7 @@ impl FromSql<crate::schema::sql_types::RepeaterServiceKind, Pg> for RepeaterServ
     }
 }
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq, AsExpression, FromSqlRow)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, AsExpression, FromSqlRow, Serialize)]
 #[diesel(sql_type = crate::schema::sql_types::FmBandwidth)]
 pub enum FmBandwidth {
     Narrow,
@@ -102,7 +103,7 @@ impl FromSql<crate::schema::sql_types::FmBandwidth, Pg> for FmBandwidth {
     }
 }
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq, AsExpression, FromSqlRow)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, AsExpression, FromSqlRow, Serialize)]
 #[diesel(sql_type = crate::schema::sql_types::ToneKind)]
 pub enum ToneKind {
     None,
@@ -133,7 +134,7 @@ impl FromSql<crate::schema::sql_types::ToneKind, Pg> for ToneKind {
     }
 }
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq, AsExpression, FromSqlRow)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, AsExpression, FromSqlRow, Serialize)]
 #[diesel(sql_type = crate::schema::sql_types::DstarMode)]
 pub enum DstarMode {
     Dv,
@@ -170,7 +171,7 @@ impl FromSql<crate::schema::sql_types::DstarMode, Pg> for DstarMode {
     }
 }
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq, AsExpression, FromSqlRow)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, AsExpression, FromSqlRow, Serialize)]
 #[diesel(sql_type = crate::schema::sql_types::AprsMode)]
 pub enum AprsMode {
     Igate,
@@ -207,7 +208,7 @@ impl FromSql<crate::schema::sql_types::AprsMode, Pg> for AprsMode {
     }
 }
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq, AsExpression, FromSqlRow)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, AsExpression, FromSqlRow, Serialize)]
 #[diesel(sql_type = crate::schema::sql_types::SsbSideband)]
 pub enum SsbSideband {
     Lsb,
@@ -274,6 +275,7 @@ pub struct NewRepeaterServiceDao {
     pub ssb_sideband: Option<SsbSideband>,
 }
 
+// When updating this, remember to update RepeaterServiceRow (the CSV dump structure).
 #[derive(Clone, Queryable, Selectable)]
 #[diesel(table_name = crate::schema::repeater_service)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
