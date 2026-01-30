@@ -330,7 +330,8 @@ pub async fn select_by_repeater_id(
     s::repeater_service
         .filter(s::repeater_id.eq(repeater_id))
         .select(RepeaterServiceDao::as_select())
-        .order_by(s::label.asc())
+        .order_by(s::kind.asc())
+        .order_by(s::id.asc())
         .get_results(c)
         .await
 }
