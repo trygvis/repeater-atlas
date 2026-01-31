@@ -18,6 +18,8 @@
 
 ## Conventions
 
+- All commands have to be run with "direnv exec ." as a prefix to get a working
+  environment.
 - Generate migrations via `diesel migration generate`, not by hand.
 - Before closing an issue, include a note on what was done. Summarize code and
   design changes and anything related that was done.
@@ -26,6 +28,9 @@
 - `schema.rs` should never be edited manually. Run the database migrations with
   `make db-init`, it will reinitialize the database and run the migrations.
   Diesel will generate `schema.rs` automatically.
+- There are pre-commit hooks installed that will be executed automatically. If
+  these fail, there is an issue that has to be fixed before continuing. DO NOT
+  run with `--no-verify` as a workaround.
 
 ## Documentation
 
