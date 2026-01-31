@@ -9,7 +9,7 @@ use diesel_async::RunQueryDsl;
 use http_body_util::BodyExt;
 use repeater_atlas::dao;
 use repeater_atlas::schema::call_sign;
-use repeater_atlas::web::{AppState, index};
+use repeater_atlas::web::{AppState, map, organization_list, repeater, repeater_list};
 use tower::util::ServiceExt;
 use uuid::Uuid;
 
@@ -73,11 +73,11 @@ async fn call_sign_routes_resolve_repeater_and_contact()
     };
 
     let app = Router::new()
-        .typed_get(index::home)
-        .typed_get(index::repeaters)
-        .typed_get(index::organizations)
-        .typed_get(index::call_sign)
-        .typed_get(index::detail)
+        .typed_get(map::home)
+        .typed_get(repeater_list::repeaters)
+        .typed_get(organization_list::organizations)
+        .typed_get(repeater::call_sign)
+        .typed_get(repeater::detail)
         .with_state(state);
 
     let repeater_response = app

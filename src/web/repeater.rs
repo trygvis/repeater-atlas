@@ -1,7 +1,8 @@
 use super::AppState;
 use super::auth::auth_header;
+use super::map::{MapContext, MapPoint, MapRepeater, OrganizationMapContext};
+use super::utils::{distance_km, resolve_site_fields};
 use crate::Frequency;
-use crate::MaidenheadLocator;
 use crate::dao::repeater_service::{AprsMode, DstarMode, FmBandwidth, SsbSideband};
 use crate::repeater_service::RepeaterService;
 use crate::{RepeaterAtlasError, dao};
@@ -9,258 +10,7 @@ use askama::Template;
 use axum::{extract::State, response::Html};
 use axum_extra::extract::cookie::CookieJar;
 use axum_extra::routing::TypedPath;
-use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
-
-#[derive(TypedPath)]
-#[typed_path("/")]
-pub struct MapPath;
-
-#[derive(Template)]
-#[template(path = "pages/map.html")]
-struct HomeTemplate {
-    auth: super::AuthHeader,
-    repeater_data: Vec<MapRepeater>,
-}
-
-#[derive(TypedPath)]
-#[typed_path("/repeater")]
-pub struct RepeaterListPath;
-
-#[derive(Template)]
-#[template(path = "pages/repeater_list.html")]
-struct RepeatersTemplate {
-    auth: super::AuthHeader,
-    repeaters: Vec<RepeaterListItem>,
-}
-
-#[derive(TypedPath)]
-#[typed_path("/organization")]
-pub struct OrganizationListPath;
-
-#[derive(Template)]
-#[template(path = "pages/organization_list.html")]
-struct OrganizationsTemplate {
-    auth: super::AuthHeader,
-    organizations: Vec<OrganizationListItem>,
-}
-
-struct OrganizationListItem {
-    call_sign: Option<String>,
-    display_name: String,
-}
-
-struct RepeaterListItem {
-    call_sign: String,
-    status: String,
-    description: String,
-    maidenhead: String,
-    location: String,
-}
-
-#[derive(Serialize)]
-struct MapRepeater {
-    call_sign: String,
-    latitude: f64,
-    longitude: f64,
-    status: String,
-    services: Vec<String>,
-}
-
-#[derive(Serialize)]
-struct MapPoint {
-    latitude: f64,
-    longitude: f64,
-}
-
-#[derive(Serialize)]
-struct MapContext {
-    center: MapPoint,
-    radius_meters: u32,
-    repeaters: Vec<MapRepeater>,
-}
-
-struct ResolvedSite {
-    maidenhead: String,
-    location: String,
-    latitude: Option<f64>,
-    longitude: Option<f64>,
-}
-
-fn resolve_site_fields(repeater: &dao::repeater_system::RepeaterSystem) -> ResolvedSite {
-    let grid: Option<MaidenheadLocator> = repeater.maidenhead.clone();
-    let mut latitude = repeater.latitude;
-    let mut longitude = repeater.longitude;
-
-    if latitude.is_none() || longitude.is_none() {
-        if let Some(ref grid) = grid {
-            let (grid_longitude, grid_latitude) = grid.longlat();
-            latitude = latitude.or(Some(grid_latitude));
-            longitude = longitude.or(Some(grid_longitude));
-        }
-    }
-
-    let location = match (latitude, longitude) {
-        (Some(latitude), Some(longitude)) => format!("{latitude}, {longitude}"),
-        _ => "-".to_string(),
-    };
-
-    ResolvedSite {
-        maidenhead: grid
-            .map(|value| format!("{value}"))
-            .unwrap_or_else(|| "-".to_string()),
-        location,
-        latitude,
-        longitude,
-    }
-}
-
-fn distance_km(lat1: f64, lon1: f64, lat2: f64, lon2: f64) -> f64 {
-    let earth_radius_km = 6_371.0_f64;
-    let dlat = (lat2 - lat1).to_radians();
-    let dlon = (lon2 - lon1).to_radians();
-    let lat1 = lat1.to_radians();
-    let lat2 = lat2.to_radians();
-
-    let a = (dlat / 2.0).sin().powi(2) + lat1.cos() * lat2.cos() * (dlon / 2.0).sin().powi(2);
-    let c = 2.0 * a.sqrt().atan2((1.0 - a).sqrt());
-
-    earth_radius_km * c
-}
-
-pub async fn home(
-    _: MapPath,
-    jar: CookieJar,
-    State(state): State<AppState>,
-) -> Result<Html<String>, RepeaterAtlasError> {
-    let mut c = state.pool.get().await?;
-    let repeaters = dao::repeater_system::select_with_call_sign(&mut c).await?;
-    let mut candidates = Vec::new();
-
-    for repeater in repeaters {
-        let resolved = resolve_site_fields(&repeater);
-        if let (Some(latitude), Some(longitude)) = (resolved.latitude, resolved.longitude) {
-            candidates.push((
-                repeater.id,
-                repeater.call_sign,
-                repeater.status,
-                latitude,
-                longitude,
-            ));
-        }
-    }
-
-    let repeater_ids: Vec<i64> = candidates.iter().map(|(id, _, _, _, _)| *id).collect();
-    let mut kinds_by_id: HashMap<i64, Vec<String>> = HashMap::new();
-    for (repeater_id, kind) in
-        dao::repeater_service::select_kinds_by_repeater_ids(&mut c, &repeater_ids).await?
-    {
-        kinds_by_id
-            .entry(repeater_id)
-            .or_default()
-            .push(kind.label().to_string());
-    }
-
-    let mut map_repeaters = Vec::with_capacity(candidates.len());
-    for (id, call_sign, status, latitude, longitude) in candidates {
-        let mut services = kinds_by_id.remove(&id).unwrap_or_default();
-        services.sort();
-        services.dedup();
-
-        map_repeaters.push(MapRepeater {
-            call_sign,
-            latitude,
-            longitude,
-            status,
-            services,
-        });
-    }
-
-    let auth = auth_header(&jar, &state);
-    let template = HomeTemplate {
-        auth,
-        repeater_data: map_repeaters,
-    };
-    let body = template.render()?;
-
-    Ok(Html(body))
-}
-
-pub async fn repeaters(
-    _: RepeaterListPath,
-    jar: CookieJar,
-    State(state): State<AppState>,
-) -> Result<Html<String>, RepeaterAtlasError> {
-    render_repeaters_list(jar, state).await
-}
-
-async fn render_repeaters_list(
-    jar: CookieJar,
-    state: AppState,
-) -> Result<Html<String>, RepeaterAtlasError> {
-    let mut c = state.pool.get().await?;
-
-    let repeaters = dao::repeater_system::select_with_call_sign(&mut c).await?;
-    let mut items = Vec::with_capacity(repeaters.len());
-    for repeater in repeaters {
-        let resolved = resolve_site_fields(&repeater);
-        let call_sign = repeater.call_sign.clone();
-        let status = repeater.status.clone();
-        let description = repeater.description.clone();
-
-        items.push(RepeaterListItem {
-            call_sign,
-            status,
-            description: description.unwrap_or_else(|| "-".to_string()),
-            maidenhead: resolved.maidenhead,
-            location: resolved.location,
-        });
-    }
-
-    let auth = auth_header(&jar, &state);
-    let template = RepeatersTemplate {
-        auth,
-        repeaters: items,
-    };
-    let body = template.render()?;
-
-    Ok(Html(body))
-}
-
-#[derive(TypedPath, Deserialize)]
-#[typed_path("/repeater/{call_sign}")]
-pub struct RepeaterDetailPagePath {
-    pub call_sign: String,
-}
-
-#[derive(TypedPath, Deserialize)]
-#[typed_path("/call-sign/{call_sign}")]
-pub struct CallSignDetailPath {
-    pub call_sign: String,
-}
-
-#[derive(Template)]
-#[template(path = "pages/repeater.html")]
-struct DetailTemplate {
-    auth: super::AuthHeader,
-    call_sign: String,
-    repeater: dao::repeater_system::RepeaterSystem,
-    owner: Option<ContactItem>,
-    tech_contact: Option<ContactItem>,
-    links: Vec<LinkedRepeaterItem>,
-    fm_services: Vec<FmServiceItem>,
-    dmr_services: Vec<DmrServiceItem>,
-    dstar_services: Vec<DstarServiceItem>,
-    c4fm_services: Vec<C4fmServiceItem>,
-    aprs_services: Vec<AprsServiceItem>,
-    ssb_services: Vec<SsbServiceItem>,
-    am_services: Vec<AmServiceItem>,
-    status: String,
-    description: String,
-    maidenhead: String,
-    location: String,
-    map_context: Option<MapContext>,
-}
+use serde::Deserialize;
 
 #[derive(Clone)]
 struct ContactItem {
@@ -274,35 +24,11 @@ struct LinkedRepeaterItem {
     note: String,
 }
 
-impl ContactItem {
-    fn from(row: dao::contact::Contact) -> Self {
-        Self {
-            display_name: row.display_name,
-            call_sign: row.call_sign,
-        }
-    }
-}
-
-#[derive(Template)]
-#[template(path = "pages/contact.html")]
-struct ContactDetailTemplate {
-    auth: super::AuthHeader,
-    call_sign: String,
-    contact: dao::contact::Contact,
-    repeaters: Vec<OrganizationRepeaterItem>,
-    map_context: Option<OrganizationMapContext>,
-}
-
 struct OrganizationRepeaterItem {
     call_sign: String,
     status: String,
     description: String,
     services: ServiceItems,
-}
-
-#[derive(Serialize)]
-struct OrganizationMapContext {
-    repeaters: Vec<MapRepeater>,
 }
 
 struct ServiceItems {
@@ -313,6 +39,85 @@ struct ServiceItems {
     aprs_services: Vec<AprsServiceItem>,
     ssb_services: Vec<SsbServiceItem>,
     am_services: Vec<AmServiceItem>,
+}
+
+struct FmServiceItem {
+    label: String,
+    enabled: bool,
+    rx_hz: Frequency,
+    tx_hz: Frequency,
+    bandwidth: FmBandwidth,
+    rx_tone: crate::repeater_service::Tone,
+    tx_tone: crate::repeater_service::Tone,
+    note: String,
+}
+
+struct DmrServiceItem {
+    label: String,
+    enabled: bool,
+    rx_hz: Frequency,
+    tx_hz: Frequency,
+    color_code: i16,
+    dmr_repeater_id: Option<i64>,
+    network: String,
+    note: String,
+}
+
+struct DstarServiceItem {
+    label: String,
+    enabled: bool,
+    rx_hz: Frequency,
+    tx_hz: Frequency,
+    mode: DstarMode,
+    gateway_call_sign: Option<String>,
+    reflector: Option<String>,
+    note: String,
+}
+
+struct C4fmServiceItem {
+    label: String,
+    enabled: bool,
+    rx_hz: Frequency,
+    tx_hz: Frequency,
+    wires_x_node_id: Option<i32>,
+    room: Option<String>,
+    note: String,
+}
+
+struct AprsServiceItem {
+    label: String,
+    enabled: bool,
+    rx_hz: Frequency,
+    tx_hz: Frequency,
+    mode: Option<AprsMode>,
+    path: Option<String>,
+    note: String,
+}
+
+struct SsbServiceItem {
+    label: String,
+    enabled: bool,
+    rx_hz: Frequency,
+    tx_hz: Frequency,
+    sideband: Option<SsbSideband>,
+    note: String,
+}
+
+struct AmServiceItem {
+    label: String,
+    enabled: bool,
+    rx_hz: Frequency,
+    tx_hz: Frequency,
+    note: String,
+}
+
+impl ContactItem {
+    fn from(row: dao::contact::Contact) -> Self {
+        Self {
+            display_name: row.display_name,
+            call_sign: row.call_sign,
+        }
+    }
 }
 
 fn build_service_items(services: Vec<dao::repeater_service::RepeaterServiceDao>) -> ServiceItems {
@@ -456,107 +261,33 @@ fn build_service_items(services: Vec<dao::repeater_service::RepeaterServiceDao>)
     }
 }
 
-pub async fn organizations(
-    _: OrganizationListPath,
-    jar: CookieJar,
-    State(state): State<AppState>,
-) -> Result<Html<String>, RepeaterAtlasError> {
-    render_organizations_list(jar, state).await
+#[derive(TypedPath, Deserialize)]
+#[typed_path("/repeater/{call_sign}")]
+pub struct RepeaterDetailPagePath {
+    pub call_sign: String,
 }
 
-async fn render_organizations_list(
-    jar: CookieJar,
-    state: AppState,
-) -> Result<Html<String>, RepeaterAtlasError> {
-    let mut c = state.pool.get().await?;
-
-    let organizations = dao::contact::select_organizations_with_call_sign(&mut c)
-        .await?
-        .into_iter()
-        .map(|row| OrganizationListItem {
-            call_sign: row.call_sign,
-            display_name: row.display_name,
-        })
-        .collect::<Vec<_>>();
-
-    let auth = auth_header(&jar, &state);
-    let template = OrganizationsTemplate {
-        auth,
-        organizations,
-    };
-    let body = template.render()?;
-
-    Ok(Html(body))
-}
-
-struct FmServiceItem {
-    label: String,
-    enabled: bool,
-    rx_hz: Frequency,
-    tx_hz: Frequency,
-    bandwidth: FmBandwidth,
-    rx_tone: crate::repeater_service::Tone,
-    tx_tone: crate::repeater_service::Tone,
-    note: String,
-}
-
-struct DmrServiceItem {
-    label: String,
-    enabled: bool,
-    rx_hz: Frequency,
-    tx_hz: Frequency,
-    color_code: i16,
-    dmr_repeater_id: Option<i64>,
-    network: String,
-    note: String,
-}
-
-struct DstarServiceItem {
-    label: String,
-    enabled: bool,
-    rx_hz: Frequency,
-    tx_hz: Frequency,
-    mode: DstarMode,
-    gateway_call_sign: Option<String>,
-    reflector: Option<String>,
-    note: String,
-}
-
-struct C4fmServiceItem {
-    label: String,
-    enabled: bool,
-    rx_hz: Frequency,
-    tx_hz: Frequency,
-    wires_x_node_id: Option<i32>,
-    room: Option<String>,
-    note: String,
-}
-
-struct AprsServiceItem {
-    label: String,
-    enabled: bool,
-    rx_hz: Frequency,
-    tx_hz: Frequency,
-    mode: Option<AprsMode>,
-    path: Option<String>,
-    note: String,
-}
-
-struct SsbServiceItem {
-    label: String,
-    enabled: bool,
-    rx_hz: Frequency,
-    tx_hz: Frequency,
-    sideband: Option<SsbSideband>,
-    note: String,
-}
-
-struct AmServiceItem {
-    label: String,
-    enabled: bool,
-    rx_hz: Frequency,
-    tx_hz: Frequency,
-    note: String,
+#[derive(Template)]
+#[template(path = "pages/repeater.html")]
+struct DetailTemplate {
+    auth: super::AuthHeader,
+    call_sign: String,
+    repeater: dao::repeater_system::RepeaterSystem,
+    owner: Option<ContactItem>,
+    tech_contact: Option<ContactItem>,
+    links: Vec<LinkedRepeaterItem>,
+    fm_services: Vec<FmServiceItem>,
+    dmr_services: Vec<DmrServiceItem>,
+    dstar_services: Vec<DstarServiceItem>,
+    c4fm_services: Vec<C4fmServiceItem>,
+    aprs_services: Vec<AprsServiceItem>,
+    ssb_services: Vec<SsbServiceItem>,
+    am_services: Vec<AmServiceItem>,
+    status: String,
+    description: String,
+    maidenhead: String,
+    location: String,
+    map_context: Option<MapContext>,
 }
 
 pub async fn detail(
@@ -566,6 +297,12 @@ pub async fn detail(
 ) -> Result<Html<String>, RepeaterAtlasError> {
     let call_sign = call_sign.to_uppercase();
     render_repeater_detail(call_sign, jar, state).await
+}
+
+#[derive(TypedPath, Deserialize)]
+#[typed_path("/call-sign/{call_sign}")]
+pub struct CallSignDetailPath {
+    pub call_sign: String,
 }
 
 pub async fn call_sign(
@@ -591,6 +328,16 @@ pub async fn call_sign(
         }
         None => Err(RepeaterAtlasError::NotFound),
     }
+}
+
+#[derive(Template)]
+#[template(path = "pages/contact.html")]
+struct ContactDetailTemplate {
+    auth: super::AuthHeader,
+    call_sign: String,
+    contact: dao::contact::Contact,
+    repeaters: Vec<OrganizationRepeaterItem>,
+    map_context: Option<OrganizationMapContext>,
 }
 
 async fn render_contact_detail(

@@ -3,7 +3,11 @@ use diesel_async::AsyncPgConnection;
 use diesel_async::pooled_connection::bb8::Pool;
 
 pub mod auth;
-pub mod index;
+pub mod map;
+pub mod organization_list;
+pub mod repeater;
+pub mod repeater_list;
+pub mod utils;
 
 #[derive(Clone)]
 pub struct AppState {

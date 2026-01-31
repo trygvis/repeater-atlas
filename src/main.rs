@@ -1,7 +1,7 @@
 use axum::Router;
 use axum_extra::routing::RouterExt;
 use repeater_atlas::web::AppState;
-use repeater_atlas::web::{auth, index};
+use repeater_atlas::web::{auth, map, organization_list, repeater, repeater_list};
 use std::net::SocketAddr;
 use tower_http::services::ServeDir;
 use tracing_subscriber::EnvFilter;
@@ -23,11 +23,11 @@ async fn main() {
 
     let app = Router::new()
         .nest_service("/static", ServeDir::new("static"))
-        .typed_get(index::home)
-        .typed_get(index::repeaters)
-        .typed_get(index::organizations)
-        .typed_get(index::call_sign)
-        .typed_get(index::detail)
+        .typed_get(map::home)
+        .typed_get(repeater_list::repeaters)
+        .typed_get(organization_list::organizations)
+        .typed_get(repeater::call_sign)
+        .typed_get(repeater::detail)
         .typed_get(auth::login_form)
         .typed_post(auth::login_submit)
         .typed_get(auth::logout)
