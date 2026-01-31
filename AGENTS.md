@@ -5,14 +5,14 @@
 - Purpose: Public repeater directory and map with club-managed data.
 - Users: Public readers; club admins/editors manage repeater entries.
 - Deployment: Single-instance service (no horizontal scaling in MVP).
-- Data access: Public read; admin editing only on main site domain.
+- Data access: Public read; admin editing only on the main site domain.
 - Club views: CNAME-based read-only views; embeddable minimal layout.
 
 ## Stack
 
 - Rust + Axum (SSR) + Askama templates.
 - HTMX for progressive enhancement.
-- PostgreSQL + Diesel (including migrations).
+- PostgreSQL and Diesel (including migrations).
 - Auth: signed/encrypted session cookies; in-memory session store.
 - Map: Leaflet + OSM tiles (provider swappable).
 
@@ -59,4 +59,5 @@ These must be read before doing any work.
 
 # Issue tracking
 
-This project uses a CLI ticket system for task management. Run `tk help` when you need to use it.
+This project uses a CLI ticket system for task management. Run `tk help` when
+you need to use it.
