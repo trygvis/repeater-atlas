@@ -31,6 +31,13 @@
 - There are pre-commit hooks installed that will be executed automatically. If
   these fail, there is an issue that has to be fixed before continuing. DO NOT
   run with `--no-verify` as a workaround.
+- Commit messages:
+  - All commit messages should be put into a file called `commit.tmp`, and used
+    with the `-F` flag to `git commit`. After putting the message into the file,
+    run `bin/prettier commit.tmp` to get it properly formatted.
+  - The commit message should be a very short summary of what changed. It SHOULD
+    be less than 50 characters, MUST NOT be more than 75. After the first line,
+    there should be a blank line, then the rest of the messages.
 
 ## Documentation
 
