@@ -19,6 +19,10 @@
 ## Conventions
 
 - Generate migrations via `diesel migration generate`, not by hand.
+- Before closing an issue, include a note on what was done. Summarize code and
+  design changes and anything related that was done.
+- _NEVER_ commit any code without explicit instructions. Ask if a commit should
+  be made, only if everything builds and all tests pass.
 
 ## Documentation
 
@@ -40,8 +44,6 @@ These must be read before doing any work.
   - Apply the migration with `diesel migration run`, it will automatically
     update `src/schema.rs`.
 - Local Postgres pointed to by `DATABASE_URL` in `.env`.
-- _NEVER_ commit any code without explicit instructions. Ask if a commit should
-  be made, only if everything builds and all tests pass.
 - When testing new features, run these commands in this order:
   - Build the entire codebase: `make all`.
   - Run all unit and integration tests with: `make test`
