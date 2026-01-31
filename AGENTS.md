@@ -23,6 +23,9 @@
   design changes and anything related that was done.
 - _NEVER_ commit any code without explicit instructions. Ask if a commit should
   be made, only if everything builds and all tests pass.
+- `schema.rs` should never be edited manually. Run the database migrations with
+  `make db-init`, it will reinitialize the database and run the migrations.
+  Diesel will generate `schema.rs` automatically.
 
 ## Documentation
 
