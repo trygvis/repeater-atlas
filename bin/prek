@@ -2,15 +2,18 @@
 
 set -euo pipefail
 
-v=0.2.30
+v=0.3.0
 
 basedir=${0%/*}
+cookie=$basedir/.cargo/prek-$v
 
-if [[ ! -x "$basedir/.cargo/bin/prek" ]]
+if [[ ! -r "$cookie" ]]
 then
   # Silence the warning about missing from path
   PATH="$basedir/.cargo/bin:$PATH"
   cargo install --root "$basedir/.cargo" "prek@$v"
+
+  touch "$cookie"
 fi
 
 exec "$basedir/.cargo/bin/prek" "${@}"
