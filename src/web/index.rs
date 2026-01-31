@@ -289,14 +289,171 @@ struct ContactDetailTemplate {
     auth: super::AuthHeader,
     call_sign: String,
     contact: dao::contact::Contact,
-    owned_repeaters: Vec<ContactRepeaterItem>,
-    tech_contact_repeaters: Vec<ContactRepeaterItem>,
+    repeaters: Vec<OrganizationRepeaterItem>,
+    map_context: Option<OrganizationMapContext>,
 }
 
-struct ContactRepeaterItem {
+struct OrganizationRepeaterItem {
     call_sign: String,
     status: String,
     description: String,
+    services: ServiceItems,
+}
+
+#[derive(Serialize)]
+struct OrganizationMapContext {
+    repeaters: Vec<MapRepeater>,
+}
+
+struct ServiceItems {
+    fm_services: Vec<FmServiceItem>,
+    dmr_services: Vec<DmrServiceItem>,
+    dstar_services: Vec<DstarServiceItem>,
+    c4fm_services: Vec<C4fmServiceItem>,
+    aprs_services: Vec<AprsServiceItem>,
+    ssb_services: Vec<SsbServiceItem>,
+    am_services: Vec<AmServiceItem>,
+}
+
+fn build_service_items(services: Vec<dao::repeater_service::RepeaterServiceDao>) -> ServiceItems {
+    let mut fm_services = Vec::new();
+    let mut dmr_services = Vec::new();
+    let mut dstar_services = Vec::new();
+    let mut c4fm_services = Vec::new();
+    let mut aprs_services = Vec::new();
+    let mut ssb_services = Vec::new();
+    let mut am_services = Vec::new();
+
+    for row in services {
+        let enabled = row.enabled;
+        let note = row.note.clone();
+        let service = RepeaterService::from(row);
+
+        match service {
+            RepeaterService::Fm {
+                label,
+                rx_hz,
+                tx_hz,
+                bandwidth,
+                rx_tone,
+                tx_tone,
+                ..
+            } => fm_services.push(FmServiceItem {
+                label,
+                enabled,
+                rx_hz,
+                tx_hz,
+                bandwidth,
+                rx_tone,
+                tx_tone,
+                note,
+            }),
+            RepeaterService::Dmr {
+                label,
+                rx_hz,
+                tx_hz,
+                color_code,
+                dmr_repeater_id,
+                network,
+                ..
+            } => dmr_services.push(DmrServiceItem {
+                label,
+                enabled,
+                rx_hz,
+                tx_hz,
+                color_code,
+                dmr_repeater_id,
+                network,
+                note,
+            }),
+            RepeaterService::Dstar {
+                label,
+                rx_hz,
+                tx_hz,
+                mode,
+                gateway_call_sign,
+                reflector,
+                ..
+            } => dstar_services.push(DstarServiceItem {
+                label,
+                enabled,
+                rx_hz,
+                tx_hz,
+                mode,
+                gateway_call_sign,
+                reflector,
+                note,
+            }),
+            RepeaterService::C4fm {
+                label,
+                rx_hz,
+                tx_hz,
+                wires_x_node_id,
+                room,
+                ..
+            } => c4fm_services.push(C4fmServiceItem {
+                label,
+                enabled,
+                rx_hz,
+                tx_hz,
+                wires_x_node_id,
+                room,
+                note,
+            }),
+            RepeaterService::Aprs {
+                label,
+                rx_hz,
+                tx_hz,
+                mode,
+                path,
+                ..
+            } => aprs_services.push(AprsServiceItem {
+                label,
+                enabled,
+                rx_hz,
+                tx_hz,
+                mode,
+                path,
+                note,
+            }),
+            RepeaterService::Ssb {
+                label,
+                rx_hz,
+                tx_hz,
+                sideband,
+                ..
+            } => ssb_services.push(SsbServiceItem {
+                label,
+                enabled,
+                rx_hz,
+                tx_hz,
+                sideband,
+                note,
+            }),
+            RepeaterService::Am {
+                label,
+                rx_hz,
+                tx_hz,
+                ..
+            } => am_services.push(AmServiceItem {
+                label,
+                enabled,
+                rx_hz,
+                tx_hz,
+                note,
+            }),
+        }
+    }
+
+    ServiceItems {
+        fm_services,
+        dmr_services,
+        dstar_services,
+        c4fm_services,
+        aprs_services,
+        ssb_services,
+        am_services,
+    }
 }
 
 pub async fn organizations(
@@ -448,34 +605,64 @@ async fn render_contact_detail(
         None => return Err(RepeaterAtlasError::NotFound),
     };
 
-    let owned_repeaters = dao::repeater_system::select_with_call_sign_by_owner(&mut c, contact.id)
-        .await?
-        .into_iter()
-        .map(|row| ContactRepeaterItem {
-            call_sign: row.call_sign,
-            status: row.status,
-            description: row.description.unwrap_or_else(|| "-".to_string()),
-        })
-        .collect::<Vec<_>>();
+    let mut repeaters_by_call_sign = std::collections::BTreeMap::new();
+    for repeater in dao::repeater_system::select_with_call_sign_by_owner(&mut c, contact.id).await?
+    {
+        repeaters_by_call_sign
+            .entry(repeater.call_sign.clone())
+            .or_insert(repeater);
+    }
+    for repeater in
+        dao::repeater_system::select_with_call_sign_by_tech_contact(&mut c, contact.id).await?
+    {
+        repeaters_by_call_sign
+            .entry(repeater.call_sign.clone())
+            .or_insert(repeater);
+    }
 
-    let tech_contact_repeaters =
-        dao::repeater_system::select_with_call_sign_by_tech_contact(&mut c, contact.id)
-            .await?
-            .into_iter()
-            .map(|row| ContactRepeaterItem {
-                call_sign: row.call_sign,
-                status: row.status,
-                description: row.description.unwrap_or_else(|| "-".to_string()),
-            })
-            .collect::<Vec<_>>();
+    let mut repeaters = Vec::with_capacity(repeaters_by_call_sign.len());
+    let mut map_repeaters = Vec::new();
+
+    for (_call_sign, repeater) in repeaters_by_call_sign {
+        let services = dao::repeater_service::select_by_repeater_id(&mut c, repeater.id).await?;
+        let service_items = build_service_items(services);
+        let resolved = resolve_site_fields(&repeater);
+        if let (Some(latitude), Some(longitude)) = (resolved.latitude, resolved.longitude) {
+            map_repeaters.push(MapRepeater {
+                call_sign: repeater.call_sign.clone(),
+                latitude,
+                longitude,
+                status: repeater.status.clone(),
+                services: Vec::new(),
+            });
+        }
+
+        repeaters.push(OrganizationRepeaterItem {
+            call_sign: repeater.call_sign.clone(),
+            status: repeater.status.clone(),
+            description: repeater
+                .description
+                .clone()
+                .unwrap_or_else(|| "-".to_string()),
+            services: service_items,
+        });
+    }
+
+    let map_context = if map_repeaters.is_empty() {
+        None
+    } else {
+        Some(OrganizationMapContext {
+            repeaters: map_repeaters,
+        })
+    };
 
     let auth = auth_header(&jar, &state);
     let template = ContactDetailTemplate {
         auth,
         call_sign,
         contact,
-        owned_repeaters,
-        tech_contact_repeaters,
+        repeaters,
+        map_context,
     };
     let body = template.render()?;
 
@@ -518,134 +705,16 @@ async fn render_repeater_detail(
         .collect();
 
     let services = dao::repeater_service::select_by_repeater_id(&mut c, repeater.id).await?;
-    let mut fm_services = Vec::new();
-    let mut dmr_services = Vec::new();
-    let mut dstar_services = Vec::new();
-    let mut c4fm_services = Vec::new();
-    let mut aprs_services = Vec::new();
-    let mut ssb_services = Vec::new();
-    let mut am_services = Vec::new();
-
-    for row in services {
-        let enabled = row.enabled;
-        let note = row.note.clone();
-        let service = RepeaterService::from(row);
-
-        match service {
-            RepeaterService::Fm {
-                label,
-                rx_hz,
-                tx_hz,
-                bandwidth,
-                rx_tone,
-                tx_tone,
-                ..
-            } => fm_services.push(FmServiceItem {
-                label,
-                enabled,
-                rx_hz,
-                tx_hz,
-                bandwidth,
-                rx_tone,
-                tx_tone,
-                note,
-            }),
-            RepeaterService::Dmr {
-                label,
-                rx_hz,
-                tx_hz,
-                color_code,
-                dmr_repeater_id,
-                network,
-                ..
-            } => dmr_services.push(DmrServiceItem {
-                label,
-                enabled,
-                rx_hz,
-                tx_hz,
-                color_code,
-                dmr_repeater_id,
-                network,
-                note,
-            }),
-            RepeaterService::Dstar {
-                label,
-                rx_hz,
-                tx_hz,
-                mode,
-                gateway_call_sign,
-                reflector,
-                ..
-            } => dstar_services.push(DstarServiceItem {
-                label,
-                enabled,
-                rx_hz,
-                tx_hz,
-                mode,
-                gateway_call_sign,
-                reflector,
-                note,
-            }),
-            RepeaterService::C4fm {
-                label,
-                rx_hz,
-                tx_hz,
-                wires_x_node_id,
-                room,
-                ..
-            } => c4fm_services.push(C4fmServiceItem {
-                label,
-                enabled,
-                rx_hz,
-                tx_hz,
-                wires_x_node_id,
-                room,
-                note,
-            }),
-            RepeaterService::Aprs {
-                label,
-                rx_hz,
-                tx_hz,
-                mode,
-                path,
-                ..
-            } => aprs_services.push(AprsServiceItem {
-                label,
-                enabled,
-                rx_hz,
-                tx_hz,
-                mode,
-                path,
-                note,
-            }),
-            RepeaterService::Ssb {
-                label,
-                rx_hz,
-                tx_hz,
-                sideband,
-                ..
-            } => ssb_services.push(SsbServiceItem {
-                label,
-                enabled,
-                rx_hz,
-                tx_hz,
-                sideband,
-                note,
-            }),
-            RepeaterService::Am {
-                label,
-                rx_hz,
-                tx_hz,
-                ..
-            } => am_services.push(AmServiceItem {
-                label,
-                enabled,
-                rx_hz,
-                tx_hz,
-                note,
-            }),
-        }
-    }
+    let service_items = build_service_items(services);
+    let ServiceItems {
+        fm_services,
+        dmr_services,
+        dstar_services,
+        c4fm_services,
+        aprs_services,
+        ssb_services,
+        am_services,
+    } = service_items;
     let status = repeater.status.clone();
     let description = repeater
         .description

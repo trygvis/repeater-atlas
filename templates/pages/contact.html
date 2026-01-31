@@ -37,43 +37,206 @@
     </dl>
   </section>
 
+  {% if map_context.is_some() %}
+    <section>
+      <h2>Map</h2>
+      <style>
+        #organization-map-host {
+          width: 100%;
+          height: 420px;
+          border-radius: 12px;
+          overflow: hidden;
+        }
+      </style>
+      <div id="organization-map-host"></div>
+    </section>
+  {% endif %}
+
   <section>
     <h2>Repeaters</h2>
 
-    {% if owned_repeaters.len() == 0 && tech_contact_repeaters.len() == 0 %}
+    {% if repeaters.len() == 0 %}
       <p>No repeaters linked to this contact.</p>
-    {% endif %}
+    {% else %}
+      {% for repeater in repeaters %}
+        <article>
+          <header>
+            <h3><a href="/call-sign/{{ repeater.call_sign }}">{{ repeater.call_sign }}</a></h3>
+            <p>{{ repeater.status }}{% if repeater.description.trim() != "-" %} — {{ repeater.description }}{% endif %}</p>
+          </header>
 
-    {% if owned_repeaters.len() > 0 %}
-      <h3>Owned</h3>
-      <ul>
-        {% for item in owned_repeaters %}
-          <li>
-            <a href="/call-sign/{{ item.call_sign }}">{{ item.call_sign }}</a>
-            — {{ item.status }}
-            {% if item.description.trim() != "-" %}
-              — {{ item.description }}
+          {% if repeater.services.fm_services.len() == 0
+            && repeater.services.dmr_services.len() == 0
+            && repeater.services.dstar_services.len() == 0
+            && repeater.services.c4fm_services.len() == 0
+            && repeater.services.aprs_services.len() == 0
+            && repeater.services.ssb_services.len() == 0
+            && repeater.services.am_services.len() == 0 %}
+            <p>No services defined.</p>
+          {% else %}
+            {% if repeater.services.fm_services.len() > 0 %}
+              <h4>FM</h4>
+              {% for service in repeater.services.fm_services %}
+                <article>
+                  <header>
+                    <strong>{{ service.label }}</strong>
+                    {% if !service.enabled %} (disabled){% endif %}
+                  </header>
+                  <dl class="kv-list">
+                    <div><dt>TX</dt><dd>{{ service.tx_hz }}</dd></div>
+                    <div><dt>RX</dt><dd>{{ service.rx_hz }}</dd></div>
+                    <div><dt>Bandwidth</dt><dd>{{ service.bandwidth }}</dd></div>
+                    <div><dt>RX tone</dt><dd>{{ service.rx_tone }}</dd></div>
+                    <div><dt>TX tone</dt><dd>{{ service.tx_tone }}</dd></div>
+                    <div><dt>Note</dt><dd>{% if service.note.trim().is_empty() %}-{% else %}{{ service.note }}{% endif %}</dd></div>
+                  </dl>
+                </article>
+              {% endfor %}
             {% endif %}
-          </li>
-        {% endfor %}
-      </ul>
-    {% endif %}
 
-    {% if tech_contact_repeaters.len() > 0 %}
-      <h3>Technical contact</h3>
-      <ul>
-        {% for item in tech_contact_repeaters %}
-          <li>
-            <a href="/call-sign/{{ item.call_sign }}">{{ item.call_sign }}</a>
-            — {{ item.status }}
-            {% if item.description.trim() != "-" %}
-              — {{ item.description }}
+            {% if repeater.services.dmr_services.len() > 0 %}
+              <h4>DMR</h4>
+              {% for service in repeater.services.dmr_services %}
+                <article>
+                  <header>
+                    <strong>{{ service.label }}</strong>
+                    {% if !service.enabled %} (disabled){% endif %}
+                  </header>
+                  <dl class="kv-list">
+                    <div><dt>TX</dt><dd>{{ service.tx_hz }}</dd></div>
+                    <div><dt>RX</dt><dd>{{ service.rx_hz }}</dd></div>
+                    <div><dt>Color code</dt><dd>{{ service.color_code }}</dd></div>
+                    <div><dt>Network</dt><dd>{{ service.network }}</dd></div>
+                    <div><dt>Repeater ID</dt><dd>{% if service.dmr_repeater_id.is_some() %}{{ service.dmr_repeater_id.as_ref().unwrap() }}{% else %}-{% endif %}</dd></div>
+                    <div><dt>Note</dt><dd>{% if service.note.trim().is_empty() %}-{% else %}{{ service.note }}{% endif %}</dd></div>
+                  </dl>
+                </article>
+              {% endfor %}
             {% endif %}
-          </li>
-        {% endfor %}
-      </ul>
+
+            {% if repeater.services.dstar_services.len() > 0 %}
+              <h4>D-STAR</h4>
+              {% for service in repeater.services.dstar_services %}
+                <article>
+                  <header>
+                    <strong>{{ service.label }}</strong>
+                    {% if !service.enabled %} (disabled){% endif %}
+                  </header>
+                  <dl class="kv-list">
+                    <div><dt>TX</dt><dd>{{ service.tx_hz }}</dd></div>
+                    <div><dt>RX</dt><dd>{{ service.rx_hz }}</dd></div>
+                    <div><dt>Mode</dt><dd>{{ service.mode }}</dd></div>
+                    <div><dt>Gateway</dt><dd>{% if service.gateway_call_sign.is_some() %}{{ service.gateway_call_sign.as_ref().unwrap() }}{% else %}-{% endif %}</dd></div>
+                    <div><dt>Reflector</dt><dd>{% if service.reflector.is_some() %}{{ service.reflector.as_ref().unwrap() }}{% else %}-{% endif %}</dd></div>
+                    <div><dt>Note</dt><dd>{% if service.note.trim().is_empty() %}-{% else %}{{ service.note }}{% endif %}</dd></div>
+                  </dl>
+                </article>
+              {% endfor %}
+            {% endif %}
+
+            {% if repeater.services.c4fm_services.len() > 0 %}
+              <h4>C4FM</h4>
+              {% for service in repeater.services.c4fm_services %}
+                <article>
+                  <header>
+                    <strong>{{ service.label }}</strong>
+                    {% if !service.enabled %} (disabled){% endif %}
+                  </header>
+                  <dl class="kv-list">
+                    <div><dt>TX</dt><dd>{{ service.tx_hz }}</dd></div>
+                    <div><dt>RX</dt><dd>{{ service.rx_hz }}</dd></div>
+                    <div><dt>WIRES-X node</dt><dd>{% if service.wires_x_node_id.is_some() %}{{ service.wires_x_node_id.as_ref().unwrap() }}{% else %}-{% endif %}</dd></div>
+                    <div><dt>Room</dt><dd>{% if service.room.is_some() %}{{ service.room.as_ref().unwrap() }}{% else %}-{% endif %}</dd></div>
+                    <div><dt>Note</dt><dd>{% if service.note.trim().is_empty() %}-{% else %}{{ service.note }}{% endif %}</dd></div>
+                  </dl>
+                </article>
+              {% endfor %}
+            {% endif %}
+
+            {% if repeater.services.aprs_services.len() > 0 %}
+              <h4>APRS</h4>
+              {% for service in repeater.services.aprs_services %}
+                <article>
+                  <header>
+                    <strong>{{ service.label }}</strong>
+                    {% if !service.enabled %} (disabled){% endif %}
+                  </header>
+                  <dl class="kv-list">
+                    <div><dt>TX</dt><dd>{{ service.tx_hz }}</dd></div>
+                    <div><dt>RX</dt><dd>{{ service.rx_hz }}</dd></div>
+                    <div><dt>Mode</dt><dd>{% if service.mode.is_some() %}{{ service.mode.as_ref().unwrap() }}{% else %}-{% endif %}</dd></div>
+                    <div><dt>Path</dt><dd>{% if service.path.is_some() %}{{ service.path.as_ref().unwrap() }}{% else %}-{% endif %}</dd></div>
+                    <div><dt>Note</dt><dd>{% if service.note.trim().is_empty() %}-{% else %}{{ service.note }}{% endif %}</dd></div>
+                  </dl>
+                </article>
+              {% endfor %}
+            {% endif %}
+
+            {% if repeater.services.ssb_services.len() > 0 %}
+              <h4>SSB</h4>
+              {% for service in repeater.services.ssb_services %}
+                <article>
+                  <header>
+                    <strong>{{ service.label }}</strong>
+                    {% if !service.enabled %} (disabled){% endif %}
+                  </header>
+                  <dl class="kv-list">
+                    <div><dt>TX</dt><dd>{{ service.tx_hz }}</dd></div>
+                    <div><dt>RX</dt><dd>{{ service.rx_hz }}</dd></div>
+                    <div><dt>Sideband</dt><dd>{% if service.sideband.is_some() %}{{ service.sideband.as_ref().unwrap() }}{% else %}-{% endif %}</dd></div>
+                    <div><dt>Note</dt><dd>{% if service.note.trim().is_empty() %}-{% else %}{{ service.note }}{% endif %}</dd></div>
+                  </dl>
+                </article>
+              {% endfor %}
+            {% endif %}
+
+            {% if repeater.services.am_services.len() > 0 %}
+              <h4>AM</h4>
+              {% for service in repeater.services.am_services %}
+                <article>
+                  <header>
+                    <strong>{{ service.label }}</strong>
+                    {% if !service.enabled %} (disabled){% endif %}
+                  </header>
+                  <dl class="kv-list">
+                    <div><dt>TX</dt><dd>{{ service.tx_hz }}</dd></div>
+                    <div><dt>RX</dt><dd>{{ service.rx_hz }}</dd></div>
+                    <div><dt>Note</dt><dd>{% if service.note.trim().is_empty() %}-{% else %}{{ service.note }}{% endif %}</dd></div>
+                  </dl>
+                </article>
+              {% endfor %}
+            {% endif %}
+          {% endif %}
+        </article>
+      {% endfor %}
     {% endif %}
   </section>
 </main>
-{% endblock %}
 
+{% if map_context.is_some() %}
+  <script src="/static/repeater-atlas.js"></script>
+  <script src="/static/vendor/leaflet/leaflet.js"></script>
+  <script>
+    initializeRepeaterAtlas();
+
+    const mapContext = {{ map_context.as_ref().unwrap() | json | safe }};
+    const map = buildLeafletMap(document.getElementById("organization-map-host"));
+    const markers = [];
+
+    mapContext.repeaters.forEach((item) => {
+      const marker = L.marker([item.latitude, item.longitude]).addTo(map);
+      marker.bindPopup(`<strong>${item.call_sign}</strong>`);
+      markers.push(marker);
+    });
+
+    if (markers.length > 0) {
+      const bounds = L.latLngBounds(markers.map((marker) => marker.getLatLng()));
+      map.fitBounds(bounds, {padding: [20, 20]});
+    } else {
+      map.setView([64.4, 11.7], 4);
+    }
+
+    map.invalidateSize();
+  </script>
+{% endif %}
+{% endblock %}
