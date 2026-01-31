@@ -8,7 +8,7 @@ use diesel::prelude::*;
 use diesel_async::RunQueryDsl;
 use http_body_util::BodyExt;
 use repeater_atlas::dao;
-use repeater_atlas::schema::entity;
+use repeater_atlas::schema::call_sign;
 use repeater_atlas::web::{AppState, index};
 use tower::util::ServiceExt;
 use uuid::Uuid;
@@ -25,11 +25,11 @@ async fn call_sign_routes_resolve_repeater_and_contact()
     let contact_call_sign = format!("RAO{}", &suffix[..8]);
     let repeater_call_sign = format!("RAR{}", &suffix[..8]);
 
-    let contact_entity = dao::entity::insert(
+    let contact_call_sign_row = dao::call_sign::insert(
         &mut c,
-        dao::entity::NewEntity {
-            kind: dao::entity::EntityKind::Contact,
-            call_sign: Some(contact_call_sign.clone()),
+        dao::call_sign::NewCallSign {
+            kind: dao::call_sign::CallSignKind::Contact,
+            value: contact_call_sign.clone(),
         },
     )
     .await?;
@@ -37,7 +37,7 @@ async fn call_sign_routes_resolve_repeater_and_contact()
     let contact = dao::contact::insert(
         &mut c,
         dao::contact::NewContact {
-            entity: contact_entity.id,
+            call_sign: Some(contact_call_sign_row.value),
             kind: dao::contact::ContactKind::Organization,
             display_name: "RA-09f3 Org".to_string(),
             description: None,
@@ -49,18 +49,19 @@ async fn call_sign_routes_resolve_repeater_and_contact()
     )
     .await?;
 
-    let repeater_entity = dao::entity::insert(
+    let repeater_call_sign_row = dao::call_sign::insert(
         &mut c,
-        dao::entity::NewEntity {
-            kind: dao::entity::EntityKind::Repeater,
-            call_sign: Some(repeater_call_sign.clone()),
+        dao::call_sign::NewCallSign {
+            kind: dao::call_sign::CallSignKind::Repeater,
+            value: repeater_call_sign.clone(),
         },
     )
     .await?;
 
     let repeater = dao::repeater_system::insert(
         &mut c,
-        dao::repeater_system::NewRepeaterSystem::new(repeater_entity.id).owner(contact.id),
+        dao::repeater_system::NewRepeaterSystem::new(repeater_call_sign_row.value)
+            .owner(contact.id),
     )
     .await?;
 
@@ -143,13 +144,13 @@ async fn call_sign_routes_resolve_repeater_and_contact()
         .await?;
     assert_eq!(legacy_detail_response.status(), StatusCode::OK);
 
-    // Cleanup: delete only the entity rows we created. This cascades to
-    // (entity -> contact/repeater_system -> dependent rows).
+    // Cleanup: delete only the call_sign rows we created. This cascades to
+    // (call_sign -> contact/repeater_system -> dependent rows).
     let mut c = cleanup_pool.get().await?;
-    diesel::delete(entity::table.filter(entity::id.eq(repeater_entity.id)))
+    diesel::delete(call_sign::table.filter(call_sign::value.eq(repeater_call_sign)))
         .execute(&mut c)
         .await?;
-    diesel::delete(entity::table.filter(entity::id.eq(contact_entity.id)))
+    diesel::delete(call_sign::table.filter(call_sign::value.eq(contact_call_sign)))
         .execute(&mut c)
         .await?;
 

@@ -6,16 +6,16 @@ pub mod sql_types {
     pub struct AprsMode;
 
     #[derive(diesel::query_builder::QueryId, Clone, diesel::sql_types::SqlType)]
+    #[diesel(postgres_type(name = "call_sign_kind"))]
+    pub struct CallSignKind;
+
+    #[derive(diesel::query_builder::QueryId, Clone, diesel::sql_types::SqlType)]
     #[diesel(postgres_type(name = "contact_kind"))]
     pub struct ContactKind;
 
     #[derive(diesel::query_builder::QueryId, Clone, diesel::sql_types::SqlType)]
     #[diesel(postgres_type(name = "dstar_mode"))]
     pub struct DstarMode;
-
-    #[derive(diesel::query_builder::QueryId, Clone, diesel::sql_types::SqlType)]
-    #[diesel(postgres_type(name = "entity_kind"))]
-    pub struct EntityKind;
 
     #[derive(diesel::query_builder::QueryId, Clone, diesel::sql_types::SqlType)]
     #[diesel(postgres_type(name = "fm_bandwidth"))]
@@ -47,11 +47,21 @@ diesel::table! {
 
 diesel::table! {
     use diesel::sql_types::*;
+    use super::sql_types::CallSignKind;
+
+    call_sign (value) {
+        value -> Text,
+        kind -> CallSignKind,
+    }
+}
+
+diesel::table! {
+    use diesel::sql_types::*;
     use super::sql_types::ContactKind;
 
     contact (id) {
         id -> Int8,
-        entity -> Int8,
+        call_sign -> Nullable<Text>,
         kind -> ContactKind,
         display_name -> Text,
         description -> Nullable<Text>,
@@ -59,17 +69,6 @@ diesel::table! {
         email -> Nullable<Text>,
         phone -> Nullable<Text>,
         address -> Nullable<Text>,
-    }
-}
-
-diesel::table! {
-    use diesel::sql_types::*;
-    use super::sql_types::EntityKind;
-
-    entity (id) {
-        id -> Int8,
-        kind -> EntityKind,
-        call_sign -> Nullable<Text>,
     }
 }
 
@@ -134,7 +133,7 @@ diesel::table! {
 diesel::table! {
     repeater_system (id) {
         id -> Int8,
-        entity -> Int8,
+        call_sign -> Text,
         owner -> Nullable<Int8>,
         tech_contact -> Nullable<Int8>,
         name -> Nullable<Text>,
@@ -150,15 +149,15 @@ diesel::table! {
     }
 }
 
-diesel::joinable!(contact -> entity (entity));
+diesel::joinable!(contact -> call_sign (call_sign));
 diesel::joinable!(repeater_service -> repeater_system (repeater_id));
 diesel::joinable!(repeater_service_dmr_talkgroup -> repeater_service (service_id));
-diesel::joinable!(repeater_system -> entity (entity));
+diesel::joinable!(repeater_system -> call_sign (call_sign));
 
 diesel::allow_tables_to_appear_in_same_query!(
     app_user,
+    call_sign,
     contact,
-    entity,
     repeater_link,
     repeater_service,
     repeater_service_dmr_talkgroup,

@@ -72,19 +72,17 @@ repeater_system (identity + site)
 
 ```sql
 -- Physical system identity (what people refer to)
--- Note: the call sign is stored in the global `entity` table.
-CREATE TABLE entity (
-  id        BIGSERIAL PRIMARY KEY,
-  kind      entity_kind NOT NULL, -- 'repeater' | 'contact'
-  call_sign TEXT UNIQUE,
+-- Note: the call sign is stored in the global `call_sign` table.
+CREATE TABLE call_sign (
+  value TEXT PRIMARY KEY,
+  kind  call_sign_kind NOT NULL, -- 'repeater' | 'contact'
 
-  CHECK (call_sign = upper(call_sign)),
-  CHECK (kind IS DISTINCT FROM 'repeater' OR call_sign IS NOT NULL)
+  CHECK (value = upper(value))
 );
 
 CREATE TABLE contact (
   id           BIGSERIAL PRIMARY KEY,
-  entity       BIGINT NOT NULL UNIQUE REFERENCES entity(id) ON DELETE CASCADE,
+  call_sign    TEXT UNIQUE REFERENCES call_sign(value) ON DELETE CASCADE,
   kind         contact_kind NOT NULL, -- 'organization' | 'individual'
   display_name TEXT NOT NULL,
   description  TEXT,
@@ -96,7 +94,7 @@ CREATE TABLE contact (
 
 CREATE TABLE repeater_system (
   id            BIGSERIAL PRIMARY KEY,
-  entity        BIGINT NOT NULL UNIQUE REFERENCES entity(id) ON DELETE CASCADE,
+  call_sign     TEXT NOT NULL UNIQUE REFERENCES call_sign(value) ON DELETE CASCADE,
 
   -- Optional responsibility/contacts (similar to DNS SOA admin/tech roles).
   owner         BIGINT REFERENCES contact(id) ON DELETE SET NULL,

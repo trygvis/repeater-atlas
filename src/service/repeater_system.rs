@@ -83,7 +83,7 @@ mod tests {
             }),
         };
 
-        let mut repeater = NewRepeaterSystem::new(1);
+        let mut repeater = NewRepeaterSystem::new("LA0ZZZ");
         repeater.address = Some("Trondheim, Norway".to_string());
         assert!(repeater.maidenhead.is_none());
 
@@ -107,7 +107,7 @@ mod tests {
             }),
         };
 
-        let mut repeater = NewRepeaterSystem::new(1);
+        let mut repeater = NewRepeaterSystem::new("LA0ZZZ");
         repeater.address = Some("Trondheim, Norway".to_string());
         repeater.maidenhead = Some(MaidenheadLocator::new("JP53fi").unwrap());
 

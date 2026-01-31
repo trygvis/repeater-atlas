@@ -138,12 +138,12 @@ pub async fn home(
     let mut candidates = Vec::new();
 
     for repeater in repeaters {
-        let resolved = resolve_site_fields(&repeater.system);
+        let resolved = resolve_site_fields(&repeater);
         if let (Some(latitude), Some(longitude)) = (resolved.latitude, resolved.longitude) {
             candidates.push((
-                repeater.system.id,
+                repeater.id,
                 repeater.call_sign,
-                repeater.system.status,
+                repeater.status,
                 latitude,
                 longitude,
             ));
@@ -203,10 +203,10 @@ async fn render_repeaters_list(
     let repeaters = dao::repeater_system::select_with_call_sign(&mut c).await?;
     let mut items = Vec::with_capacity(repeaters.len());
     for repeater in repeaters {
-        let resolved = resolve_site_fields(&repeater.system);
+        let resolved = resolve_site_fields(&repeater);
         let call_sign = repeater.call_sign.clone();
-        let status = repeater.system.status.clone();
-        let description = repeater.system.description.clone();
+        let status = repeater.status.clone();
+        let description = repeater.description.clone();
 
         items.push(RepeaterListItem {
             call_sign,
@@ -275,9 +275,9 @@ struct LinkedRepeaterItem {
 }
 
 impl ContactItem {
-    fn from(row: dao::contact::ContactWithCallSign) -> Self {
+    fn from(row: dao::contact::Contact) -> Self {
         Self {
-            display_name: row.contact.display_name,
+            display_name: row.display_name,
             call_sign: row.call_sign,
         }
     }
@@ -318,7 +318,7 @@ async fn render_organizations_list(
         .into_iter()
         .map(|row| OrganizationListItem {
             call_sign: row.call_sign,
-            display_name: row.contact.display_name,
+            display_name: row.display_name,
         })
         .collect::<Vec<_>>();
 
@@ -420,16 +420,16 @@ pub async fn call_sign(
 
     let kind = {
         let mut c = state.pool.get().await?;
-        dao::entity::find_by_call_sign(&mut c, call_sign.clone())
+        dao::call_sign::find_by_call_sign(&mut c, call_sign.clone())
             .await?
             .map(|row| row.kind)
     };
 
     match kind {
-        Some(dao::entity::EntityKind::Repeater) => {
+        Some(dao::call_sign::CallSignKind::Repeater) => {
             render_repeater_detail(call_sign, jar, state).await
         }
-        Some(dao::entity::EntityKind::Contact) => {
+        Some(dao::call_sign::CallSignKind::Contact) => {
             render_contact_detail(call_sign, jar, state).await
         }
         None => Err(RepeaterAtlasError::NotFound),
@@ -453,8 +453,8 @@ async fn render_contact_detail(
         .into_iter()
         .map(|row| ContactRepeaterItem {
             call_sign: row.call_sign,
-            status: row.system.status,
-            description: row.system.description.unwrap_or_else(|| "-".to_string()),
+            status: row.status,
+            description: row.description.unwrap_or_else(|| "-".to_string()),
         })
         .collect::<Vec<_>>();
 
@@ -464,8 +464,8 @@ async fn render_contact_detail(
             .into_iter()
             .map(|row| ContactRepeaterItem {
                 call_sign: row.call_sign,
-                status: row.system.status,
-                description: row.system.description.unwrap_or_else(|| "-".to_string()),
+                status: row.status,
+                description: row.description.unwrap_or_else(|| "-".to_string()),
             })
             .collect::<Vec<_>>();
 
@@ -658,7 +658,7 @@ async fn render_repeater_detail(
             let mut nearby_repeaters = Vec::new();
 
             for candidate in all_repeaters {
-                let candidate_resolved = resolve_site_fields(&candidate.system);
+                let candidate_resolved = resolve_site_fields(&candidate);
                 if let (Some(lat), Some(lon)) =
                     (candidate_resolved.latitude, candidate_resolved.longitude)
                 {
@@ -667,7 +667,7 @@ async fn render_repeater_detail(
                             call_sign: candidate.call_sign,
                             latitude: lat,
                             longitude: lon,
-                            status: candidate.system.status,
+                            status: candidate.status,
                             services: Vec::new(),
                         });
                     }

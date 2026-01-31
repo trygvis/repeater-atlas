@@ -1,8 +1,8 @@
 CREATE TABLE repeater_system
 (
     id           BIGSERIAL PRIMARY KEY,
-    -- Link to the global entity/call sign registry. One entity per repeater system.
-    entity       BIGINT NOT NULL UNIQUE REFERENCES entity (id) ON DELETE CASCADE,
+    -- Link to the global call sign registry. One call sign per repeater system.
+    call_sign    TEXT NOT NULL UNIQUE REFERENCES call_sign (value) ON DELETE CASCADE,
 
     -- Responsibility/contacts (optional).
     owner        BIGINT REFERENCES contact (id) ON DELETE SET NULL,

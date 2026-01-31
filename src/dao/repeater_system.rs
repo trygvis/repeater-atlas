@@ -2,12 +2,11 @@ use diesel::prelude::*;
 use diesel_async::{AsyncPgConnection, RunQueryDsl};
 
 use crate::MaidenheadLocator;
-use crate::dao::entity::EntityKind;
 
 #[derive(Insertable)]
 #[diesel(table_name = crate::schema::repeater_system)]
 pub struct NewRepeaterSystem {
-    pub entity: i64,
+    pub call_sign: String,
     pub owner: Option<i64>,
     pub tech_contact: Option<i64>,
     pub name: Option<String>,
@@ -23,9 +22,9 @@ pub struct NewRepeaterSystem {
 }
 
 impl NewRepeaterSystem {
-    pub fn new(entity: i64) -> Self {
+    pub fn new(call_sign: impl Into<String>) -> Self {
         Self {
-            entity,
+            call_sign: call_sign.into(),
             owner: None,
             tech_contact: None,
             name: None,
@@ -62,7 +61,7 @@ impl NewRepeaterSystem {
 #[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct RepeaterSystem {
     pub id: i64,
-    pub entity: i64,
+    pub call_sign: String,
     pub owner: Option<i64>,
     pub tech_contact: Option<i64>,
     pub name: Option<String>,
@@ -75,13 +74,6 @@ pub struct RepeaterSystem {
     pub country: Option<String>,
     pub region: Option<String>,
     pub status: String,
-}
-
-#[derive(Clone)]
-pub struct RepeaterSystemWithCallSign {
-    pub system: RepeaterSystem,
-    pub call_sign: String, // TODO: this should either be Option<String> or the query should remove
-                           // NULL values.
 }
 
 pub async fn insert(
@@ -124,97 +116,50 @@ pub async fn find_by_call_sign(
     c: &mut AsyncPgConnection,
     call_sign: String,
 ) -> QueryResult<Option<RepeaterSystem>> {
-    use crate::schema::entity::dsl as e;
     use crate::schema::repeater_system::dsl as r;
 
-    let entity_id: Option<i64> = e::entity
-        .filter(e::call_sign.eq(call_sign))
-        .filter(e::kind.eq(EntityKind::Repeater))
-        .select(e::id)
-        .first::<i64>(c)
-        .await
-        .optional()?;
-    let Some(entity_id) = entity_id else {
-        return Ok(None);
-    };
-
     r::repeater_system
-        .filter(r::entity.eq(entity_id))
+        .filter(r::call_sign.eq(call_sign))
         .select(RepeaterSystem::as_select())
         .first(c)
         .await
         .optional()
 }
 
-pub async fn select_with_call_sign(
-    c: &mut AsyncPgConnection,
-) -> QueryResult<Vec<RepeaterSystemWithCallSign>> {
-    use crate::schema::entity::dsl as e;
+pub async fn select_with_call_sign(c: &mut AsyncPgConnection) -> QueryResult<Vec<RepeaterSystem>> {
     use crate::schema::repeater_system::dsl as r;
 
-    let rows: Vec<(RepeaterSystem, Option<String>)> = r::repeater_system
-        .inner_join(e::entity.on(e::id.eq(r::entity)))
-        .filter(e::kind.eq(EntityKind::Repeater))
-        .select((RepeaterSystem::as_select(), e::call_sign))
-        .order_by(e::call_sign.asc())
+    r::repeater_system
+        .select(RepeaterSystem::as_select())
+        .order_by(r::call_sign.asc())
         .get_results(c)
-        .await?;
-
-    Ok(rows
-        .into_iter()
-        .map(|(system, call_sign)| RepeaterSystemWithCallSign {
-            system,
-            call_sign: call_sign.unwrap_or_else(|| "<missing>".to_string()),
-        })
-        .collect())
+        .await
 }
 
 pub async fn select_with_call_sign_by_owner(
     c: &mut AsyncPgConnection,
     contact_id: i64,
-) -> QueryResult<Vec<RepeaterSystemWithCallSign>> {
-    use crate::schema::entity::dsl as e;
+) -> QueryResult<Vec<RepeaterSystem>> {
     use crate::schema::repeater_system::dsl as r;
 
-    let rows: Vec<(RepeaterSystem, Option<String>)> = r::repeater_system
-        .inner_join(e::entity.on(e::id.eq(r::entity)))
-        .filter(e::kind.eq(EntityKind::Repeater))
+    r::repeater_system
         .filter(r::owner.eq(contact_id))
-        .select((RepeaterSystem::as_select(), e::call_sign))
-        .order_by(e::call_sign.asc())
+        .select(RepeaterSystem::as_select())
+        .order_by(r::call_sign.asc())
         .get_results(c)
-        .await?;
-
-    Ok(rows
-        .into_iter()
-        .map(|(system, call_sign)| RepeaterSystemWithCallSign {
-            system,
-            call_sign: call_sign.unwrap_or_else(|| "<missing>".to_string()),
-        })
-        .collect())
+        .await
 }
 
 pub async fn select_with_call_sign_by_tech_contact(
     c: &mut AsyncPgConnection,
     contact_id: i64,
-) -> QueryResult<Vec<RepeaterSystemWithCallSign>> {
-    use crate::schema::entity::dsl as e;
+) -> QueryResult<Vec<RepeaterSystem>> {
     use crate::schema::repeater_system::dsl as r;
 
-    let rows: Vec<(RepeaterSystem, Option<String>)> = r::repeater_system
-        .inner_join(e::entity.on(e::id.eq(r::entity)))
-        .filter(e::kind.eq(EntityKind::Repeater))
+    r::repeater_system
         .filter(r::tech_contact.eq(contact_id))
-        .select((RepeaterSystem::as_select(), e::call_sign))
-        .order_by(e::call_sign.asc())
+        .select(RepeaterSystem::as_select())
+        .order_by(r::call_sign.asc())
         .get_results(c)
-        .await?;
-
-    Ok(rows
-        .into_iter()
-        .map(|(system, call_sign)| RepeaterSystemWithCallSign {
-            system,
-            call_sign: call_sign.unwrap_or_else(|| "<missing>".to_string()),
-        })
-        .collect())
+        .await
 }

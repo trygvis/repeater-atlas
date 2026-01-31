@@ -77,7 +77,7 @@
 
 - `/` map page (primary entry point).
 - `/repeater` repeater list.
-- `/call-sign/:call_sign` entity detail resolver:
+- `/call-sign/:call_sign` call sign registry resolver:
   - repeater -> repeater page
   - contact -> organization page
 - `/organization` organization list.
@@ -106,8 +106,8 @@
 ### Geocoding (Optional)
 
 - When saving/importing a repeater that has `address` set but no `maidenhead`,
-  the service can (optionally) use Nominatim to geocode the address to
-  lat/lon, derive Maidenhead from that, and persist all three fields.
+  the service can (optionally) use Nominatim to geocode the address to lat/lon,
+  derive Maidenhead from that, and persist all three fields.
 - Controlled by env:
   - `NOMINATIM_ENABLED` (default: on; set to `0` to disable)
   - `NOMINATIM_BASE_URL` (default: public OSM Nominatim)

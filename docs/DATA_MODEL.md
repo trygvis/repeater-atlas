@@ -11,16 +11,18 @@ in the database schema.
 - Repeater: A single repeater listing with technical settings, status, and
   location.
 - User: Authenticated user who can manage repeaters via club membership.
-- Entity: Global call sign registry (repeaters + contacts).
+- Call Sign: Global call sign registry (repeaters and contacts), keyed by call
+  sign value.
 - Contact: Organization or individual responsible for repeaters.
 - Membership/Role: Links users to contacts with permissions.
 - Repeater Change Log Entry: Textual audit entry for repeater changes.
 
 ## Relationships
 
-- A repeater has an entity (call sign lives on the entity).
+- A repeater stores its call sign on the repeater record and references the call
+  sign registry.
 - A repeater can have an owner contact and a technical contact (both optional).
-- A repeater always has a location (modeled on the repeater entity).
+- A repeater always has a location (modeled on the repeater record).
 - A user can be a member of multiple contacts.
 - A contact can have many members and many repeaters.
 - Admin members can edit all repeaters owned by their contact.

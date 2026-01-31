@@ -1,3 +1,4 @@
+use crate::dao::call_sign::{CallSignKind, NewCallSign};
 use crate::dao::contact::{Contact, ContactKind, NewContact};
 use crate::dao::entity::{Entity, EntityKind, NewEntity};
 use crate::dao::repeater_service::{AprsMode, FmBandwidth};
@@ -34,19 +35,19 @@ async fn repeater_with_site(
 ) -> Result<RepeaterFixture, RepeaterAtlasError> {
     let call_sign = call_sign.into();
 
-    let entity = dao::entity::insert(
+    let call_sign_row = dao::call_sign::insert(
         c,
-        NewEntity {
-            kind: EntityKind::Repeater,
-            call_sign: Some(call_sign.clone()),
+        NewCallSign {
+            value: call_sign.clone(),
+            kind: CallSignKind::Repeater,
         },
     )
     .await
     .map_err(|e| {
-        RepeaterAtlasError::DatabaseOther(e, format!("entity kind=repeater call_sign={call_sign}"))
+        RepeaterAtlasError::DatabaseOther(e, format!("call_sign kind=repeater value={call_sign}"))
     })?;
 
-    let mut repeater = NewRepeaterSystem::new(entity.id);
+    let mut repeater = NewRepeaterSystem::new(call_sign_row.value.clone());
     if let Some(owner) = owner {
         repeater = repeater.owner(owner.id);
     }
@@ -500,11 +501,11 @@ pub async fn load_contacts(
         let web_url = row.get(web_url_idx);
         let email = row.get(email_idx);
 
-        let entity = dao::entity::insert(
+        let call_sign_row = dao::call_sign::insert(
             c,
-            NewEntity {
-                kind: EntityKind::Contact,
-                call_sign: Some(call_sign.clone()),
+            NewCallSign {
+                value: call_sign.clone(),
+                kind: CallSignKind::Contact,
             },
         )
         .await?;
@@ -512,7 +513,7 @@ pub async fn load_contacts(
         let contact = dao::contact::insert(
             c,
             NewContact {
-                entity: entity.id,
+                call_sign: Some(call_sign_row.value),
                 kind: ContactKind::Organization,
                 display_name: name.unwrap_or_else(|| &call_sign).to_string(),
                 description: None,
