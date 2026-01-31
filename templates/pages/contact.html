@@ -214,11 +214,7 @@
 </main>
 
 {% if map_context.is_some() %}
-  <script src="/static/repeater-atlas.js"></script>
-  <script src="/static/vendor/leaflet/leaflet.js"></script>
   <script>
-    initializeRepeaterAtlas();
-
     const mapContext = {{ map_context.as_ref().unwrap() | json | safe }};
     const map = buildLeafletMap(document.getElementById("organization-map-host"));
     const markers = [];

@@ -118,15 +118,11 @@
 {% endblock %}
 
 {% block scripts %}
-  <script src="/static/repeater-atlas.js"></script>
-  <script src="/static/vendor/leaflet/leaflet.js"></script>
   <script src="/static/vendor/leaflet.markercluster/leaflet.markercluster.js"></script>
   <script>
     const data = {{ repeater_data | json | safe }};
   </script>
   <script>
-    initializeRepeaterAtlas();
-
     const map = buildLeafletMap(document.getElementById("repeater-map-host"));
     const repeaterDetails = document.getElementById("repeater-details");
     const repeaterDetailsClose = document.getElementById("repeater-details-close");

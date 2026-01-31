@@ -269,14 +269,10 @@
 
 {% block scripts %}
   {% if map_context.is_some() %}
-    <script src="/static/repeater-atlas.js"></script>
-    <script src="/static/vendor/leaflet/leaflet.js"></script>
     <script>
       const mapContext = {{ map_context.as_ref().unwrap() | json | safe }};
     </script>
     <script>
-      initializeRepeaterAtlas();
-
       const map = buildLeafletMap(document.getElementById("repeater-detail-map-host"));
       const center = [mapContext.center.latitude, mapContext.center.longitude];
       const bounds = [center];

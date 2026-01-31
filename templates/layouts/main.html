@@ -38,6 +38,11 @@
     </header>
     {% endblock %}
     {% block content %}{% endblock %}
+    <script src="/static/vendor/leaflet/leaflet.js"></script>
+    <script src="/static/repeater-atlas.js"></script>
+    <script>
+      initializeRepeaterAtlas();
+    </script>
     {% block scripts %}{% endblock %}
   </body>
 </html>
