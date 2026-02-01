@@ -473,8 +473,6 @@ pub async fn load_repeaters(
         };
         let (call_sign, port_label) = split_call_sign(call_sign_raw);
 
-        let existing = dao::repeater_system::find_by_call_sign(c, call_sign.clone()).await?;
-
         let owner = csv.get(row, owner_idx).map(normalize_call_sign);
         let owner = match owner {
             Some(owner) => dao::contact::find_by_call_sign(c, owner).await?,
@@ -488,55 +486,18 @@ pub async fn load_repeaters(
             .get_opt(row, &status_idx)
             .unwrap_or("active".to_string());
         let address = csv.get_opt(row, &address_idx);
-        let mut maidenhead = csv
-            .get_opt(row, &maidenhead_idx)
-            .and_then(|s| MaidenheadLocator::new(s).ok());
+        let maidenhead = csv.get_opt(row, &maidenhead_idx);
 
-        let geocoder = service::geocoding::nominatim_geocoder_from_env()?;
-        let enriched = service::enrich_location::enrich_location(
-            geocoder,
-            &call_sign,
-            address.as_deref(),
-            maidenhead.as_ref(),
+        let repeater = create_repeater(
+            c,
+            call_sign.clone(),
+            owner,
+            name,
+            status,
+            address,
+            maidenhead,
         )
         .await?;
-
-        let longitude = enriched.as_ref().map(|e| e.longitude.clone());
-        let latitude = enriched.as_ref().map(|e| e.latitude.clone());
-        maidenhead = maidenhead.or_else(|| enriched.map(|e| e.maidenhead.clone()));
-
-        let repeater = match existing {
-            Some(mut existing) => {
-                // Merge in new fields into system
-                existing.name = name.or_else(|| existing.name);
-                existing.owner = owner.map(|c| c.id).or_else(|| existing.owner);
-                existing.address = address.or_else(|| existing.address);
-                existing.latitude = latitude.or_else(|| existing.latitude);
-                existing.longitude = longitude.or_else(|| existing.longitude);
-                existing.maidenhead = maidenhead.or_else(|| existing.maidenhead);
-
-                dao::repeater_system::update(c, existing).await?
-            }
-            None => {
-                let repeater = NewRepeaterSystem {
-                    call_sign: call_sign.clone(),
-                    owner: owner.map(|c| c.id),
-                    tech_contact: None,
-                    name,
-                    description: None,
-                    address,
-                    maidenhead,
-                    latitude,
-                    longitude,
-                    elevation_m: None,
-                    country: None,
-                    region: None,
-                    status,
-                };
-
-                service::repeater_system::create_repeater_system(c, repeater).await?
-            }
-        };
 
         let service = csv.get(row, service_idx);
         let tx_frequency = csv.get(row, tx_frequency_idx).and_then(parse_hz_field);
@@ -712,6 +673,66 @@ pub async fn load_repeaters(
     );
 
     Ok(())
+}
+
+async fn create_repeater(
+    c: &mut AsyncPgConnection,
+    call_sign: String,
+    owner: Option<Contact>,
+    name: Option<String>,
+    status: String,
+    address: Option<String>,
+    maidenhead: Option<String>,
+) -> Result<RepeaterSystem, RepeaterAtlasError> {
+    let existing = dao::repeater_system::find_by_call_sign(c, call_sign.clone()).await?;
+
+    let maidenhead = maidenhead.and_then(|s| MaidenheadLocator::new(s).ok());
+
+    let geocoder = service::geocoding::nominatim_geocoder_from_env()?;
+    let enriched = service::enrich_location::enrich_location(
+        geocoder,
+        &call_sign,
+        address.as_deref(),
+        maidenhead.as_ref(),
+    )
+    .await?;
+
+    let longitude = enriched.as_ref().map(|e| e.longitude.clone());
+    let latitude = enriched.as_ref().map(|e| e.latitude.clone());
+    let maidenhead = maidenhead.or_else(|| enriched.map(|e| e.maidenhead.clone()));
+
+    match existing {
+        Some(mut existing) => {
+            // Merge in new fields into system
+            existing.name = name.or_else(|| existing.name);
+            existing.owner = owner.map(|c| c.id).or_else(|| existing.owner);
+            existing.address = address.or_else(|| existing.address);
+            existing.latitude = latitude.or_else(|| existing.latitude);
+            existing.longitude = longitude.or_else(|| existing.longitude);
+            existing.maidenhead = maidenhead.or_else(|| existing.maidenhead);
+
+            service::repeater_system::update(c, existing).await
+        }
+        None => {
+            let repeater = NewRepeaterSystem {
+                call_sign: call_sign.clone(),
+                owner: owner.map(|c| c.id),
+                tech_contact: None,
+                name,
+                description: None,
+                address,
+                maidenhead,
+                latitude,
+                longitude,
+                elevation_m: None,
+                country: None,
+                region: None,
+                status,
+            };
+
+            service::repeater_system::create_repeater_system(c, repeater).await
+        }
+    }
 }
 
 fn parse_hz_field(raw: String) -> Option<Frequency> {

@@ -30,3 +30,17 @@ pub async fn create_repeater_system(
 
     Ok(system)
 }
+
+pub(crate) async fn update(
+    c: &mut AsyncPgConnection,
+    repeater_system: RepeaterSystem,
+) -> Result<RepeaterSystem, RepeaterAtlasError> {
+    info!(
+        call_sign = repeater_system.call_sign,
+        "Updating RepeaterSystem {}", repeater_system.call_sign
+    );
+
+    dao::repeater_system::update(c, repeater_system)
+        .await
+        .map_err(RepeaterAtlasError::from)
+}
