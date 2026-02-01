@@ -1,5 +1,6 @@
 mod utils;
 
+use dao::call_sign::NewCallSign;
 use diesel::prelude::*;
 use diesel_async::RunQueryDsl;
 use repeater_atlas::Frequency;
@@ -12,14 +13,8 @@ async fn inserts_repeater_row() -> Result<(), Box<dyn std::error::Error + Send +
     let pool = utils::pool().await;
     let mut c = pool.get().await?;
 
-    let repeater_call_sign_row = dao::call_sign::insert(
-        &mut c,
-        dao::call_sign::NewCallSign {
-            kind: dao::call_sign::CallSignKind::Repeater,
-            value: "LA1ABC".to_string(),
-        },
-    )
-    .await?;
+    let repeater_call_sign_row =
+        dao::call_sign::insert(&mut c, NewCallSign::new_repeater("LA1ABC")).await?;
 
     let new_repeater = dao::repeater_system::NewRepeaterSystem::new(repeater_call_sign_row.value);
 

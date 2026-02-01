@@ -41,6 +41,22 @@ pub struct NewCallSign {
     pub kind: CallSignKind,
 }
 
+impl NewCallSign {
+    pub fn new_repeater(call_sign: impl Into<String>) -> Self {
+        Self {
+            kind: CallSignKind::Repeater,
+            value: call_sign.into(),
+        }
+    }
+
+    pub fn new_contact(call_sign: impl Into<String>) -> Self {
+        Self {
+            kind: CallSignKind::Contact,
+            value: call_sign.into(),
+        }
+    }
+}
+
 #[derive(Clone, Queryable, Selectable, AsChangeset)]
 #[diesel(table_name = crate::schema::call_sign)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
@@ -49,14 +65,11 @@ pub struct CallSign {
     pub kind: CallSignKind,
 }
 
-pub async fn insert(
-    c: &mut AsyncPgConnection,
-    new_call_sign: NewCallSign,
-) -> QueryResult<CallSign> {
+pub async fn insert(c: &mut AsyncPgConnection, call_sign: NewCallSign) -> QueryResult<CallSign> {
     use crate::schema::call_sign::dsl as cs;
 
     diesel::insert_into(cs::call_sign)
-        .values(&new_call_sign)
+        .values(&call_sign)
         .returning(CallSign::as_returning())
         .get_result(c)
         .await

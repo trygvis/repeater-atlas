@@ -1,4 +1,4 @@
-use crate::dao::call_sign::{CallSignKind, NewCallSign};
+use crate::dao::call_sign::NewCallSign;
 use crate::dao::contact::{Contact, ContactKind, NewContact};
 use crate::dao::repeater_service::{AprsMode, FmBandwidth};
 use crate::dao::repeater_system::{NewRepeaterSystem, RepeaterSystem};
@@ -34,17 +34,14 @@ async fn repeater_with_site(
 ) -> Result<RepeaterFixture, RepeaterAtlasError> {
     let call_sign = call_sign.into();
 
-    let call_sign_row = dao::call_sign::insert(
-        c,
-        NewCallSign {
-            value: call_sign.clone(),
-            kind: CallSignKind::Repeater,
-        },
-    )
-    .await
-    .map_err(|e| {
-        RepeaterAtlasError::DatabaseOther(e, format!("call_sign kind=repeater value={call_sign}"))
-    })?;
+    let call_sign_row = dao::call_sign::insert(c, NewCallSign::new_repeater(&call_sign))
+        .await
+        .map_err(|e| {
+            RepeaterAtlasError::DatabaseOther(
+                e,
+                format!("call_sign kind=repeater value={call_sign}"),
+            )
+        })?;
 
     let mut repeater = NewRepeaterSystem::new(call_sign_row.value.clone());
     if let Some(owner) = owner {
@@ -484,14 +481,7 @@ pub async fn load_contacts(
         let web_url = row.get(web_url_idx);
         let email = row.get(email_idx);
 
-        let call_sign_row = dao::call_sign::insert(
-            c,
-            NewCallSign {
-                value: call_sign.clone(),
-                kind: CallSignKind::Contact,
-            },
-        )
-        .await?;
+        let call_sign_row = dao::call_sign::insert(c, NewCallSign::new_contact(&call_sign)).await?;
 
         let contact = dao::contact::insert(
             c,

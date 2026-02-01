@@ -4,6 +4,7 @@ use axum::Router;
 use axum::body::Body;
 use axum::http::{Request, StatusCode};
 use axum_extra::routing::RouterExt;
+use dao::call_sign::NewCallSign;
 use diesel::prelude::*;
 use diesel_async::RunQueryDsl;
 use http_body_util::BodyExt;
@@ -25,14 +26,8 @@ async fn call_sign_routes_resolve_repeater_and_contact()
     let contact_call_sign = format!("RAO{}", &suffix[..8]);
     let repeater_call_sign = format!("RAR{}", &suffix[..8]);
 
-    let contact_call_sign_row = dao::call_sign::insert(
-        &mut c,
-        dao::call_sign::NewCallSign {
-            kind: dao::call_sign::CallSignKind::Contact,
-            value: contact_call_sign.clone(),
-        },
-    )
-    .await?;
+    let contact_call_sign_row =
+        dao::call_sign::insert(&mut c, NewCallSign::new_contact(contact_call_sign.clone())).await?;
 
     let contact = dao::contact::insert(
         &mut c,
@@ -49,14 +44,8 @@ async fn call_sign_routes_resolve_repeater_and_contact()
     )
     .await?;
 
-    let repeater_call_sign_row = dao::call_sign::insert(
-        &mut c,
-        dao::call_sign::NewCallSign {
-            kind: dao::call_sign::CallSignKind::Repeater,
-            value: repeater_call_sign.clone(),
-        },
-    )
-    .await?;
+    let repeater_call_sign_row =
+        dao::call_sign::insert(&mut c, NewCallSign::new_repeater(&repeater_call_sign)).await?;
 
     let repeater = dao::repeater_system::insert(
         &mut c,
