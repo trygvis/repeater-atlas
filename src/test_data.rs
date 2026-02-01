@@ -1,8 +1,7 @@
 use crate::dao::call_sign::{CallSignKind, NewCallSign};
 use crate::dao::contact::{Contact, ContactKind, NewContact};
-use crate::dao::entity::{Entity, EntityKind, NewEntity};
 use crate::dao::repeater_service::{AprsMode, FmBandwidth};
-use crate::dao::repeater_system::{NewRepeaterSystem, RepeaterSystem, RepeaterSystemWithCallSign};
+use crate::dao::repeater_system::{NewRepeaterSystem, RepeaterSystem};
 use crate::repeater_service::{RepeaterService, Tone};
 use crate::service;
 use crate::{Frequency, MaidenheadLocator, RepeaterAtlasError, dao};
@@ -204,16 +203,6 @@ fn load_csv(path: &Path) -> Result<CsvFile, RepeaterAtlasError> {
 }
 
 pub async fn dump_data(c: &mut AsyncPgConnection) -> Result<(), RepeaterAtlasError> {
-    async fn load_entity(
-        c: &mut AsyncPgConnection,
-        id: Option<i64>,
-    ) -> QueryResult<Option<Entity>> {
-        match id {
-            None => Ok(None),
-            Some(id) => Ok(Some(dao::entity::get(c, id).await?)),
-        }
-    }
-
     let repeaters = dao::repeater_system::select_with_call_sign(c).await?;
 
     #[derive(Serialize)]
@@ -235,20 +224,18 @@ pub async fn dump_data(c: &mut AsyncPgConnection) -> Result<(), RepeaterAtlasErr
 
     let mut writer = csv::Writer::from_path(PathBuf::from("data/out/repeater-systems.csv"))?;
 
-    for RepeaterSystemWithCallSign {
-        call_sign,
-        system: rs,
-    } in &repeaters
-    {
-        let owner = load_entity(c, rs.owner)
-            .await?
-            .and_then(|owner| owner.call_sign);
-        let tech_contact = load_entity(c, rs.tech_contact)
-            .await?
-            .and_then(|tc| tc.call_sign);
+    for rs in &repeaters {
+        let owner = match rs.owner {
+            Some(id) => dao::contact::get(c, id).await?.call_sign,
+            None => None,
+        };
+        let tech_contact = match rs.tech_contact {
+            Some(id) => dao::contact::get(c, id).await?.call_sign,
+            None => None,
+        };
 
         writer.serialize(RepeaterSystemRow {
-            call_sign: call_sign.clone(),
+            call_sign: rs.call_sign.clone(),
             owner,
             tech_contact,
             name: rs.name.clone(),
@@ -295,16 +282,12 @@ pub async fn dump_data(c: &mut AsyncPgConnection) -> Result<(), RepeaterAtlasErr
 
     let mut writer = csv::Writer::from_path(PathBuf::from("data/out/repeater-services.csv"))?;
 
-    for RepeaterSystemWithCallSign {
-        call_sign,
-        system: rs,
-    } in repeaters
-    {
+    for rs in repeaters {
         let service = dao::repeater_service::select_by_repeater_id(c, rs.id).await?;
 
         for s in service {
             writer.serialize(RepeaterServiceRow {
-                repeater_call_sign: call_sign.clone(),
+                repeater_call_sign: rs.call_sign.clone(),
                 kind: s.kind,
                 enabled: s.enabled,
                 label: s.label,
@@ -518,7 +501,7 @@ pub async fn load_contacts(
                 display_name: name.unwrap_or_else(|| &call_sign).to_string(),
                 description: None,
                 web_url: web_url.cloned(),
-                email:email.cloned(),
+                email: email.cloned(),
                 phone: None,
                 address: None,
             },
