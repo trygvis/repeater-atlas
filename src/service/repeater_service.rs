@@ -94,42 +94,6 @@ impl RepeaterService {
         }
     }
 
-    pub fn rx_hz(&self) -> Frequency {
-        match self {
-            RepeaterService::Fm { rx_hz, .. }
-            | RepeaterService::Am { rx_hz, .. }
-            | RepeaterService::Ssb { rx_hz, .. }
-            | RepeaterService::Dstar { rx_hz, .. }
-            | RepeaterService::Dmr { rx_hz, .. }
-            | RepeaterService::C4fm { rx_hz, .. }
-            | RepeaterService::Aprs { rx_hz, .. } => *rx_hz,
-        }
-    }
-
-    pub fn tx_hz(&self) -> Frequency {
-        match self {
-            RepeaterService::Fm { tx_hz, .. }
-            | RepeaterService::Am { tx_hz, .. }
-            | RepeaterService::Ssb { tx_hz, .. }
-            | RepeaterService::Dstar { tx_hz, .. }
-            | RepeaterService::Dmr { tx_hz, .. }
-            | RepeaterService::C4fm { tx_hz, .. }
-            | RepeaterService::Aprs { tx_hz, .. } => *tx_hz,
-        }
-    }
-
-    pub fn kind_label(&self) -> &'static str {
-        match self {
-            RepeaterService::Fm { .. } => RepeaterServiceKind::Fm.label(),
-            RepeaterService::Am { .. } => RepeaterServiceKind::Am.label(),
-            RepeaterService::Ssb { .. } => RepeaterServiceKind::Ssb.label(),
-            RepeaterService::Dstar { .. } => RepeaterServiceKind::Dstar.label(),
-            RepeaterService::Dmr { .. } => RepeaterServiceKind::Dmr.label(),
-            RepeaterService::C4fm { .. } => RepeaterServiceKind::C4fm.label(),
-            RepeaterService::Aprs { .. } => RepeaterServiceKind::Aprs.label(),
-        }
-    }
-
     pub fn to_new_dao(self, repeater_id: i64) -> NewRepeaterServiceDao {
         match self {
             RepeaterService::Fm {
