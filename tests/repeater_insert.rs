@@ -3,10 +3,10 @@ mod utils;
 use dao::call_sign::NewCallSign;
 use diesel::prelude::*;
 use diesel_async::RunQueryDsl;
-use repeater_atlas::Frequency;
 use repeater_atlas::dao;
-use repeater_atlas::repeater_service::RepeaterService;
 use repeater_atlas::schema::{call_sign, repeater_service, repeater_system};
+use repeater_atlas::service::repeater_service::RepeaterService;
+use repeater_atlas::{Frequency, service};
 
 #[tokio::test]
 async fn inserts_repeater_row() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
@@ -26,9 +26,9 @@ async fn inserts_repeater_row() -> Result<(), Box<dyn std::error::Error + Send +
         label: "VHF".to_string(),
         rx_hz,
         tx_hz,
-        bandwidth: repeater_atlas::dao::repeater_service::FmBandwidth::Narrow,
-        rx_tone: repeater_atlas::repeater_service::Tone::None,
-        tx_tone: repeater_atlas::repeater_service::Tone::None,
+        bandwidth: dao::repeater_service::FmBandwidth::Narrow,
+        rx_tone: service::repeater_service::Tone::None,
+        tx_tone: service::repeater_service::Tone::None,
         note: None,
     };
     dao::repeater_service::insert(&mut c, service.to_new_dao(repeater.id)).await?;

@@ -2,9 +2,9 @@ use super::AppState;
 use super::auth::auth_header;
 use super::map::{MapContext, MapPoint, MapRepeater, OrganizationMapContext};
 use super::utils::{distance_km, resolve_site_fields};
-use crate::Frequency;
 use crate::dao::repeater_service::{AprsMode, DstarMode, FmBandwidth, SsbSideband};
-use crate::repeater_service::RepeaterService;
+use crate::service::repeater_service::RepeaterService;
+use crate::{Frequency, service};
 use crate::{RepeaterAtlasError, dao};
 use askama::Template;
 use axum::{extract::State, response::Html};
@@ -47,8 +47,8 @@ struct FmServiceItem {
     rx_hz: Frequency,
     tx_hz: Frequency,
     bandwidth: FmBandwidth,
-    rx_tone: crate::repeater_service::Tone,
-    tx_tone: crate::repeater_service::Tone,
+    rx_tone: service::repeater_service::Tone,
+    tx_tone: service::repeater_service::Tone,
     note: String,
 }
 

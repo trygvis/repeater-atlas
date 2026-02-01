@@ -7,7 +7,6 @@ pub mod dao;
 pub mod error;
 pub mod frequency;
 pub mod maidenhead_locator;
-pub mod repeater_service;
 pub mod schema;
 pub mod service;
 pub mod test_data;
