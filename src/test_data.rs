@@ -262,7 +262,7 @@ pub async fn dump_data(c: &mut AsyncPgConnection) -> Result<(), RepeaterAtlasErr
     #[derive(Serialize)]
     struct RepeaterServiceRow {
         repeater_call_sign: String,
-        kind: Option<dao::repeater_service::RepeaterServiceKind>,
+        kind: dao::repeater_service::RepeaterServiceKind,
         enabled: bool,
         label: String,
         note: String,

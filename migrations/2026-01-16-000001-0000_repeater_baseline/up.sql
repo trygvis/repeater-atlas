@@ -40,7 +40,7 @@ CREATE TABLE repeater_service
 (
     id                      BIGSERIAL PRIMARY KEY,
     repeater_id             BIGINT NOT NULL REFERENCES repeater_system (id) ON DELETE CASCADE,
-    kind                    REPEATER_SERVICE_KIND,
+    kind                    REPEATER_SERVICE_KIND NOT NULL,
     enabled                 BOOLEAN NOT NULL,
     label                   TEXT NOT NULL,
     note                    TEXT NOT NULL,

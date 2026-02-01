@@ -93,7 +93,7 @@ diesel::table! {
     repeater_service (id) {
         id -> Int8,
         repeater_id -> Int8,
-        kind -> Nullable<RepeaterServiceKind>,
+        kind -> RepeaterServiceKind,
         enabled -> Bool,
         label -> Text,
         note -> Text,

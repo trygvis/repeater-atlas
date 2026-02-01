@@ -249,7 +249,7 @@ impl FromSql<crate::schema::sql_types::SsbSideband, Pg> for SsbSideband {
 #[diesel(table_name = crate::schema::repeater_service)]
 pub struct NewRepeaterServiceDao {
     pub repeater_id: i64,
-    pub kind: Option<RepeaterServiceKind>,
+    pub kind: RepeaterServiceKind,
     pub enabled: bool,
     pub label: String,
     pub note: String,
@@ -282,7 +282,7 @@ pub struct NewRepeaterServiceDao {
 pub struct RepeaterServiceDao {
     pub id: i64,
     pub repeater_id: i64,
-    pub kind: Option<RepeaterServiceKind>,
+    pub kind: RepeaterServiceKind,
     pub enabled: bool,
     pub label: String,
     pub note: String,
@@ -348,8 +348,7 @@ pub async fn select_kinds_by_repeater_ids(
 
     let rows: Vec<(i64, RepeaterServiceKind)> = s::repeater_service
         .filter(s::repeater_id.eq_any(repeater_ids))
-        .filter(s::kind.is_not_null())
-        .select((s::repeater_id, s::kind.assume_not_null()))
+        .select((s::repeater_id, s::kind))
         .distinct()
         .get_results(c)
         .await?;

@@ -109,7 +109,7 @@ impl RepeaterService {
                 let (tx_tone_kind, tx_ctcss_hz, tx_dcs_code) = tone_to_parts(tx_tone);
                 NewRepeaterServiceDao {
                     repeater_id,
-                    kind: Some(RepeaterServiceKind::Fm),
+                    kind: RepeaterServiceKind::Fm,
                     enabled: true,
                     label,
                     rx_hz,
@@ -142,7 +142,7 @@ impl RepeaterService {
                 note,
             } => NewRepeaterServiceDao {
                 repeater_id,
-                kind: Some(RepeaterServiceKind::Am),
+                kind: RepeaterServiceKind::Am,
                 enabled: true,
                 label,
                 rx_hz,
@@ -175,7 +175,7 @@ impl RepeaterService {
                 note,
             } => NewRepeaterServiceDao {
                 repeater_id,
-                kind: Some(RepeaterServiceKind::Ssb),
+                kind: RepeaterServiceKind::Ssb,
                 enabled: true,
                 label,
                 rx_hz,
@@ -210,7 +210,7 @@ impl RepeaterService {
                 note,
             } => NewRepeaterServiceDao {
                 repeater_id,
-                kind: Some(RepeaterServiceKind::Dstar),
+                kind: RepeaterServiceKind::Dstar,
                 enabled: true,
                 label,
                 rx_hz,
@@ -245,7 +245,7 @@ impl RepeaterService {
                 note,
             } => NewRepeaterServiceDao {
                 repeater_id,
-                kind: Some(RepeaterServiceKind::Dmr),
+                kind: RepeaterServiceKind::Dmr,
                 enabled: true,
                 label,
                 rx_hz,
@@ -279,7 +279,7 @@ impl RepeaterService {
                 note,
             } => NewRepeaterServiceDao {
                 repeater_id,
-                kind: Some(RepeaterServiceKind::C4fm),
+                kind: RepeaterServiceKind::C4fm,
                 enabled: true,
                 label,
                 rx_hz,
@@ -313,7 +313,7 @@ impl RepeaterService {
                 note,
             } => NewRepeaterServiceDao {
                 repeater_id,
-                kind: Some(RepeaterServiceKind::Aprs),
+                kind: RepeaterServiceKind::Aprs,
                 enabled: true,
                 label,
                 rx_hz,
@@ -344,7 +344,7 @@ impl RepeaterService {
 
 impl From<RepeaterServiceDao> for RepeaterService {
     fn from(value: RepeaterServiceDao) -> Self {
-        let kind = require_field(value.kind, "kind");
+        let kind = value.kind;
         let label = value.label;
         let rx_hz = value.rx_hz;
         let tx_hz = value.tx_hz;
