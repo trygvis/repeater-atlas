@@ -1,10 +1,10 @@
 use crate::dao::call_sign::NewCallSign;
 use crate::dao::contact::{Contact, ContactKind, NewContact};
 use crate::dao::repeater_service::{AprsMode, FmBandwidth};
-use crate::dao::repeater_system::{NewRepeaterSystem, RepeaterSystem};
+use crate::dao::repeater_system::RepeaterSystem;
 use crate::service;
 use crate::service::repeater_service::{RepeaterService, Tone};
-use crate::{Frequency, MaidenheadLocator, RepeaterAtlasError, dao};
+use crate::{Frequency, RepeaterAtlasError, dao};
 use csv::StringRecord;
 use dao::repeater_service::{DstarMode, SsbSideband, ToneKind};
 use diesel::QueryResult;
@@ -18,67 +18,6 @@ fn parse_ctcss(value: String) -> Option<f32> {
     // Accept "123", "123.0", "123.0 Hz".
     let first = value.split_whitespace().next().unwrap_or(value.as_str());
     first.parse::<f32>().ok()
-}
-
-async fn create_repeater_system(
-    c: &mut AsyncPgConnection,
-    call_sign: impl Into<String> + std::fmt::Display,
-    owner: Option<&Contact>,
-    address: impl Into<String>,
-    maidenhead: Option<String>,
-) -> Result<RepeaterSystem, RepeaterAtlasError> {
-    let call_sign = call_sign.into();
-
-    let call_sign_row = dao::call_sign::insert(c, NewCallSign::new_repeater(&call_sign))
-        .await
-        .map_err(|e| {
-            RepeaterAtlasError::DatabaseOther(
-                e,
-                format!("call_sign kind=repeater value={call_sign}"),
-            )
-        })?;
-
-    let mut repeater = NewRepeaterSystem::new(call_sign_row.value.clone());
-    if let Some(owner) = owner {
-        repeater = repeater.owner(owner.id);
-    }
-    let address = address.into();
-    if !address.trim().is_empty() {
-        repeater.address = Some(address);
-    }
-    repeater.maidenhead = maidenhead
-        .map(MaidenheadLocator::new)
-        .transpose()
-        .map_err(|e| {
-            RepeaterAtlasError::Other(
-                Box::new(e),
-                format!("invalid maidenhead locator for call_sign={call_sign}"),
-            )
-        })?;
-
-    let geocoder = service::geocoding::nominatim_geocoder_from_env()?;
-    if let Some(enriched) = service::enrich_location::enrich_location(
-        geocoder,
-        &call_sign,
-        repeater.address.as_deref(),
-        repeater.maidenhead.as_ref(),
-    )
-    .await?
-    {
-        repeater.latitude = Some(enriched.latitude);
-        repeater.longitude = Some(enriched.longitude);
-        repeater.maidenhead = Some(enriched.maidenhead);
-    }
-
-    info!("Creating repeater system call sign {call_sign}");
-
-    let system = dao::repeater_system::insert(c, repeater)
-        .await
-        .map_err(|e| {
-            RepeaterAtlasError::DatabaseOther(e, format!("repeater system call_sign={call_sign}"))
-        })?;
-
-    Ok(system)
 }
 
 async fn create_service(
@@ -559,9 +498,14 @@ pub async fn load_repeaters(
         } else {
             let address = csv.get_opt(row, &address_idx).unwrap_or_default();
             let maidenhead = csv.get_opt(row, &maidenhead_idx);
-            let mut repeater =
-                create_repeater_system(c, call_sign.clone(), contact.as_ref(), address, maidenhead)
-                    .await?;
+            let mut repeater = service::repeater_system::create_repeater_system(
+                c,
+                call_sign.clone(),
+                contact.as_ref(),
+                address,
+                maidenhead,
+            )
+            .await?;
 
             if let Some(name) = csv.get_opt(row, &name_idx) {
                 repeater.name = Some(name);
