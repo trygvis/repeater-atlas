@@ -710,6 +710,10 @@ async fn create_repeater(
             existing.latitude = latitude.or_else(|| existing.latitude);
             existing.longitude = longitude.or_else(|| existing.longitude);
             existing.maidenhead = maidenhead.or_else(|| existing.maidenhead);
+            existing.status = Some(status)
+                .filter(|s| !s.is_empty())
+                .or(Some(existing.status).filter(|s| !s.is_empty()))
+                .unwrap_or_default();
 
             service::repeater_system::update(c, existing).await
         }

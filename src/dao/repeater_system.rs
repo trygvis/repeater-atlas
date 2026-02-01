@@ -36,7 +36,7 @@ impl NewRepeaterSystem {
             elevation_m: None,
             country: None,
             region: None,
-            status: "active".to_string(),
+            status: "".to_string(),
         }
     }
 
