@@ -1,10 +1,10 @@
 use crate::dao::call_sign::NewCallSign;
 use crate::dao::contact::{Contact, ContactKind, NewContact};
 use crate::dao::repeater_service::{AprsMode, FmBandwidth};
-use crate::dao::repeater_system::RepeaterSystem;
-use crate::service;
+use crate::dao::repeater_system::{NewRepeaterSystem, RepeaterSystem};
 use crate::service::repeater_service::{RepeaterService, Tone};
 use crate::{Frequency, RepeaterAtlasError, dao};
+use crate::{MaidenheadLocator, service};
 use csv::StringRecord;
 use dao::repeater_service::{DstarMode, SsbSideband, ToneKind};
 use diesel::QueryResult;
@@ -442,7 +442,6 @@ pub async fn load_repeaters(
     path: PathBuf,
 ) -> Result<(), RepeaterAtlasError> {
     let mut imported = 0usize;
-    let mut repeaters = HashMap::<String, RepeaterSystem>::new();
 
     let csv = load_csv(&path)?;
 
@@ -474,39 +473,69 @@ pub async fn load_repeaters(
         };
         let (call_sign, port_label) = split_call_sign(call_sign_raw);
 
-        let owner = csv.get(row, owner_idx).map(normalize_call_sign);
+        let existing = dao::repeater_system::find_by_call_sign(c, call_sign.clone()).await?;
 
-        let contact = match owner {
-            Some(call_sign) => dao::contact::find_by_call_sign(c, call_sign).await?,
+        let owner = csv.get(row, owner_idx).map(normalize_call_sign);
+        let owner = match owner {
+            Some(owner) => dao::contact::find_by_call_sign(c, owner).await?,
             None => None,
         };
 
-        let repeater = if let Some(existing) = repeaters.get(&call_sign) {
-            existing.clone()
-        } else {
-            let address = csv.get_opt(row, &address_idx).unwrap_or_default();
-            let maidenhead = csv.get_opt(row, &maidenhead_idx);
-            let mut repeater = service::repeater_system::create_repeater_system(
-                c,
-                call_sign.clone(),
-                contact.as_ref(),
-                address,
-                maidenhead,
-            )
-            .await?;
+        let name = csv.get_opt(row, &name_idx);
 
-            if let Some(name) = csv.get_opt(row, &name_idx) {
-                repeater.name = Some(name);
-                repeater = dao::repeater_system::update(c, repeater.clone()).await?;
+        // All repeaters as assumed to be active if in repeaters-*.csv list.
+        let status = csv
+            .get_opt(row, &status_idx)
+            .unwrap_or("active".to_string());
+        let address = csv.get_opt(row, &address_idx);
+        let mut maidenhead = csv
+            .get_opt(row, &maidenhead_idx)
+            .and_then(|s| MaidenheadLocator::new(s).ok());
+
+        let geocoder = service::geocoding::nominatim_geocoder_from_env()?;
+        let enriched = service::enrich_location::enrich_location(
+            geocoder,
+            &call_sign,
+            address.as_deref(),
+            maidenhead.as_ref(),
+        )
+        .await?;
+
+        let longitude = enriched.as_ref().map(|e| e.longitude.clone());
+        let latitude = enriched.as_ref().map(|e| e.latitude.clone());
+        maidenhead = maidenhead.or_else(|| enriched.map(|e| e.maidenhead.clone()));
+
+        let repeater = match existing {
+            Some(mut existing) => {
+                // Merge in new fields into system
+                existing.name = name.or_else(|| existing.name);
+                existing.owner = owner.map(|c| c.id).or_else(|| existing.owner);
+                existing.address = address.or_else(|| existing.address);
+                existing.latitude = latitude.or_else(|| existing.latitude);
+                existing.longitude = longitude.or_else(|| existing.longitude);
+                existing.maidenhead = maidenhead.or_else(|| existing.maidenhead);
+
+                dao::repeater_system::update(c, existing).await?
             }
+            None => {
+                let repeater = NewRepeaterSystem {
+                    call_sign: call_sign.clone(),
+                    owner: owner.map(|c| c.id),
+                    tech_contact: None,
+                    name,
+                    description: None,
+                    address,
+                    maidenhead,
+                    latitude,
+                    longitude,
+                    elevation_m: None,
+                    country: None,
+                    region: None,
+                    status,
+                };
 
-            if let Some(status) = csv.get_opt(row, &status_idx) {
-                repeater.status = status.to_string();
-                repeater = dao::repeater_system::update(c, repeater.clone()).await?;
+                service::repeater_system::create_repeater_system(c, repeater).await?
             }
-
-            repeaters.insert(call_sign.clone(), repeater.clone());
-            repeater
         };
 
         let service = csv.get(row, service_idx);
