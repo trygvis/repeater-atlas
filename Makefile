@@ -28,12 +28,21 @@ assets:
 		static/vendor/leaflet.markercluster/MarkerCluster.Default.css
 	rm -rf node_modules
 
-# This drops and initializes the database
+# This drops and initializes the database and updates schema.tmp.sql
 db-init:
 	cat init.sql | PGPASSWORD=admin bin/psql -U admin postgres
 	diesel migration run
+	$(MAKE) db-export-schema
 
 # Exports the schema to schema.tmp.sql. This is a complete dump of the current database schema to make it easy to get
 # a complete overview over the complete schema.
 db-export-schema:
 	docker compose exec -it postgres pg_dump -U admin -d repeater_atlas --schema-only > schema.tmp.sql
+
+db-load-data:
+	cargo run --bin load-data
+
+# Re-initializes the database with data. Drops the database and runs bin/load-data.
+db-setup:
+	$(MAKE) db-init
+	$(MAKE) db-load-data
