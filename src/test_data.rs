@@ -62,7 +62,18 @@ async fn repeater_with_site(
         })?;
 
     let geocoder = service::geocoding::nominatim_geocoder_from_env()?;
-    service::repeater_system::enrich_location(geocoder, &call_sign, &mut repeater).await?;
+    if let Some(enriched) = service::enrich_location::enrich_location(
+        geocoder,
+        &call_sign,
+        repeater.address.as_deref(),
+        repeater.maidenhead.as_ref(),
+    )
+    .await?
+    {
+        repeater.latitude = Some(enriched.latitude);
+        repeater.longitude = Some(enriched.longitude);
+        repeater.maidenhead = Some(enriched.maidenhead);
+    }
 
     info!("Creating repeater system call sign {call_sign}");
 
