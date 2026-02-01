@@ -6,6 +6,7 @@ use crate::service;
 use crate::service::repeater_service::{RepeaterService, Tone};
 use crate::{Frequency, MaidenheadLocator, RepeaterAtlasError, dao};
 use csv::StringRecord;
+use dao::repeater_service::{DstarMode, SsbSideband, ToneKind};
 use diesel::QueryResult;
 use diesel_async::AsyncPgConnection;
 use serde::Serialize;
@@ -13,25 +14,19 @@ use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use tracing::{Level, info, span};
 
-#[derive(Clone)]
-struct RepeaterFixture {
-    call_sign: String,
-    system: RepeaterSystem,
-}
-
 fn parse_ctcss(value: String) -> Option<f32> {
     // Accept "123", "123.0", "123.0 Hz".
     let first = value.split_whitespace().next().unwrap_or(value.as_str());
     first.parse::<f32>().ok()
 }
 
-async fn repeater_with_site(
+async fn create_repeater_system(
     c: &mut AsyncPgConnection,
     call_sign: impl Into<String> + std::fmt::Display,
     owner: Option<&Contact>,
     address: impl Into<String>,
     maidenhead: Option<String>,
-) -> Result<RepeaterFixture, RepeaterAtlasError> {
+) -> Result<RepeaterSystem, RepeaterAtlasError> {
     let call_sign = call_sign.into();
 
     let call_sign_row = dao::call_sign::insert(c, NewCallSign::new_repeater(&call_sign))
@@ -83,7 +78,7 @@ async fn repeater_with_site(
             RepeaterAtlasError::DatabaseOther(e, format!("repeater system call_sign={call_sign}"))
         })?;
 
-    Ok(RepeaterFixture { call_sign, system })
+    Ok(system)
 }
 
 async fn create_service(
@@ -100,7 +95,7 @@ async fn create_service(
 
 async fn narrow_fm(
     c: &mut AsyncPgConnection,
-    r: &RepeaterFixture,
+    r: &RepeaterSystem,
     label: impl Into<String>,
     tx_hz: Frequency,
     offset_hz: i64,
@@ -125,12 +120,12 @@ async fn narrow_fm(
         tx_tone,
         note: None,
     };
-    create_service(c, r.system.id, service).await
+    create_service(c, r.id, service).await
 }
 
 async fn igate(
     c: &mut AsyncPgConnection,
-    r: &RepeaterFixture,
+    r: &RepeaterSystem,
     label: impl Into<String>,
     hz: Frequency,
 ) -> Result<(), RepeaterAtlasError> {
@@ -143,12 +138,12 @@ async fn igate(
         path: None,
         note: None,
     };
-    create_service(c, r.system.id, service).await
+    create_service(c, r.id, service).await
 }
 
 async fn digipeater(
     c: &mut AsyncPgConnection,
-    r: &RepeaterFixture,
+    r: &RepeaterSystem,
     label: impl Into<String>,
     hz: Frequency,
 ) -> Result<(), RepeaterAtlasError> {
@@ -161,7 +156,7 @@ async fn digipeater(
         path: None,
         note: None,
     };
-    create_service(c, r.system.id, service).await
+    create_service(c, r.id, service).await
 }
 
 fn split_call_sign(input: String) -> (String, Option<String>) {
@@ -268,24 +263,24 @@ pub async fn dump_data(c: &mut AsyncPgConnection) -> Result<(), RepeaterAtlasErr
         note: String,
         rx_hz: Frequency,
         tx_hz: Frequency,
-        fm_bandwidth: Option<dao::repeater_service::FmBandwidth>,
-        rx_tone_kind: Option<dao::repeater_service::ToneKind>,
+        fm_bandwidth: Option<FmBandwidth>,
+        rx_tone_kind: Option<ToneKind>,
         rx_ctcss_hz: Option<f32>,
         rx_dcs_code: Option<i32>,
-        tx_tone_kind: Option<dao::repeater_service::ToneKind>,
+        tx_tone_kind: Option<ToneKind>,
         tx_ctcss_hz: Option<f32>,
         tx_dcs_code: Option<i32>,
         dmr_color_code: Option<i16>,
         dmr_repeater_id: Option<i64>,
         dmr_network: Option<String>,
-        dstar_mode: Option<dao::repeater_service::DstarMode>,
+        dstar_mode: Option<DstarMode>,
         dstar_gateway_call_sign: Option<String>,
         dstar_reflector: Option<String>,
         c4fm_wires_x_node_id: Option<i32>,
         c4fm_room: Option<String>,
-        aprs_mode: Option<dao::repeater_service::AprsMode>,
+        aprs_mode: Option<AprsMode>,
         aprs_path: Option<String>,
-        ssb_sideband: Option<dao::repeater_service::SsbSideband>,
+        ssb_sideband: Option<SsbSideband>,
     }
 
     let mut writer = csv::Writer::from_path(PathBuf::from("data/out/repeater-services.csv"))?;
@@ -520,7 +515,7 @@ pub async fn load_repeaters(
     path: PathBuf,
 ) -> Result<(), RepeaterAtlasError> {
     let mut imported = 0usize;
-    let mut repeaters = HashMap::<String, RepeaterFixture>::new();
+    let mut repeaters = HashMap::<String, RepeaterSystem>::new();
 
     let csv = load_csv(&path)?;
 
@@ -565,17 +560,17 @@ pub async fn load_repeaters(
             let address = csv.get_opt(row, &address_idx).unwrap_or_default();
             let maidenhead = csv.get_opt(row, &maidenhead_idx);
             let mut repeater =
-                repeater_with_site(c, call_sign.clone(), contact.as_ref(), address, maidenhead)
+                create_repeater_system(c, call_sign.clone(), contact.as_ref(), address, maidenhead)
                     .await?;
 
             if let Some(name) = csv.get_opt(row, &name_idx) {
-                repeater.system.name = Some(name);
-                repeater.system = dao::repeater_system::update(c, repeater.system.clone()).await?;
+                repeater.name = Some(name);
+                repeater = dao::repeater_system::update(c, repeater.clone()).await?;
             }
 
             if let Some(status) = csv.get_opt(row, &status_idx) {
-                repeater.system.status = status.to_string();
-                repeater.system = dao::repeater_system::update(c, repeater.system.clone()).await?;
+                repeater.status = status.to_string();
+                repeater = dao::repeater_system::update(c, repeater.clone()).await?;
             }
 
             repeaters.insert(call_sign.clone(), repeater.clone());
@@ -692,7 +687,7 @@ pub async fn load_repeaters(
                     network: "unknown".to_string(),
                     note: None,
                 };
-                create_service(c, repeater.system.id, service).await?;
+                create_service(c, repeater.id, service).await?;
                 imported += 1;
             }
             "C4FM" => {
@@ -726,7 +721,7 @@ pub async fn load_repeaters(
                     room: None,
                     note: None,
                 };
-                create_service(c, repeater.system.id, service).await?;
+                create_service(c, repeater.id, service).await?;
                 imported += 1;
             }
             "" => {
