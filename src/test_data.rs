@@ -20,18 +20,6 @@ fn parse_ctcss(value: String) -> Option<f32> {
     first.parse::<f32>().ok()
 }
 
-async fn create_service(
-    c: &mut AsyncPgConnection,
-    repeater_id: i64,
-    service: RepeaterService,
-) -> Result<(), RepeaterAtlasError> {
-    let label = service.label().to_string();
-    dao::repeater_service::insert(c, service.to_new_dao(repeater_id))
-        .await
-        .map(|_| ())
-        .map_err(|e| RepeaterAtlasError::DatabaseOther(e, format!("Error adding service {label}")))
-}
-
 async fn narrow_fm(
     c: &mut AsyncPgConnection,
     r: &RepeaterSystem,
@@ -59,7 +47,7 @@ async fn narrow_fm(
         tx_tone,
         note: None,
     };
-    create_service(c, r.id, service).await
+    service::repeater_service::create_service(c, r.id, service).await
 }
 
 async fn igate(
@@ -77,7 +65,7 @@ async fn igate(
         path: None,
         note: None,
     };
-    create_service(c, r.id, service).await
+    service::repeater_service::create_service(c, r.id, service).await
 }
 
 async fn digipeater(
@@ -95,7 +83,7 @@ async fn digipeater(
         path: None,
         note: None,
     };
-    create_service(c, r.id, service).await
+    service::repeater_service::create_service(c, r.id, service).await
 }
 
 fn split_call_sign(input: String) -> (String, Option<String>) {
@@ -631,7 +619,7 @@ pub async fn load_repeaters(
                     network: "unknown".to_string(),
                     note: None,
                 };
-                create_service(c, repeater.id, service).await?;
+                service::repeater_service::create_service(c, repeater.id, service).await?;
                 imported += 1;
             }
             "C4FM" => {
@@ -665,7 +653,7 @@ pub async fn load_repeaters(
                     room: None,
                     note: None,
                 };
-                create_service(c, repeater.id, service).await?;
+                service::repeater_service::create_service(c, repeater.id, service).await?;
                 imported += 1;
             }
             "" => {

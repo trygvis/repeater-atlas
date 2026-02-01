@@ -1,8 +1,9 @@
-use crate::Frequency;
 use crate::dao::repeater_service::{
     AprsMode, DstarMode, FmBandwidth, NewRepeaterServiceDao, RepeaterServiceDao,
     RepeaterServiceKind, SsbSideband, ToneKind,
 };
+use crate::{Frequency, RepeaterAtlasError, dao};
+use diesel_async::AsyncPgConnection;
 
 #[derive(Debug, Clone)]
 pub enum Tone {
@@ -430,4 +431,16 @@ fn tone_from_parts(kind: Option<ToneKind>, ctcss_hz: Option<f32>, dcs_code: Opti
 
 fn require_field<T>(value: Option<T>, field: &'static str) -> T {
     value.unwrap_or_else(|| panic!("repeater_service missing required field {field}"))
+}
+
+pub(crate) async fn create_service(
+    c: &mut AsyncPgConnection,
+    repeater_id: i64,
+    service: RepeaterService,
+) -> Result<(), RepeaterAtlasError> {
+    let label = service.label().to_string();
+    dao::repeater_service::insert(c, service.to_new_dao(repeater_id))
+        .await
+        .map(|_| ())
+        .map_err(|e| RepeaterAtlasError::DatabaseOther(e, format!("Error adding service {label}")))
 }
