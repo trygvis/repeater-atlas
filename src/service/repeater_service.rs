@@ -95,6 +95,18 @@ impl RepeaterService {
         }
     }
 
+    pub fn kind(&self) -> RepeaterServiceKind {
+        match self {
+            RepeaterService::Fm { .. } => RepeaterServiceKind::Fm,
+            RepeaterService::Am { .. } => RepeaterServiceKind::Am,
+            RepeaterService::Ssb { .. } => RepeaterServiceKind::Ssb,
+            RepeaterService::Dstar { .. } => RepeaterServiceKind::Dstar,
+            RepeaterService::Dmr { .. } => RepeaterServiceKind::Dmr,
+            RepeaterService::C4fm { .. } => RepeaterServiceKind::C4fm,
+            RepeaterService::Aprs { .. } => RepeaterServiceKind::Aprs,
+        }
+    }
+
     pub fn to_new_dao(self, repeater_id: i64) -> NewRepeaterServiceDao {
         match self {
             RepeaterService::Fm {
@@ -443,4 +455,20 @@ pub(crate) async fn create_service(
         .await
         .map(|_| ())
         .map_err(|e| RepeaterAtlasError::DatabaseOther(e, format!("Error adding service {label}")))
+}
+
+pub(crate) async fn update_service_by_label_kind(
+    c: &mut AsyncPgConnection,
+    repeater_id: i64,
+    service: RepeaterService,
+) -> Result<(), RepeaterAtlasError> {
+    let label = service.label().to_string();
+    let kind = service.kind();
+    let updated = service.to_new_dao(repeater_id);
+    dao::repeater_service::update_by_label_kind(c, repeater_id, &label, kind, &updated)
+        .await
+        .map(|_| ())
+        .map_err(|e| {
+            RepeaterAtlasError::DatabaseOther(e, format!("Error updating service {label}"))
+        })
 }

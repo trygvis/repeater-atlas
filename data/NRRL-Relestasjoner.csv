@@ -32,7 +32,7 @@
 "LA3SRR","Crossband link","Sandefjord","145.2750","433.1750","Sandefjord","JO59CE","74.4",""
 "LA3VRR","FM/C4FM","Vealøs/Skien","434.6125","432.6125","Grenland","JO49UF","74.4",""
 "LA3XRR","Crossband FM","Hvittingen/Sande","145.2250","144.6250","Tønsberg","JO59CN","74.4/433.3125",""
-"LA4ARR","FM Repeater","Hestheia/Greipstad","434.9375","4329375.0000","Kristiansand","JO38WF","123",""
+"LA4ARR","FM Repeater","Hestheia/Greipstad","434.9375",432.9375,"Kristiansand","JO38WF","123",""
 "LA4BRR","FM Repeater","Bru","434.9000","432.9000","Sandnes","JO29TA","123",""
 "LA4CRR","Crossband FM","Mandal/Djubedalsheia","144.6500","434.8250","Sandnes","JO38RC","77",""
 "LA4ERR","FM Repeater","Egerøy","434.8750","432.8750","Sandnes","JO28WK","123",""

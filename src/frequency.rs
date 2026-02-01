@@ -10,6 +10,10 @@ use std::fmt;
 #[diesel(sql_type = BigInt)]
 pub struct Frequency(i64);
 
+impl Frequency {
+    pub const ZERO: Frequency = Frequency(0);
+}
+
 impl Serialize for Frequency {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where

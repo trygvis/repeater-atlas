@@ -6,11 +6,11 @@ use crate::service::repeater_service::{RepeaterService, Tone};
 use crate::{Frequency, RepeaterAtlasError, dao};
 use crate::{MaidenheadLocator, service};
 use csv::StringRecord;
-use dao::repeater_service::{DstarMode, SsbSideband, ToneKind};
+use dao::repeater_service::{DstarMode, RepeaterServiceKind, SsbSideband, ToneKind};
 use diesel::QueryResult;
 use diesel_async::AsyncPgConnection;
 use serde::Serialize;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
 use tracing::{Level, info, span};
 
@@ -18,72 +18,6 @@ fn parse_ctcss(value: String) -> Option<f32> {
     // Accept "123", "123.0", "123.0 Hz".
     let first = value.split_whitespace().next().unwrap_or(value.as_str());
     first.parse::<f32>().ok()
-}
-
-async fn narrow_fm(
-    c: &mut AsyncPgConnection,
-    r: &RepeaterSystem,
-    label: impl Into<String>,
-    tx_hz: Frequency,
-    offset_hz: i64,
-    rx_tone: Option<f32>,
-    tx_tone: Option<f32>,
-) -> Result<(), RepeaterAtlasError> {
-    let label = label.into();
-    let rx_tone = rx_tone.map(Tone::CTCSS).unwrap_or(Tone::None);
-    let tx_tone = tx_tone.map(Tone::CTCSS).unwrap_or(Tone::None);
-    let rx_hz = tx_hz.offset(offset_hz).map_err(|e| {
-        RepeaterAtlasError::Other(
-            Box::new(e),
-            format!("invalid rx frequency for call_sign={}", r.call_sign),
-        )
-    })?;
-    let service = RepeaterService::Fm {
-        label,
-        rx_hz,
-        tx_hz,
-        bandwidth: FmBandwidth::Narrow,
-        rx_tone,
-        tx_tone,
-        note: None,
-    };
-    service::repeater_service::create_service(c, r.id, service).await
-}
-
-async fn igate(
-    c: &mut AsyncPgConnection,
-    r: &RepeaterSystem,
-    label: impl Into<String>,
-    hz: Frequency,
-) -> Result<(), RepeaterAtlasError> {
-    let label = label.into();
-    let service = RepeaterService::Aprs {
-        label,
-        rx_hz: hz,
-        tx_hz: hz,
-        mode: Some(AprsMode::Igate),
-        path: None,
-        note: None,
-    };
-    service::repeater_service::create_service(c, r.id, service).await
-}
-
-async fn digipeater(
-    c: &mut AsyncPgConnection,
-    r: &RepeaterSystem,
-    label: impl Into<String>,
-    hz: Frequency,
-) -> Result<(), RepeaterAtlasError> {
-    let label = label.into();
-    let service = RepeaterService::Aprs {
-        label,
-        rx_hz: hz,
-        tx_hz: hz,
-        mode: Some(AprsMode::Digipeater),
-        path: None,
-        note: None,
-    };
-    service::repeater_service::create_service(c, r.id, service).await
 }
 
 fn split_call_sign(input: String) -> (String, Option<String>) {
@@ -130,6 +64,117 @@ fn load_csv(path: &Path) -> Result<CsvFile, RepeaterAtlasError> {
         headers,
         data: records,
     })
+}
+
+fn normalize_nrrl_status(status: Option<String>, info: &str) -> Option<String> {
+    let status = status.unwrap_or_default().trim().to_ascii_lowercase();
+    let info = info.trim().to_ascii_lowercase();
+
+    if status.is_empty() || status == "0" {
+        if info.contains("qrt") {
+            return Some("offline".to_string());
+        }
+        return None;
+    }
+
+    match status.as_str() {
+        "qrt" => Some("offline".to_string()),
+        "planlagt" | "planned" => Some("planned".to_string()),
+        "test" => Some("test".to_string()),
+        _ => Some(status),
+    }
+}
+
+fn parse_info_ctcss(info: &str) -> Option<f32> {
+    let mut current = String::new();
+    for ch in info.chars() {
+        if ch.is_ascii_digit() || ch == '.' {
+            current.push(ch);
+        } else if !current.is_empty() {
+            if let Ok(value) = current.parse::<f32>() {
+                if (50.0..260.0).contains(&value) {
+                    return Some(value);
+                }
+            }
+            current.clear();
+        }
+    }
+
+    if !current.is_empty() {
+        if let Ok(value) = current.parse::<f32>() {
+            if (50.0..260.0).contains(&value) {
+                return Some(value);
+            }
+        }
+    }
+
+    None
+}
+
+fn parse_info_dmr_id(info: &str) -> Option<i64> {
+    let info_upper = info.to_ascii_uppercase();
+    let id_idx = info_upper.find("ID")?;
+    let mut started = false;
+    let mut digits = String::new();
+
+    for ch in info_upper[id_idx + 2..].chars() {
+        if ch.is_ascii_digit() {
+            started = true;
+            digits.push(ch);
+        } else if started {
+            break;
+        }
+    }
+
+    if digits.is_empty() {
+        None
+    } else {
+        digits.parse::<i64>().ok()
+    }
+}
+
+fn service_kind(service: &RepeaterService) -> RepeaterServiceKind {
+    match service {
+        RepeaterService::Fm { .. } => RepeaterServiceKind::Fm,
+        RepeaterService::Am { .. } => RepeaterServiceKind::Am,
+        RepeaterService::Ssb { .. } => RepeaterServiceKind::Ssb,
+        RepeaterService::Dstar { .. } => RepeaterServiceKind::Dstar,
+        RepeaterService::Dmr { .. } => RepeaterServiceKind::Dmr,
+        RepeaterService::C4fm { .. } => RepeaterServiceKind::C4fm,
+        RepeaterService::Aprs { .. } => RepeaterServiceKind::Aprs,
+    }
+}
+
+async fn add_service_if_missing(
+    c: &mut AsyncPgConnection,
+    repeater: &RepeaterSystem,
+    service: RepeaterService,
+    known_services: &mut HashSet<(String, RepeaterServiceKind)>,
+) -> Result<bool, RepeaterAtlasError> {
+    let label = service.label().to_string();
+    let kind = service_kind(&service);
+
+    if known_services.contains(&(label.clone(), kind)) {
+        service::repeater_service::update_service_by_label_kind(c, repeater.id, service).await?;
+        return Ok(false);
+    }
+
+    service::repeater_service::create_service(c, repeater.id, service).await?;
+    known_services.insert((label, kind));
+
+    Ok(true)
+}
+
+async fn load_known_services(
+    c: &mut AsyncPgConnection,
+    repeater_id: i64,
+) -> Result<HashSet<(String, RepeaterServiceKind)>, RepeaterAtlasError> {
+    let mut set = HashSet::new();
+    let existing = dao::repeater_service::select_by_repeater_id(c, repeater_id).await?;
+    for service in existing {
+        set.insert((service.label, service.kind));
+    }
+    Ok(set)
 }
 
 pub async fn dump_data(c: &mut AsyncPgConnection) -> Result<(), RepeaterAtlasError> {
@@ -255,7 +300,7 @@ pub async fn load_data(c: &mut AsyncPgConnection) -> Result<(), RepeaterAtlasErr
 
     // This is a bigger dataset, but of lower quality. Import this first, then let the latter data
     // override them
-    // load_nrrl_repeaters(c, &contacts, PathBuf::from("data/NRRL-Relestasjoner.csv")).await?;
+    load_nrrl_repeaters(c, &contacts, PathBuf::from("data/NRRL-Relestasjoner.csv")).await?;
 
     let mut repeater_files = Vec::new();
     for d in Path::new("data").read_dir()? {
@@ -281,6 +326,281 @@ pub async fn load_data(c: &mut AsyncPgConnection) -> Result<(), RepeaterAtlasErr
     if links_path.exists() {
         load_repeater_links(c, links_path).await?;
     }
+
+    Ok(())
+}
+
+pub async fn load_nrrl_repeaters(
+    c: &mut AsyncPgConnection,
+    contacts: &HashMap<String, Contact>,
+    path: PathBuf,
+) -> Result<(), RepeaterAtlasError> {
+    let mut imported = 0usize;
+    let mut known_services: HashMap<String, HashSet<(String, RepeaterServiceKind)>> =
+        HashMap::new();
+    let csv = load_csv(&path)?;
+
+    let call_sign_idx = csv.get_header("kallesignal")?;
+    let type_idx = csv.get_header("type")?;
+    let qth_idx = csv.get_header("qth");
+    let tx_frequency_idx = csv.get_header("freq tx")?;
+    let rx_frequency_idx = csv.get_header("freq rx");
+    let group_idx = csv.get_header("gruppe");
+    let locator_idx = csv.get_header("lokator");
+    let info_idx = csv.get_header("info");
+    let status_idx = csv.get_header("status");
+
+    for (_, row) in csv.data.iter().zip(0..) {
+        let call_sign_raw = match csv.get(row, call_sign_idx) {
+            Some(value) => value.to_string(),
+            None => {
+                info!(
+                    row = row + 2,
+                    reason = "missing call_sign",
+                    "Skipping NRRL repeater row"
+                );
+                continue;
+            }
+        };
+        let (call_sign, port_label) = split_call_sign(call_sign_raw);
+        if call_sign.is_empty() {
+            info!(
+                row = row + 2,
+                reason = "empty call_sign",
+                "Skipping NRRL repeater row"
+            );
+            continue;
+        }
+
+        let owner = csv
+            .get_opt(row, &group_idx)
+            .map(normalize_call_sign)
+            .and_then(|group| contacts.get(&group).cloned());
+        let address = csv.get_opt(row, &qth_idx);
+        let maidenhead = csv.get_opt(row, &locator_idx);
+
+        let info = csv.get_opt(row, &info_idx).unwrap_or_default();
+        let status =
+            normalize_nrrl_status(csv.get_opt(row, &status_idx), info.as_str()).unwrap_or_default();
+
+        let repeater = create_repeater(
+            c,
+            call_sign.clone(),
+            owner,
+            None,
+            status,
+            address,
+            maidenhead,
+        )
+        .await?;
+
+        let repeater_type = csv.get(row, type_idx).unwrap_or_default();
+        let type_lc = repeater_type.to_ascii_lowercase();
+        let ctcss = parse_info_ctcss(info.as_str());
+        let dmr_id = parse_info_dmr_id(info.as_str());
+
+        let tx_frequency = csv.get(row, tx_frequency_idx).and_then(parse_hz_field);
+        let rx_frequency = csv.get_opt(row, &rx_frequency_idx).and_then(parse_hz_field);
+
+        let tx_frequency = match tx_frequency {
+            Some(Frequency::ZERO) | None => {
+                info!(
+                    row = row + 2,
+                    call_sign = call_sign,
+                    reason = "missing tx frequency",
+                    "Skipping NRRL repeater row"
+                );
+                continue;
+            }
+            Some(value) => value,
+        };
+
+        let offset = rx_frequency
+            .map(|rx| rx.hz() - tx_frequency.hz())
+            .or_else(|| default_offset(tx_frequency));
+
+        let label = port_label.as_deref().unwrap_or(tx_frequency.band_label());
+
+        let has_aprs = type_lc.contains("aprs");
+        let has_fm = type_lc.contains("fm") || type_lc.contains("crossband");
+        let has_dmr = type_lc.contains("dmr");
+        let has_c4fm = type_lc.contains("c4fm");
+        let has_dstar = type_lc.contains("dstar") || type_lc.contains("d-star");
+
+        let service_set = if let Some(existing) = known_services.get_mut(&call_sign) {
+            existing
+        } else {
+            let set = load_known_services(c, repeater.id).await?;
+            known_services.insert(call_sign.clone(), set);
+            known_services
+                .get_mut(&call_sign)
+                .expect("service set inserted")
+        };
+
+        if has_aprs {
+            if type_lc.contains("igate") {
+                let service = RepeaterService::Aprs {
+                    label: label.to_string(),
+                    rx_hz: tx_frequency,
+                    tx_hz: tx_frequency,
+                    mode: Some(AprsMode::Igate),
+                    path: None,
+                    note: None,
+                };
+                if add_service_if_missing(c, &repeater, service, service_set).await? {
+                    imported += 1;
+                }
+                continue;
+            }
+            if type_lc.contains("digipeater") {
+                let service = RepeaterService::Aprs {
+                    label: label.to_string(),
+                    rx_hz: tx_frequency,
+                    tx_hz: tx_frequency,
+                    mode: Some(AprsMode::Digipeater),
+                    path: None,
+                    note: None,
+                };
+                if add_service_if_missing(c, &repeater, service, service_set).await? {
+                    imported += 1;
+                }
+                continue;
+            }
+            let service = RepeaterService::Aprs {
+                label: label.to_string(),
+                rx_hz: tx_frequency,
+                tx_hz: tx_frequency,
+                mode: None,
+                path: None,
+                note: None,
+            };
+            if add_service_if_missing(c, &repeater, service, service_set).await? {
+                imported += 1;
+            }
+            continue;
+        }
+
+        if has_fm {
+            let Some(offset) = offset else {
+                info!(
+                    row = row + 2,
+                    call_sign = call_sign,
+                    reason = "missing offset",
+                    "Skipping FM service"
+                );
+                continue;
+            };
+            let rx_hz = match tx_frequency.offset(offset) {
+                Ok(value) => value,
+                Err(_) => {
+                    info!(
+                        row = row + 2,
+                        call_sign = call_sign,
+                        reason = "invalid rx frequency",
+                        "Skipping FM service"
+                    );
+                    continue;
+                }
+            };
+            let rx_tone = ctcss.map(Tone::CTCSS).unwrap_or(Tone::None);
+            let tx_tone = ctcss.map(Tone::CTCSS).unwrap_or(Tone::None);
+            let service = RepeaterService::Fm {
+                label: label.to_string(),
+                rx_hz,
+                tx_hz: tx_frequency,
+                bandwidth: FmBandwidth::Narrow,
+                rx_tone,
+                tx_tone,
+                note: None,
+            };
+            if add_service_if_missing(c, &repeater, service, service_set).await? {
+                imported += 1;
+            }
+        }
+
+        if has_dmr {
+            let rx_hz =
+                rx_frequency.or_else(|| offset.and_then(|value| tx_frequency.offset(value).ok()));
+            let Some(rx_hz) = rx_hz else {
+                info!(
+                    row = row + 2,
+                    call_sign = call_sign,
+                    reason = "missing rx frequency",
+                    "Skipping DMR service"
+                );
+                continue;
+            };
+            let service = RepeaterService::Dmr {
+                label: label.to_string(),
+                rx_hz,
+                tx_hz: tx_frequency,
+                color_code: 1,
+                dmr_repeater_id: dmr_id,
+                network: "unknown".to_string(),
+                note: None,
+            };
+            if add_service_if_missing(c, &repeater, service, service_set).await? {
+                imported += 1;
+            }
+        }
+
+        if has_c4fm {
+            let rx_hz =
+                rx_frequency.or_else(|| offset.and_then(|value| tx_frequency.offset(value).ok()));
+            let Some(rx_hz) = rx_hz else {
+                info!(
+                    row = row + 2,
+                    call_sign = call_sign,
+                    reason = "missing rx frequency",
+                    "Skipping C4FM service"
+                );
+                continue;
+            };
+            let service = RepeaterService::C4fm {
+                label: label.to_string(),
+                rx_hz,
+                tx_hz: tx_frequency,
+                wires_x_node_id: None,
+                room: None,
+                note: None,
+            };
+            if add_service_if_missing(c, &repeater, service, service_set).await? {
+                imported += 1;
+            }
+        }
+
+        if has_dstar {
+            let rx_hz =
+                rx_frequency.or_else(|| offset.and_then(|value| tx_frequency.offset(value).ok()));
+            let Some(rx_hz) = rx_hz else {
+                info!(
+                    row = row + 2,
+                    call_sign = call_sign,
+                    reason = "missing rx frequency",
+                    "Skipping D-STAR service"
+                );
+                continue;
+            };
+            let service = RepeaterService::Dstar {
+                label: label.to_string(),
+                rx_hz,
+                tx_hz: tx_frequency,
+                mode: DstarMode::Dv,
+                gateway_call_sign: None,
+                reflector: None,
+                note: None,
+            };
+            if add_service_if_missing(c, &repeater, service, service_set).await? {
+                imported += 1;
+            }
+        }
+    }
+
+    info!(
+        file = path.to_string_lossy().as_ref(),
+        imported = imported,
+        "Imported NRRL repeater data"
+    );
 
     Ok(())
 }
@@ -442,6 +762,8 @@ pub async fn load_repeaters(
     path: PathBuf,
 ) -> Result<(), RepeaterAtlasError> {
     let mut imported = 0usize;
+    let mut known_services: HashMap<String, HashSet<(String, RepeaterServiceKind)>> =
+        HashMap::new();
 
     let csv = load_csv(&path)?;
 
@@ -499,6 +821,16 @@ pub async fn load_repeaters(
         )
         .await?;
 
+        let service_set = if let Some(existing) = known_services.get_mut(&call_sign) {
+            existing
+        } else {
+            let set = load_known_services(c, repeater.id).await?;
+            known_services.insert(call_sign.clone(), set);
+            known_services
+                .get_mut(&call_sign)
+                .expect("service set inserted")
+        };
+
         let service = csv.get(row, service_idx);
         let tx_frequency = csv.get(row, tx_frequency_idx).and_then(parse_hz_field);
 
@@ -537,17 +869,32 @@ pub async fn load_repeaters(
                     continue;
                 };
                 let label = port_label.as_deref().unwrap_or(tx_frequency.band_label());
-                narrow_fm(
-                    c,
-                    &repeater,
-                    label,
-                    tx_frequency,
-                    offset,
-                    ctcss_rx,
-                    ctcss_tx,
-                )
-                .await?;
-                imported += 1;
+                let rx_hz = match tx_frequency.offset(offset) {
+                    Ok(value) => value,
+                    Err(_) => {
+                        info!(
+                            row = row + 2,
+                            call_sign = call_sign,
+                            reason = "invalid rx frequency",
+                            "Skipping repeater row"
+                        );
+                        continue;
+                    }
+                };
+                let rx_tone = ctcss_rx.map(Tone::CTCSS).unwrap_or(Tone::None);
+                let tx_tone = ctcss_tx.map(Tone::CTCSS).unwrap_or(Tone::None);
+                let service = RepeaterService::Fm {
+                    label: label.to_string(),
+                    rx_hz,
+                    tx_hz: tx_frequency,
+                    bandwidth: FmBandwidth::Narrow,
+                    rx_tone,
+                    tx_tone,
+                    note: None,
+                };
+                if add_service_if_missing(c, &repeater, service, service_set).await? {
+                    imported += 1;
+                }
             }
             "APRS_IGATE" => {
                 let Some(tx_frequency) = tx_frequency else {
@@ -560,8 +907,17 @@ pub async fn load_repeaters(
                     continue;
                 };
                 let label = port_label.as_deref().unwrap_or(tx_frequency.band_label());
-                igate(c, &repeater, label, tx_frequency).await?;
-                imported += 1;
+                let service = RepeaterService::Aprs {
+                    label: label.to_string(),
+                    rx_hz: tx_frequency,
+                    tx_hz: tx_frequency,
+                    mode: Some(AprsMode::Igate),
+                    path: None,
+                    note: None,
+                };
+                if add_service_if_missing(c, &repeater, service, service_set).await? {
+                    imported += 1;
+                }
             }
             "APRS_DIGIPEATER" => {
                 let Some(tx_frequency) = tx_frequency else {
@@ -574,8 +930,17 @@ pub async fn load_repeaters(
                     continue;
                 };
                 let label = port_label.as_deref().unwrap_or(tx_frequency.band_label());
-                digipeater(c, &repeater, label, tx_frequency).await?;
-                imported += 1;
+                let service = RepeaterService::Aprs {
+                    label: label.to_string(),
+                    rx_hz: tx_frequency,
+                    tx_hz: tx_frequency,
+                    mode: Some(AprsMode::Digipeater),
+                    path: None,
+                    note: None,
+                };
+                if add_service_if_missing(c, &repeater, service, service_set).await? {
+                    imported += 1;
+                }
             }
             "DMR" => {
                 let (Some(tx_frequency), Some(offset)) = (tx_frequency, offset) else {
@@ -609,8 +974,9 @@ pub async fn load_repeaters(
                     network: "unknown".to_string(),
                     note: None,
                 };
-                service::repeater_service::create_service(c, repeater.id, service).await?;
-                imported += 1;
+                if add_service_if_missing(c, &repeater, service, service_set).await? {
+                    imported += 1;
+                }
             }
             "C4FM" => {
                 let (Some(tx_frequency), Some(offset)) = (tx_frequency, offset) else {
@@ -643,8 +1009,9 @@ pub async fn load_repeaters(
                     room: None,
                     note: None,
                 };
-                service::repeater_service::create_service(c, repeater.id, service).await?;
-                imported += 1;
+                if add_service_if_missing(c, &repeater, service, service_set).await? {
+                    imported += 1;
+                }
             }
             "" => {
                 info!(

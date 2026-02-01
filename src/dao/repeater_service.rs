@@ -9,7 +9,7 @@ use std::io::Write;
 
 use crate::Frequency;
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq, AsExpression, FromSqlRow, Serialize)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, AsExpression, FromSqlRow, Serialize)]
 #[diesel(sql_type = crate::schema::sql_types::RepeaterServiceKind)]
 pub enum RepeaterServiceKind {
     Fm,
@@ -245,7 +245,7 @@ impl FromSql<crate::schema::sql_types::SsbSideband, Pg> for SsbSideband {
     }
 }
 
-#[derive(Insertable)]
+#[derive(Insertable, AsChangeset)]
 #[diesel(table_name = crate::schema::repeater_service)]
 pub struct NewRepeaterServiceDao {
     pub repeater_id: i64,
@@ -319,6 +319,50 @@ pub async fn insert(
         .returning(RepeaterServiceDao::as_returning())
         .get_result(c)
         .await
+}
+
+pub async fn update_by_label_kind(
+    c: &mut AsyncPgConnection,
+    repeater_id: i64,
+    label: &str,
+    kind: RepeaterServiceKind,
+    updated_service: &NewRepeaterServiceDao,
+) -> QueryResult<RepeaterServiceDao> {
+    use crate::schema::repeater_service::dsl as s;
+
+    diesel::update(
+        s::repeater_service
+            .filter(s::repeater_id.eq(repeater_id))
+            .filter(s::label.eq(label))
+            .filter(s::kind.eq(kind)),
+    )
+    .set((
+        s::enabled.eq(updated_service.enabled),
+        s::note.eq(&updated_service.note),
+        s::rx_hz.eq(updated_service.rx_hz),
+        s::tx_hz.eq(updated_service.tx_hz),
+        s::fm_bandwidth.eq(updated_service.fm_bandwidth),
+        s::rx_tone_kind.eq(updated_service.rx_tone_kind),
+        s::rx_ctcss_hz.eq(updated_service.rx_ctcss_hz),
+        s::rx_dcs_code.eq(updated_service.rx_dcs_code),
+        s::tx_tone_kind.eq(updated_service.tx_tone_kind),
+        s::tx_ctcss_hz.eq(updated_service.tx_ctcss_hz),
+        s::tx_dcs_code.eq(updated_service.tx_dcs_code),
+        s::dmr_color_code.eq(updated_service.dmr_color_code),
+        s::dmr_repeater_id.eq(updated_service.dmr_repeater_id),
+        s::dmr_network.eq(updated_service.dmr_network.as_deref()),
+        s::dstar_mode.eq(updated_service.dstar_mode),
+        s::dstar_gateway_call_sign.eq(updated_service.dstar_gateway_call_sign.as_deref()),
+        s::dstar_reflector.eq(updated_service.dstar_reflector.as_deref()),
+        s::c4fm_wires_x_node_id.eq(updated_service.c4fm_wires_x_node_id),
+        s::c4fm_room.eq(updated_service.c4fm_room.as_deref()),
+        s::aprs_mode.eq(updated_service.aprs_mode),
+        s::aprs_path.eq(updated_service.aprs_path.as_deref()),
+        s::ssb_sideband.eq(updated_service.ssb_sideband),
+    ))
+    .returning(RepeaterServiceDao::as_returning())
+    .get_result(c)
+    .await
 }
 
 pub async fn select_by_repeater_id(
