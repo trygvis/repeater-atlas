@@ -768,13 +768,13 @@ pub async fn load_repeaters(
     let csv = load_csv(&path)?;
 
     let call_sign_idx = csv.get_header("call_sign")?;
-    let owner_idx = csv.get_header("owner")?;
+    let owner_idx = &csv.get_header("owner");
     let address_idx = csv.get_header("address");
     let maidenhead_idx = csv.get_header("maidenhead");
     let name_idx = csv.get_header("name");
     let status_idx = csv.get_header("status");
-    let service_idx = csv.get_header("service")?;
-    let tx_frequency_idx = csv.get_first_header(vec!["tx", "tx_hz", "tx_mhz"])?;
+    let service_idx = csv.get_header("service");
+    let tx_frequency_idx = csv.get_first_header(vec!["tx", "tx_hz", "tx_mhz"]);
     let rx_frequency_idx = csv.get_first_header(vec!["rx", "rx_hz", "rx_mhz"]);
     let offset_idx = csv.get_header("offset");
     let ctcss_tx_idx = csv.get_header("ctcss_tx").or(csv.get_header("ctcss"));
@@ -795,7 +795,7 @@ pub async fn load_repeaters(
         };
         let (call_sign, port_label) = split_call_sign(call_sign_raw);
 
-        let owner = csv.get(row, owner_idx).map(normalize_call_sign);
+        let owner = csv.get_opt(row, owner_idx).map(normalize_call_sign);
         let owner = match owner {
             Some(owner) => dao::contact::find_by_call_sign(c, owner).await?,
             None => None,
@@ -831,8 +831,12 @@ pub async fn load_repeaters(
                 .expect("service set inserted")
         };
 
-        let service = csv.get(row, service_idx);
-        let tx_frequency = csv.get(row, tx_frequency_idx).and_then(parse_hz_field);
+        if service_idx.is_err() {
+            continue;
+        }
+
+        let service = csv.get_opt(row, &service_idx);
+        let tx_frequency = csv.get_opt(row, &tx_frequency_idx).and_then(parse_hz_field);
 
         let rx_frequency = csv.get_opt(row, &rx_frequency_idx).and_then(parse_hz_field);
 
