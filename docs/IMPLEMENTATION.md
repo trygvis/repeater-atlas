@@ -28,6 +28,7 @@
 - Templates: Askama (compile-time SSR).
 - Frontend: Server-rendered HTML with HTMX for progressive enhancement.
 - Database: PostgreSQL + Diesel (with r2d2 pool).
+- Spatial: PostGIS extension for range queries.
 - Map provider: OpenStreetMap public tiles (Leaflet), swappable later.
 - Hosting: Containers (Docker/OCI).
 - Auth: Session cookies (signed/encrypted), Argon2 password hashing.

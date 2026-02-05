@@ -1,4 +1,5 @@
 use diesel::prelude::*;
+use diesel::{QueryableByName, sql_query};
 use diesel_async::{AsyncPgConnection, RunQueryDsl};
 
 use crate::MaidenheadLocator;
@@ -134,6 +135,102 @@ pub async fn select_with_call_sign(c: &mut AsyncPgConnection) -> QueryResult<Vec
         .order_by(r::call_sign.asc())
         .get_results(c)
         .await
+}
+
+#[derive(QueryableByName)]
+struct RepeaterSystemRow {
+    #[diesel(sql_type = diesel::sql_types::BigInt)]
+    id: i64,
+    #[diesel(sql_type = diesel::sql_types::Text)]
+    call_sign: String,
+    #[diesel(sql_type = diesel::sql_types::Nullable<diesel::sql_types::BigInt>)]
+    owner: Option<i64>,
+    #[diesel(sql_type = diesel::sql_types::Nullable<diesel::sql_types::BigInt>)]
+    tech_contact: Option<i64>,
+    #[diesel(sql_type = diesel::sql_types::Nullable<diesel::sql_types::Text>)]
+    name: Option<String>,
+    #[diesel(sql_type = diesel::sql_types::Nullable<diesel::sql_types::Text>)]
+    description: Option<String>,
+    #[diesel(sql_type = diesel::sql_types::Nullable<diesel::sql_types::Text>)]
+    address: Option<String>,
+    #[diesel(sql_type = diesel::sql_types::Nullable<diesel::sql_types::Text>)]
+    maidenhead: Option<MaidenheadLocator>,
+    #[diesel(sql_type = diesel::sql_types::Nullable<diesel::sql_types::Double>)]
+    latitude: Option<f64>,
+    #[diesel(sql_type = diesel::sql_types::Nullable<diesel::sql_types::Double>)]
+    longitude: Option<f64>,
+    #[diesel(sql_type = diesel::sql_types::Nullable<diesel::sql_types::Integer>)]
+    elevation_m: Option<i32>,
+    #[diesel(sql_type = diesel::sql_types::Nullable<diesel::sql_types::Text>)]
+    country: Option<String>,
+    #[diesel(sql_type = diesel::sql_types::Nullable<diesel::sql_types::Text>)]
+    region: Option<String>,
+    #[diesel(sql_type = diesel::sql_types::Text)]
+    status: String,
+}
+
+impl From<RepeaterSystemRow> for RepeaterSystem {
+    fn from(row: RepeaterSystemRow) -> Self {
+        Self {
+            id: row.id,
+            call_sign: row.call_sign,
+            owner: row.owner,
+            tech_contact: row.tech_contact,
+            name: row.name,
+            description: row.description,
+            address: row.address,
+            maidenhead: row.maidenhead,
+            latitude: row.latitude,
+            longitude: row.longitude,
+            elevation_m: row.elevation_m,
+            country: row.country,
+            region: row.region,
+            status: row.status,
+        }
+    }
+}
+
+pub async fn select_within_radius(
+    c: &mut AsyncPgConnection,
+    center_lat: f64,
+    center_lon: f64,
+    radius_meters: f64,
+) -> QueryResult<Vec<RepeaterSystem>> {
+    let rows: Vec<RepeaterSystemRow> = sql_query(
+        r#"
+        SELECT
+            id,
+            call_sign,
+            owner,
+            tech_contact,
+            name,
+            description,
+            address,
+            maidenhead,
+            latitude,
+            longitude,
+            elevation_m,
+            country,
+            region,
+            status
+        FROM repeater_system
+        WHERE latitude IS NOT NULL
+          AND longitude IS NOT NULL
+          AND ST_DWithin(
+                geography(ST_MakePoint(longitude, latitude)),
+                geography(ST_MakePoint($1, $2)),
+                $3
+              )
+        ORDER BY call_sign ASC
+        "#,
+    )
+    .bind::<diesel::sql_types::Double, _>(center_lon)
+    .bind::<diesel::sql_types::Double, _>(center_lat)
+    .bind::<diesel::sql_types::Double, _>(radius_meters)
+    .get_results(c)
+    .await?;
+
+    Ok(rows.into_iter().map(RepeaterSystem::from).collect())
 }
 
 pub async fn select_with_call_sign_by_owner(

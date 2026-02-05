@@ -23,7 +23,8 @@
 ### HTTP Integration Tests
 
 - Spin up Axum app in test mode.
-- Test public routes (`/`, `/repeater`, `/organization`, `/call-sign/:call_sign`).
+- Test public routes (`/`, `/repeater`, `/organization`,
+  `/call-sign/:call_sign`).
 - Test admin auth flow and permissions.
 - Verify HTMX partial responses for filters.
 
@@ -49,4 +50,5 @@
   before continuing.
 - All tests pass on a clean checkout.
 - Migrations succeed on empty database.
+- Local database requires PostGIS enabled (extension or image).
 - Public pages render without login.

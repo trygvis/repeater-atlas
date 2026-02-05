@@ -52,7 +52,8 @@ multiple RF ports (different bands, cross-band links, simplex nodes, etc.).
 - **Repeater system:** The physical installation people refer to (callsign,
   owner/club, site).
 - **Site:** The location metadata (lat/lon, address, grid locator). We keep this
-  at the system level for now.
+  at the system level for now, and use a PostGIS geography index derived from
+  (longitude, latitude) for range queries.
 - **RF port / channel:** A specific RX/TX frequency plan (may be same band or
   cross-band).
 - **Service / feature:** A capability running on a port (FM, DMR, D-STAR, APRS,
@@ -111,6 +112,12 @@ CREATE TABLE repeater_system (
   region        TEXT,
   status        TEXT NOT NULL DEFAULT 'active'
 );
+
+-- Spatial index for range queries (derived from lon/lat).
+CREATE INDEX repeater_system_geo_idx
+  ON repeater_system
+  USING GIST (geography(ST_MakePoint(longitude, latitude)))
+  WHERE latitude IS NOT NULL AND longitude IS NOT NULL;
 
 CREATE TYPE repeater_service_kind AS ENUM (
   'fm',

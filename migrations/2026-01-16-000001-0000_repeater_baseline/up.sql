@@ -20,6 +20,11 @@ CREATE TABLE repeater_system
     status       TEXT   NOT NULL DEFAULT 'active'
 );
 
+CREATE INDEX repeater_system_geo_idx
+    ON repeater_system
+    USING GIST (geography(ST_MakePoint(longitude, latitude)))
+    WHERE latitude IS NOT NULL AND longitude IS NOT NULL;
+
 CREATE TYPE REPEATER_SERVICE_KIND AS ENUM (
     'fm',
     'am',

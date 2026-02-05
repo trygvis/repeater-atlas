@@ -55,6 +55,7 @@ while the public should be able to access the data without logins.
 - Web-only UI; no native apps in the initial release.
 - English is the primary language; translations can be added later.
 - Single global instance; clubs use CNAMEs for branded read-only views.
+- PostGIS extension is available for spatial range queries.
 
 ## High-Level Architecture
 
@@ -62,7 +63,8 @@ Describe the components and their interactions. Initial strawman:
 
 - Client/UI: Public web app with listings, detail pages, and map view.
 - Service: Backend providing SSR pages and admin CRUD.
-- Data store: Repeater data, club/user membership, and changelog entries.
+- Data store: Repeater data, club/user membership, changelog entries, and
+  spatial queries via PostGIS.
 - External integrations: Optional map tile provider and geocoding.
 
 ## Data Model (if applicable)
@@ -73,7 +75,8 @@ Describe the components and their interactions. Initial strawman:
   via contact roles.
 - Core fields (MVP draft): callsign, location (lat/lon, region), band, RX/TX
   freq, offset, tone (CTCSS/DCS), modes, power, status, description, changelog,
-  last-updated.
+  last-updated. Spatial lookups use a PostGIS geography index derived from
+  lat/lon.
 
 ## Interfaces
 
