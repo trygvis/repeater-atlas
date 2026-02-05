@@ -11,3 +11,7 @@ assignee: Trygve Laugstøl
 # Show list of close by repeaters
 
 Same list as shown on map, sorted by distance.
+
+Show after "linked repeaters".
+
+Update page specification doc for "repeater detail"
