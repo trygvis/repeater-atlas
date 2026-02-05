@@ -2,6 +2,7 @@ use crate::dao::call_sign::NewCallSign;
 use crate::dao::contact::{Contact, ContactKind, NewContact};
 use crate::dao::repeater_service::{AprsMode, FmBandwidth};
 use crate::dao::repeater_system::{NewRepeaterSystem, RepeaterSystem};
+use crate::service::enrich_location::EnrichedLocation;
 use crate::service::repeater_service::{RepeaterService, Tone};
 use crate::{Frequency, RepeaterAtlasError, dao};
 use crate::{MaidenheadLocator, service};
@@ -1060,17 +1061,13 @@ async fn create_repeater(
     let maidenhead = maidenhead.and_then(|s| MaidenheadLocator::new(s).ok());
 
     let geocoder = service::geocoding::nominatim_geocoder_from_env()?;
-    let enriched = service::enrich_location::enrich_location(
-        geocoder,
-        &call_sign,
-        address.as_deref(),
-        maidenhead.as_ref(),
-    )
-    .await?;
-
-    let longitude = enriched.as_ref().map(|e| e.longitude.clone());
-    let latitude = enriched.as_ref().map(|e| e.latitude.clone());
-    let maidenhead = maidenhead.or_else(|| enriched.map(|e| e.maidenhead.clone()));
+    let EnrichedLocation {
+        address,
+        maidenhead,
+        latitude,
+        longitude,
+    } = service::enrich_location::enrich_location(geocoder, &call_sign, address, maidenhead)
+        .await?;
 
     match existing {
         Some(mut existing) => {

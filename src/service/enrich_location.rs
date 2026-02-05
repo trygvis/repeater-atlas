@@ -6,53 +6,77 @@ use tracing::{info, warn};
 const DEFAULT_MAIDENHEAD_LEN: usize = 6;
 
 pub struct EnrichedLocation {
-    pub latitude: f64,
-    pub longitude: f64,
-    pub maidenhead: MaidenheadLocator,
+    pub address: Option<String>,
+    pub maidenhead: Option<MaidenheadLocator>,
+    pub latitude: Option<f64>,
+    pub longitude: Option<f64>,
+}
+
+impl EnrichedLocation {
+    const NONE: EnrichedLocation = EnrichedLocation {
+        address: None,
+        maidenhead: None,
+        latitude: None,
+        longitude: None,
+    };
 }
 
 pub async fn enrich_location<G: Geocoder + ?Sized>(
     geocoder: &G,
     call_sign: &str,
-    address: Option<&str>,
-    maidenhead: Option<&MaidenheadLocator>,
-) -> Result<Option<EnrichedLocation>, RepeaterAtlasError> {
-    if maidenhead.is_some() {
-        return Ok(None);
+    address: Option<String>,
+    maidenhead: Option<MaidenheadLocator>,
+) -> Result<EnrichedLocation, RepeaterAtlasError> {
+    // Clean the address
+    let address = address
+        .map(|s| s.trim().to_string())
+        .filter(|s| !s.is_empty());
+
+    // If we have a maidenhead, resolve to lat/lon and return everything
+    if let Some(maidenhead) = maidenhead {
+        let (long, lat) = maidenhead.clone().longlat();
+        return Ok(EnrichedLocation {
+            address: address.map(|s| s.to_string()),
+            maidenhead: Some(maidenhead),
+            latitude: Some(lat),
+            longitude: Some(long),
+        });
     }
 
-    let Some(address) = address else {
-        return Ok(None);
-    };
-    if address.trim().is_empty() {
-        return Ok(None);
+    match address {
+        None => Ok(EnrichedLocation::NONE),
+        Some(address) => {
+            let Some(location) = geocoder.geocode_one(address.as_str()).await? else {
+                warn!(%call_sign, %address, "Failed to geocode repeater address");
+                return Ok(EnrichedLocation::NONE);
+            };
+
+            // maidenhead crate uses (lon, lat).
+            let grid = maidenhead::longlat_to_grid(
+                location.longitude,
+                location.latitude,
+                DEFAULT_MAIDENHEAD_LEN,
+            )
+            .map_err(|e| {
+                RepeaterAtlasError::Other(Box::new(e), "failed to compute maidenhead".to_string())
+            })?;
+
+            let locator = MaidenheadLocator::new(grid)
+                .map_err(|e| {
+                    warn!(%call_sign, %address, "Failed to compute maidenhead location: {e}");
+                })
+                .ok();
+
+            info!("Resolved {address} to {location}");
+
+            Ok(EnrichedLocation {
+                address: Some(address.to_string()),
+                maidenhead: locator,
+                latitude: Some(location.latitude),
+                longitude: Some(location.longitude),
+            })
+        }
     }
-
-    let Some(location) = geocoder.geocode_one(address).await? else {
-        warn!(%call_sign, %address, "Failed to geocode repeater address");
-        return Ok(None);
-    };
-
-    // maidenhead crate uses (lon, lat).
-    let grid = maidenhead::longlat_to_grid(
-        location.longitude,
-        location.latitude,
-        DEFAULT_MAIDENHEAD_LEN,
-    )
-    .map_err(|e| {
-        RepeaterAtlasError::Other(Box::new(e), "failed to compute maidenhead".to_string())
-    })?;
-    let locator = MaidenheadLocator::new(grid).map_err(|e| {
-        RepeaterAtlasError::Other(Box::new(e), "failed to canonicalize maidenhead".to_string())
-    })?;
-
-    info!("Resolved {address} to {location}, {locator}");
-
-    Ok(Some(EnrichedLocation {
-        latitude: location.latitude,
-        longitude: location.longitude,
-        maidenhead: locator,
-    }))
 }
 
 #[cfg(test)]
@@ -78,24 +102,31 @@ mod tests {
         }
     }
 
+    // Trondheim-ish.
+    const TRONDHEIM: crate::service::geocoding::GeocodedLocation = crate::service::geocoding::GeocodedLocation {
+        latitude: 63.4305,
+        longitude: 10.3951,
+    };
+
     #[tokio::test]
     async fn enriches_location_when_maidenhead_missing() {
         let geocoder = FakeGeocoder {
             calls: AtomicUsize::new(0),
-            // Trondheim-ish.
-            location: Some(crate::service::geocoding::GeocodedLocation {
-                latitude: 63.4305,
-                longitude: 10.3951,
-            }),
+            location: Some(TRONDHEIM),
         };
 
-        let changed = enrich_location(&geocoder, "LA0ZZZ", Some("Trondheim, Norway"), None)
-            .await
-            .unwrap();
-        let changed = changed.expect("location should be enriched");
-        assert!(changed.maidenhead.as_str().len() >= DEFAULT_MAIDENHEAD_LEN);
-        assert_eq!(changed.latitude, 63.4305);
-        assert_eq!(changed.longitude, 10.3951);
+        let changed = enrich_location(
+            &geocoder,
+            "LA0ZZZ",
+            Some("Trondheim, Norway".to_string()),
+            None,
+        )
+        .await
+        .unwrap();
+        assert_eq!(changed.address, Some("Trondheim, Norway".to_string()));
+        assert_eq!(changed.maidenhead, Some(MaidenheadLocator::new("JP53ek").unwrap()));
+        assert_eq!(changed.latitude, Some(63.4305));
+        assert_eq!(changed.longitude, Some(10.3951));
         assert_eq!(geocoder.calls.load(Ordering::SeqCst), 1);
     }
 
@@ -103,22 +134,22 @@ mod tests {
     async fn does_nothing_when_maidenhead_present() {
         let geocoder = FakeGeocoder {
             calls: AtomicUsize::new(0),
-            location: Some(crate::service::geocoding::GeocodedLocation {
-                latitude: 63.4305,
-                longitude: 10.3951,
-            }),
+            location: Some(TRONDHEIM),
         };
         let maidenhead = MaidenheadLocator::new("JP53fi").unwrap();
 
         let changed = enrich_location(
             &geocoder,
             "LA0ZZZ",
-            Some("Trondheim, Norway"),
-            Some(&maidenhead),
+            Some("Trondheim, Norway".to_string()),
+            Some(maidenhead.clone()),
         )
         .await
         .unwrap();
-        assert!(changed.is_none());
+        assert_eq!(changed.address, Some("Trondheim, Norway".to_string()));
+        assert_eq!(changed.maidenhead, Some(maidenhead));
+        assert_eq!(changed.latitude, Some(63.354166666666686));
+        assert_eq!(changed.longitude, Some(10.458333333333314));
         assert_eq!(geocoder.calls.load(Ordering::SeqCst), 0);
     }
 }

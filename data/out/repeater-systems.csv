@@ -1,483 +1,483 @@
 call_sign,owner,tech_contact,name,description,address,maidenhead,latitude,longitude,elevation_m,country,region,status
-JW9SRR,,,,,Svalbard/Skolten,JQ88hd,,,,,,
-LA1HRR,,,,,Halden,JO59qc,,,,,,
-LA1KRR,,,,,Kolsås,JO59gw,,,,,,
-LA1OS,LA4O,,,,Oslo sentrum,JO59iv,,,,,,QRV
-LA1RRR,,,,,Heggedal,JO59es,,,,,,
-LA1SRR,,,,,Kornsjø,JO58tw,,,,,,offline
-LA1TRR,,,,,Halden,JO59qc,,,,,,
-LA1XRR,,,,,Røyken,JO59ms,,,,,,offline
-LA1ZRR,,,,,Røyken,JO59es,,,,,,
-LA2BRR,,,,,Bislingen,JP50hf,,,,,,
-LA2DRR,,,,,Raufoss,JP50ir,,,,,,
-LA2ERR,,,,,Gardermoen portabel,,,,,,,
-LA2FRR,,,,,Oppegård,JO59js,,,,,,
-LA2HRR,,,,,Geitberget,JP42sf,,,,,,
-LA2JRR,,,,,Jetta,JP41pv,,,,,,
-LA2KRR,,,,,Rafjellet,JP60bh,,,,,,
-LA2LRR,,,,,Mjøsa portabel,JP50ow,,,,,,
-LA2RRR,,,,,Holtberget,JP50xe,,,,,,
-LA2TRR,,,,,Kråkhugu,JP51ca,,,,,,offline
-LA2XRR,,,,,Rafjellet,JP60bh,,,,,,
-LA2YRR,,,,,Stangåsen/Oppegård,JO59js,,,,,,
-LA3ARR,,,,,Hillestad,JO49xn,,,,,,
-LA3BRR,LA1T,,,,Drangedal,JO49lc,,,,,,active
-LA3DRR,LA1T,,,,"Vealøs, Skien",JO49uf,,,,,,active
-LA3ERR,,,,,Stokke,JO59de,,,,,,
-LA3FRR,,,,,Halden,JO59qc,,,,,,
-LA3GRR,LA1T,,,,Gaustatoppen,JO49hu,,,,,,active
-LA3HRR,,,,,Geilotoppen,JP40cn,,,,,,
-LA3JRR,LA1T,,,,"Kvelde, Jordstøyp",JO49xe,,,,,,active
-LA3KRR,,,,,Vealøs/Skien,JO49uf,,,,,,
-LA3NRR,LA1T,,,,"Notodden, Sem",JO49on,,,,,,active
-LA3RRR,,,,,Vestre Buttentjern,JP50df,,,,,,
-LA3SRR,LA1T,,,,Korpås (Brunlanes),JO59xa,,,,,,active
-LA3VRR,LA1T,,,,"Skien, Vealøs",JO59uf,,,,,,active
-LA3XRR,LA1T,,,,Hvittingen,JO59cn,,,,,,active
-LA4A_,LA4A,,,,"Fjæreheia, Grimstad",JO48gj,,,,,,active
-LA4ARR,LA9K,,,,"Hesteheia, Kristiansand",JO38wf,,,,,,QRV
-LA4BRR,,,,,Bru,JO29ta,,,,,,
-LA4CRR,,,,,Mandal/Djubedalsheia,JO38rc,,,,,,
-LA4ERR,,,,,Egerøy,JO28wk,,,,,,
+JW9SRR,,,,,Svalbard/Skolten,JQ88hd,78.14583333333334,16.625,,,,
+LA1HRR,,,,,Halden,JO59qc,59.104166666666686,11.375,,,,
+LA1KRR,,,,,Kolsås,JO59gw,59.9375,10.541666666666657,,,,
+LA1OS,LA4O,,,,Oslo sentrum,JO59iv,59.89583333333334,10.708333333333314,,,,QRV
+LA1RRR,,,,,Heggedal,JO59es,59.77083333333334,10.375,,,,
+LA1SRR,,,,,Kornsjø,JO58tw,58.9375,11.625,,,,offline
+LA1TRR,,,,,Halden,JO59qc,59.104166666666686,11.375,,,,
+LA1XRR,,,,,Røyken,JO59ms,59.77083333333334,11.041666666666657,,,,offline
+LA1ZRR,,,,,Røyken,JO59es,59.77083333333334,10.375,,,,
+LA2BRR,,,,,Bislingen,JP50hf,60.229166666666686,10.625,,,,
+LA2DRR,,,,,Raufoss,JP50ir,60.729166666666686,10.708333333333314,,,,
+LA2ERR,,,,,,,,,,,,
+LA2FRR,,,,,Oppegård,JO59js,59.77083333333334,10.791666666666657,,,,
+LA2HRR,,,,,Geitberget,JP42sf,62.229166666666686,9.541666666666657,,,,
+LA2JRR,,,,,Jetta,JP41pv,61.89583333333334,9.291666666666657,,,,
+LA2KRR,,,,,Rafjellet,JP60bh,60.3125,12.125,,,,
+LA2LRR,,,,,Mjøsa portabel,JP50ow,60.9375,11.208333333333314,,,,
+LA2RRR,,,,,Holtberget,JP50xe,60.1875,11.958333333333314,,,,
+LA2TRR,,,,,Kråkhugu,JP51ca,61.02083333333334,10.208333333333314,,,,offline
+LA2XRR,,,,,Rafjellet,JP60bh,60.3125,12.125,,,,
+LA2YRR,,,,,Stangåsen/Oppegård,JO59js,59.77083333333334,10.791666666666657,,,,
+LA3ARR,,,,,Hillestad,JO49xn,59.5625,9.958333333333314,,,,
+LA3BRR,LA1T,,,,Drangedal,JO49lc,59.104166666666686,8.958333333333314,,,,active
+LA3DRR,LA1T,,,,"Vealøs, Skien",JO49uf,59.229166666666686,9.708333333333314,,,,active
+LA3ERR,,,,,Stokke,JO59de,59.1875,10.291666666666657,,,,
+LA3FRR,,,,,Halden,JO59qc,59.104166666666686,11.375,,,,
+LA3GRR,LA1T,,,,Gaustatoppen,JO49hu,59.854166666666686,8.625,,,,active
+LA3HRR,,,,,Geilotoppen,JP40cn,60.5625,8.208333333333314,,,,
+LA3JRR,LA1T,,,,"Kvelde, Jordstøyp",JO49xe,59.1875,9.958333333333314,,,,active
+LA3KRR,,,,,Vealøs/Skien,JO49uf,59.229166666666686,9.708333333333314,,,,
+LA3NRR,LA1T,,,,"Notodden, Sem",JO49on,59.5625,9.208333333333314,,,,active
+LA3RRR,,,,,Vestre Buttentjern,JP50df,60.229166666666686,10.291666666666657,,,,
+LA3SRR,LA1T,,,,Korpås (Brunlanes),JO59xa,59.02083333333334,11.958333333333314,,,,active
+LA3VRR,LA1T,,,,"Skien, Vealøs",JO59uf,59.229166666666686,11.708333333333314,,,,active
+LA3XRR,LA1T,,,,Hvittingen,JO59cn,59.5625,10.208333333333314,,,,active
+LA4A_,LA4A,,,,"Fjæreheia, Grimstad",JO48gj,58.39583333333334,8.541666666666657,,,,active
+LA4ARR,LA9K,,,,"Hesteheia, Kristiansand",JO38wf,58.229166666666686,7.875,,,,QRV
+LA4BRR,,,,,Bru,JO29ta,59.02083333333334,5.625,,,,
+LA4CRR,,,,,Mandal/Djubedalsheia,JO38rc,58.104166666666686,7.458333333333314,,,,
+LA4ERR,,,,,Egerøy,JO28wk,58.4375,5.875,,,,
 LA4FH,,,,,,,,,,,,active
-LA4FRR,LA4A,,,,Stormyrheia (HØRTE),JO48fk,,,,,,active
-LA4JRR,,,,,Laland/Særheim,JO28ts,,,,,,offline
+LA4FRR,LA4A,,,,Stormyrheia (HØRTE),JO48fk,58.4375,8.458333333333314,,,,active
+LA4JRR,,,,,Laland/Særheim,JO28ts,58.77083333333334,5.625,,,,offline
 LA4KO,,,,,,,,,,,,active
-LA4KRR,,,,,Kvinesheia,JO38mh,,,,,,
-LA4LRR,,,,,Stavanger/Lifjell,JO28vw,,,,,,
-LA4MRR,,,,,Varmestø,JO38rc,,,,,,
-LA4ORR,LA9K,,,,"Odderøya, Kristiansand",JO48ad,,,,,,QRV
-LA4RRR,,,,,Reinsnuten,JO39fo,,,,,,
-LA4SRR,,,,,Bjerkreim,JO28xp,,,,,,
-LA4URR,,,,,Aasvik,JP40or,,,,,,
-LA4WRR,,,,,Bogafjell,JO28ut,,,,,,
-LA5AR,LA4A,,,,"Vaktårnheia, Arendal",JO48jl,,,,,,active
-LA5ARR,,,,,Tverrberget,JP40qu,,,,,,
-LA5BR,,,,,Rundemannen,JP20qj,,,,,,
-LA5CR,,,,,Egersund/Gaupelemfjell,JO38do,,,,,,
-LA5CRR,,,,,Østre Nattlansfjell,JP20qi,,,,,,
-LA5DR,,,,,Nordbykollen,JO59cr,,,,,,
-LA5ER,LA1T,,,,"Eirefjell, Tokke",JO49bl,,,,,,active
-LA5FR,,,,,Svartåsen/Enebakk,JO59ms,,,,,,
-LA5GR,LA1T,,,,"Skien, Vealøs",JO49uf,,,,,,active
-LA5HR,LA1T,,,,"Horten, Skottås",JO59ej,,,,,,active
-LA5HRR,,,,,Stor Horta,JP51nh,,,,,,
-LA5IR,,,,,Førde/Hafstadfjell,JP21wk,,,,,,
-LA5JR,,,,,Haus Sachsen,JO49sq,,,,,,
-LA5JRR,,,,,Juvbreen,JP41eq,,,,,,
-LA5KR,,,,,Holtberget,JP50xe,,,,,,
-LA5LRR,,,,,Øygarden,JP20li,,,,,,
-LA5MR,,,,,Totenåsen,JP50hl,,,,,,
-LA5NR,,,,,Ofoten/Veggen,JP88ol,,,,,,
-LA5OR,LA4O,,,,"Tryvann, Oslo",JO59ix,,,,,,QRV
-LA5PR,,,,,Høyanger,JP31af,,,,,,
-LA5QR,,,,,Sunndalsøra,JP42gq,,,,,,
-LA5RR,,,,,Toåsen,JO59ht,,,,,,
-LA5RRR,,,,,Røldal,JO39ju,,,,,,
-LA5SR,LA1T,,,,"Sandefjord, Mokollen",JO59cd,,,,,,active
-LA5TR,,,,,Forbordfjell,JP53km,,,,,,
-LA5TRR,,,,,Trysilfjellet,JP61ch,,,,,,
-LA5UR,,,,,Kjerringfjell,JO59ca,,,,,,offline
-LA5VR,,,,,Kattnakken,JO29ru,,,,,,
-LA5VRR,,,,,Verjesteinsnuten,JO39nu,,,,,,
-LA5WR,,,,,Narvik/Ankenes,JP88qj,,,,,,
-LA5WRR,,,,,Verjesteinsnuten,JO39nu,,,,,,
-LA5XR,,,,,Gråkallen,JP53dj,,,,,,
-LA5YR,,,,,Svartåsen/Enebakk,JO59ms,,,,,,
-LA6AR,,,,,Høgåsen/Sandnessjøen,JP66ha,,,,,,
-LA6ARR,,,,,Algasvarre / Tana,KQ40cl,,,,,,
-LA6BR,,,,,Rønvikfjell,JP77fh,,,,,,
-LA6CR,,,,,Knarvik,JP20pn,,,,,,
-LA6DR,,,,,Ravnafjell,JO39co,,,,,,
-LA6ER,,,,,Egersund/Gaupelemfjell,JO38do,,,,,,
-LA6ERR,,,,,Nordlandet,JP33vc,,,,,,
-LA6FR,LA4K,,Flekkefjord Repeater,,Storestø,JO38hh,,,,,,active
-LA6GR,,,,,Torseterkampen,JP50lm,,,,,,
-LA6HR,LA1T,,,,"Holmestrand, Hvittingen",JO59cn,,,,,,active
-LA6JR,LA9K,,,,"Hovassfjell, Ose i Setesdal",JO48bh,,,,,,QRV
-LA6KR,LA9K,,,,"Hesteheia, Kristiansand",JO38wf,,,,,,QRV
-LA6LR,,,,,Korpås,JO49xa,,,,,,
-LA6MR,,,,,Valderøyfjellet,JP32bm,,,,,,
-LA6MRR,,,,,Humla,JP32dk,,,,,,
-LA6NR,,,,,Syningen,JP40mm,,,,,,
-LA6PR,,,,,Bodø,JP77fh,,,,,,
-LA6PRR,,,,,Rensvik,JP33vc,,,,,,
-LA6QR,,,,,Karmøy/Sandve,JO29oe,,,,,,
-LA6RR,,,,,Rennesøyhornet,JO29vb,,,,,,
-LA6SR,LA4A,,,,"Heiberg, Søndeled",JO48ns,,,,,,active
-LA6SRR,,,,,Sagtennene,JP31bv,,,,,,
-LA6TR,,,,,Kvitbergfjellet,JP99gn,,,,,,
-LA6UR,,,,,Gjeltheia,JP54gg,,,,,,
-LA6VR,,,,,Verigasfjellet,KP49xq,,,,,,
-LA6WR,,,,,Lønahorgi,JP30eq,,,,,,
-LA6XR,,,,,Reinsfjell,JP32xw,,,,,,
-LA6YR,LA1T,,,,"Kragerø, Storkollen",JO48qu,,,,,,active
-LA6YRR,,,,,Reinsfjell,JP32xw,,,,,,
-LA6ZR,,,,,Spåtind,JP41vb,,,,,,
-LA7AR,,,,,Endletenfjell,JP89af,,,,,,
-LA7BR,,,,,Ørnafjell,JP20oj,,,,,,offline
-LA7CR,,,,,Norefjell,JP49xw,,,,,,
-LA7ER,LA4K,,Åseral Repeater,,Sjåvassknuten,JO38qo,,,,,,active
+LA4KRR,,,,,Kvinesheia,JO38mh,58.3125,7.041666666666657,,,,
+LA4LRR,,,,,Stavanger/Lifjell,JO28vw,58.9375,5.791666666666657,,,,
+LA4MRR,,,,,Varmestø,JO38rc,58.104166666666686,7.458333333333314,,,,
+LA4ORR,LA9K,,,,"Odderøya, Kristiansand",JO48ad,58.14583333333334,8.041666666666657,,,,QRV
+LA4RRR,,,,,Reinsnuten,JO39fo,59.604166666666686,6.458333333333314,,,,
+LA4SRR,,,,,Bjerkreim,JO28xp,58.64583333333334,5.958333333333314,,,,
+LA4URR,,,,,Aasvik,JP40or,60.729166666666686,9.208333333333314,,,,
+LA4WRR,,,,,Bogafjell,JO28ut,58.8125,5.708333333333314,,,,
+LA5AR,LA4A,,,,"Vaktårnheia, Arendal",JO48jl,58.479166666666686,8.791666666666657,,,,active
+LA5ARR,,,,,Tverrberget,JP40qu,60.854166666666686,9.375,,,,
+LA5BR,,,,,Rundemannen,JP20qj,60.39583333333334,5.375,,,,
+LA5CR,,,,,Egersund/Gaupelemfjell,JO38do,58.604166666666686,6.291666666666657,,,,
+LA5CRR,,,,,Østre Nattlansfjell,JP20qi,60.354166666666686,5.375,,,,
+LA5DR,,,,,Nordbykollen,JO59cr,59.729166666666686,10.208333333333314,,,,
+LA5ER,LA1T,,,,"Eirefjell, Tokke",JO49bl,59.479166666666686,8.125,,,,active
+LA5FR,,,,,Svartåsen/Enebakk,JO59ms,59.77083333333334,11.041666666666657,,,,
+LA5GR,LA1T,,,,"Skien, Vealøs",JO49uf,59.229166666666686,9.708333333333314,,,,active
+LA5HR,LA1T,,,,"Horten, Skottås",JO59ej,59.39583333333334,10.375,,,,active
+LA5HRR,,,,,Stor Horta,JP51nh,61.3125,11.125,,,,
+LA5IR,,,,,Førde/Hafstadfjell,JP21wk,61.4375,5.875,,,,
+LA5JR,,,,,Haus Sachsen,JO49sq,59.6875,9.541666666666657,,,,
+LA5JRR,,,,,Juvbreen,JP41eq,61.6875,8.375,,,,
+LA5KR,,,,,Holtberget,JP50xe,60.1875,11.958333333333314,,,,
+LA5LRR,,,,,Øygarden,JP20li,60.354166666666686,4.958333333333314,,,,
+LA5MR,,,,,Totenåsen,JP50hl,60.479166666666686,10.625,,,,
+LA5NR,,,,,Ofoten/Veggen,JP88ol,68.47916666666669,17.208333333333314,,,,
+LA5OR,LA4O,,,,"Tryvann, Oslo",JO59ix,59.979166666666686,10.708333333333314,,,,QRV
+LA5PR,,,,,Høyanger,JP31af,61.229166666666686,6.041666666666657,,,,
+LA5QR,,,,,Sunndalsøra,JP42gq,62.6875,8.541666666666657,,,,
+LA5RR,,,,,Toåsen,JO59ht,59.8125,10.625,,,,
+LA5RRR,,,,,Røldal,JO39ju,59.854166666666686,6.791666666666657,,,,
+LA5SR,LA1T,,,,"Sandefjord, Mokollen",JO59cd,59.14583333333334,10.208333333333314,,,,active
+LA5TR,,,,,Forbordfjell,JP53km,63.52083333333334,10.875,,,,
+LA5TRR,,,,,Trysilfjellet,JP61ch,61.3125,12.208333333333314,,,,
+LA5UR,,,,,Kjerringfjell,JO59ca,59.02083333333334,10.208333333333314,,,,offline
+LA5VR,,,,,Kattnakken,JO29ru,59.854166666666686,5.458333333333314,,,,
+LA5VRR,,,,,Verjesteinsnuten,JO39nu,59.854166666666686,7.125,,,,
+LA5WR,,,,,Narvik/Ankenes,JP88qj,68.39583333333334,17.375,,,,
+LA5WRR,,,,,Verjesteinsnuten,JO39nu,59.854166666666686,7.125,,,,
+LA5XR,,,,,Gråkallen,JP53dj,63.39583333333334,10.291666666666657,,,,
+LA5YR,,,,,Svartåsen/Enebakk,JO59ms,59.77083333333334,11.041666666666657,,,,
+LA6AR,,,,,Høgåsen/Sandnessjøen,JP66ha,66.02083333333334,12.625,,,,
+LA6ARR,,,,,Algasvarre / Tana,KQ40cl,70.47916666666669,28.208333333333314,,,,
+LA6BR,,,,,Rønvikfjell,JP77fh,67.3125,14.458333333333314,,,,
+LA6CR,,,,,Knarvik,JP20pn,60.5625,5.291666666666657,,,,
+LA6DR,,,,,Ravnafjell,JO39co,59.604166666666686,6.208333333333314,,,,
+LA6ER,,,,,Egersund/Gaupelemfjell,JO38do,58.604166666666686,6.291666666666657,,,,
+LA6ERR,,,,,Nordlandet,JP33vc,63.104166666666686,7.791666666666657,,,,
+LA6FR,LA4K,,Flekkefjord Repeater,,Storestø,JO38hh,58.3125,6.625,,,,active
+LA6GR,,,,,Torseterkampen,JP50lm,60.52083333333334,10.958333333333314,,,,
+LA6HR,LA1T,,,,"Holmestrand, Hvittingen",JO59cn,59.5625,10.208333333333314,,,,active
+LA6JR,LA9K,,,,"Hovassfjell, Ose i Setesdal",JO48bh,58.3125,8.125,,,,QRV
+LA6KR,LA9K,,,,"Hesteheia, Kristiansand",JO38wf,58.229166666666686,7.875,,,,QRV
+LA6LR,,,,,Korpås,JO49xa,59.02083333333334,9.958333333333314,,,,
+LA6MR,,,,,Valderøyfjellet,JP32bm,62.52083333333334,6.125,,,,
+LA6MRR,,,,,Humla,JP32dk,62.4375,6.291666666666657,,,,
+LA6NR,,,,,Syningen,JP40mm,60.52083333333334,9.041666666666657,,,,
+LA6PR,,,,,Bodø,JP77fh,67.3125,14.458333333333314,,,,
+LA6PRR,,,,,Rensvik,JP33vc,63.104166666666686,7.791666666666657,,,,
+LA6QR,,,,,Karmøy/Sandve,JO29oe,59.1875,5.208333333333314,,,,
+LA6RR,,,,,Rennesøyhornet,JO29vb,59.0625,5.791666666666657,,,,
+LA6SR,LA4A,,,,"Heiberg, Søndeled",JO48ns,58.77083333333334,9.125,,,,active
+LA6SRR,,,,,Sagtennene,JP31bv,61.89583333333334,6.125,,,,
+LA6TR,,,,,Kvitbergfjellet,JP99gn,69.5625,18.541666666666657,,,,
+LA6UR,,,,,Gjeltheia,JP54gg,64.27083333333334,10.541666666666657,,,,
+LA6VR,,,,,Verigasfjellet,KP49xq,69.6875,29.958333333333314,,,,
+LA6WR,,,,,Lønahorgi,JP30eq,60.6875,6.375,,,,
+LA6XR,,,,,Reinsfjell,JP32xw,62.9375,7.958333333333314,,,,
+LA6YR,LA1T,,,,"Kragerø, Storkollen",JO48qu,58.854166666666686,9.375,,,,active
+LA6YRR,,,,,Reinsfjell,JP32xw,62.9375,7.958333333333314,,,,
+LA6ZR,,,,,Spåtind,JP41vb,61.0625,9.791666666666657,,,,
+LA7AR,,,,,Endletenfjell,JP89af,69.22916666666669,16.041666666666657,,,,
+LA7BR,,,,,Ørnafjell,JP20oj,60.39583333333334,5.208333333333314,,,,offline
+LA7CR,,,,,Norefjell,JP49xw,69.9375,9.958333333333314,,,,
+LA7ER,LA4K,,Åseral Repeater,,Sjåvassknuten,JO38qo,58.604166666666686,7.375,,,,active
 LA7F,,,,,"Bjørnmoveien, Fauske",JP77qg,67.2640876,15.383928,,,,
-LA7FR,,,,,Barbertoppen,JO59lg,,,,,,
-LA7GR,,,,,Harpefoss/Gålå,JP41vm,,,,,,
-LA7GRR,,,,,Jetta,JP41pv,,,,,,
-LA7HR,,,,,Sandsøy,JP88iv,,,,,,
-LA7JR,,,,,Verdal/Marsteinsvola,JP53su,,,,,,
-LA7KR,,,,,Holtberget,JP50xe,,,,,,offline
-LA7KRR,,,,,Kyrksæterøra,JP43nh,,,,,,
-LA7LR,LA1T,,,,"Lifjell, Bø",JO49ml,,,,,,active
-LA7LRR,,,,,Gråkallen,JP53dk,,,,,,
-LA7MR,,,,,Veten,JP66ue,,,,,,
-LA7NR,,,,,Vattafjell,JP54rl,,,,,,
-LA7OR,LA4O,,,,"Brannfjell, Oslo",JO59jv,,,,,,QRV
-LA7ORR,LA2T,,,,Oppdal,JP42un,,,,,,active
-LA7PR,,,,,Grimstadtoppen,JO59ji,,,,,,
-LA7QR,,,,,Hatten,JO59lf,,,,,,offline
-LA7RR,LA2T,,,,Gråkallen,JP53dk,,,,,,active
-LA7SR,LA1T,,,,"Sandefjord, Kjerringberget",JO59ca,,,,,,active
-LA7TR,,,,,Forbordfjell,JP53km,,,,,,
-LA7TRR,,,,,Vassfjellet,JP53fi,,,,,,offline
-LA7UR,,,,,Valebykampen,JP50hj,,,,,,
-LA7URR,,,,,Vikhammer,JP53hk,,,,,,offline
-LA7VR,,,,,Hadseløya,JP78kn,,,,,,
-LA7WR,,,,,Lønahorgi,JP30eq,,,,,,offline
-LA7XR,,,,,Kroksjø,JO69bx,,,,,,
-LA7YR,,,,,Kvanfjellet,KP19sx,,,,,,
-LA8BR,,,,,Klettkoven,JP77me,,,,,,
-LA8BRR,,,,,Mosheim/Brønnøysund,JP65cl,,,,,,offline
-LA8CR,,,,,Bjønnåsen,JO59mw,,,,,,
-LA8CRR,,,,,Narvik/Solhaugen,JP88qk,,,,,,
-LA8DR,,,,,Laland,JO28us,,,,,,
-LA8ER,,,,,Mistberget,JP50nj,,,,,,
-LA8FR,,,,,Olsøyheia,JP53cq,,,,,,
-LA8GR,,,,,Bråtsviksåta,JP21nb,,,,,,
-LA8HR,,,,,Geilo,JP40cn,,,,,,
-LA8HRR,,,,,Nessna,JP66mf,,,,,,
-LA8JR,,,,,Verdal/Marsteinsvola,JP53su,,,,,,
-LA8KR,,,,,Jonsknuten,JO49sq,,,,,,
-LA8LR,,,,,Kringsjå,JO29qj,,,,,,
-LA8LRR,,,,,Lødingen,JP78xj,,,,,,offline
-LA8MR,,,,,Molde/Tusten,JP32ps,,,,,,
-LA8MRR,,,,,Mo i Rana,JP76bh,,,,,,
-LA8NR,,,,,Honningsvågfjell,KQ20wx,,,,,,
-LA8NRR,,,,,Narvik/Solhaugen,JP88qk,,,,,,
-LA8OR,,,,,Bislingen,JP50hf,,,,,,
-LA8ORR,,,,,Bogen,JP88mm,,,,,,
-LA8PR,LA2T,,,,Lialøkken,JP53fi,,,,,,active
-LA8PRR,,,,,Narvik/Gratangen,JP88vp,,,,,,
-LA8QR,LA2T,,,,Bringen,JP53nb,,,,,,active
-LA8QRR,,,,,Hundholmen,JP88dd,,,,,,
-LA8RR,,,,,Bjønnåsen,JO59mw,,,,,,
-LA8SR,,,,,Bokn,JO29uc,,,,,,
-LA8SRR,,,,,Bjørnfjell,JP98ak,,,,,,
-LA8TR,LA2T,,,,Ruten,JP43ne,,,,,,active
-LA8UR,,,,,Kopparen,JP43ut,,,,,,
-LA8VR,,,,,Vardefjell,JP65pv,,,,,,offline
-LA8VRR,,,,,Storfjell,JP65ot,,,,,,
-LA8WR,,,,,Kattnakken,JO29ru,,,,,,offline
-LA8XR,,,,,Reinsnuten,JO39gk,,,,,,
-LA8XRR,,,,,Bodøgruppen,JP77fh,,,,,,
-LA8YR,,,,,Reinsnuten,JO39fo,,,,,,
-LA8ZR,,,,,Andsfjell,JP99gc,,,,,,
-LA9AR,,,,,Tronfjell,JP52ie,,,,,,
-LA9ARR,,,,,Algasvarre / Tana,KQ40cl,,,,,,
-LA9BR,,,,,Bremanger/Steinfjellet,JP21mu,,,,,,
-LA9BRR,,,,,Bufjellet,JP88io,,,,,,
-LA9CR,,,,,Storåsen,JP21mo,,,,,,
-LA9DR,,,,,Nordbykollen,JO59cr,,,,,,
-LA9ER,,,,,Mistberget,JP50nj,,,,,,
-LA9ERR,,,,,Evenskjer,JP88gn,,,,,,
-LA9FR,,,,,Tuva,JP77qg,,,,,,
-LA9FRR,,,,,Andsfjell,JP99gc,,,,,,
-LA9GR,,,,,Veten,JP66ue,,,,,,
-LA9HR,,,,,Samaåsen,JP88gt,,,,,,
-LA9HRR,,,,,Algas,KQ10lc,,,,,,
-LA9IR,,,,,Inste Tinden,JO39ht,,,,,,
-LA9JR,,,,,Jønnbuflåtin/Bø,JO49ml,,,,,,
-LA9KR,,,,,Vestre Håland,JO38rb,,,,,,offline
-LA9KRR,,,,,Krøttøya,JP89gb,,,,,,
-LA9LR,,,,,Ravnafjell,JO39co,,,,,,
-LA9LRR,,,,,Falsnes/Storfjord,KP09cj,,,,,,
-LA9MR,LA4K,,Mandal Repeater,,Varmestø,JO38rc,,,,,,active
-LA9MRR,,,,,Medkilheia,JP88gs,,,,,,
-LA9NR,LA1T,,,,"Tønsberg, Frodeåsen",JO59eg,,,,,,active
+LA7FR,,,,,Barbertoppen,JO59lg,59.27083333333334,10.958333333333314,,,,
+LA7GR,,,,,Harpefoss/Gålå,JP41vm,61.52083333333334,9.791666666666657,,,,
+LA7GRR,,,,,Jetta,JP41pv,61.89583333333334,9.291666666666657,,,,
+LA7HR,,,,,Sandsøy,JP88iv,68.89583333333334,16.708333333333314,,,,
+LA7JR,,,,,Verdal/Marsteinsvola,JP53su,63.854166666666686,11.541666666666657,,,,
+LA7KR,,,,,Holtberget,JP50xe,60.1875,11.958333333333314,,,,offline
+LA7KRR,,,,,Kyrksæterøra,JP43nh,63.3125,9.125,,,,
+LA7LR,LA1T,,,,"Lifjell, Bø",JO49ml,59.479166666666686,9.041666666666657,,,,active
+LA7LRR,,,,,Gråkallen,JP53dk,63.4375,10.291666666666657,,,,
+LA7MR,,,,,Veten,JP66ue,66.1875,13.708333333333314,,,,
+LA7NR,,,,,Vattafjell,JP54rl,64.47916666666669,11.458333333333314,,,,
+LA7OR,LA4O,,,,"Brannfjell, Oslo",JO59jv,59.89583333333334,10.791666666666657,,,,QRV
+LA7ORR,LA2T,,,,Oppdal,JP42un,62.5625,9.708333333333314,,,,active
+LA7PR,,,,,Grimstadtoppen,JO59ji,59.354166666666686,10.791666666666657,,,,
+LA7QR,,,,,Hatten,JO59lf,59.229166666666686,10.958333333333314,,,,offline
+LA7RR,LA2T,,,,Gråkallen,JP53dk,63.4375,10.291666666666657,,,,active
+LA7SR,LA1T,,,,"Sandefjord, Kjerringberget",JO59ca,59.02083333333334,10.208333333333314,,,,active
+LA7TR,,,,,Forbordfjell,JP53km,63.52083333333334,10.875,,,,
+LA7TRR,,,,,Vassfjellet,JP53fi,63.354166666666686,10.458333333333314,,,,offline
+LA7UR,,,,,Valebykampen,JP50hj,60.39583333333334,10.625,,,,
+LA7URR,,,,,Vikhammer,JP53hk,63.4375,10.625,,,,offline
+LA7VR,,,,,Hadseløya,JP78kn,68.5625,14.875,,,,
+LA7WR,,,,,Lønahorgi,JP30eq,60.6875,6.375,,,,offline
+LA7XR,,,,,Kroksjø,JO69bx,59.979166666666686,12.125,,,,
+LA7YR,,,,,Kvanfjellet,KP19sx,69.97916666666669,23.541666666666657,,,,
+LA8BR,,,,,Klettkoven,JP77me,67.1875,15.041666666666657,,,,
+LA8BRR,,,,,Mosheim/Brønnøysund,JP65cl,65.47916666666669,12.208333333333314,,,,offline
+LA8CR,,,,,Bjønnåsen,JO59mw,59.9375,11.041666666666657,,,,
+LA8CRR,,,,,Narvik/Solhaugen,JP88qk,68.4375,17.375,,,,
+LA8DR,,,,,Laland,JO28us,58.77083333333334,5.708333333333314,,,,
+LA8ER,,,,,Mistberget,JP50nj,60.39583333333334,11.125,,,,
+LA8FR,,,,,Olsøyheia,JP53cq,63.6875,10.208333333333314,,,,
+LA8GR,,,,,Bråtsviksåta,JP21nb,61.0625,5.125,,,,
+LA8HR,,,,,Geilo,JP40cn,60.5625,8.208333333333314,,,,
+LA8HRR,,,,,Nessna,JP66mf,66.22916666666669,13.041666666666657,,,,
+LA8JR,,,,,Verdal/Marsteinsvola,JP53su,63.854166666666686,11.541666666666657,,,,
+LA8KR,,,,,Jonsknuten,JO49sq,59.6875,9.541666666666657,,,,
+LA8LR,,,,,Kringsjå,JO29qj,59.39583333333334,5.375,,,,
+LA8LRR,,,,,Lødingen,JP78xj,68.39583333333334,15.958333333333314,,,,offline
+LA8MR,,,,,Molde/Tusten,JP32ps,62.77083333333334,7.291666666666657,,,,
+LA8MRR,,,,,Mo i Rana,JP76bh,66.3125,14.125,,,,
+LA8NR,,,,,Honningsvågfjell,KQ20wx,70.97916666666669,25.875,,,,
+LA8NRR,,,,,Narvik/Solhaugen,JP88qk,68.4375,17.375,,,,
+LA8OR,,,,,Bislingen,JP50hf,60.229166666666686,10.625,,,,
+LA8ORR,,,,,Bogen,JP88mm,68.52083333333334,17.041666666666657,,,,
+LA8PR,LA2T,,,,Lialøkken,JP53fi,63.354166666666686,10.458333333333314,,,,active
+LA8PRR,,,,,Narvik/Gratangen,JP88vp,68.64583333333334,17.791666666666657,,,,
+LA8QR,LA2T,,,,Bringen,JP53nb,63.0625,11.125,,,,active
+LA8QRR,,,,,Hundholmen,JP88dd,68.14583333333334,16.291666666666657,,,,
+LA8RR,,,,,Bjønnåsen,JO59mw,59.9375,11.041666666666657,,,,
+LA8SR,,,,,Bokn,JO29uc,59.104166666666686,5.708333333333314,,,,
+LA8SRR,,,,,Bjørnfjell,JP98ak,68.4375,18.041666666666657,,,,
+LA8TR,LA2T,,,,Ruten,JP43ne,63.1875,9.125,,,,active
+LA8UR,,,,,Kopparen,JP43ut,63.8125,9.708333333333314,,,,
+LA8VR,,,,,Vardefjell,JP65pv,65.89583333333334,13.291666666666657,,,,offline
+LA8VRR,,,,,Storfjell,JP65ot,65.8125,13.208333333333314,,,,
+LA8WR,,,,,Kattnakken,JO29ru,59.854166666666686,5.458333333333314,,,,offline
+LA8XR,,,,,Reinsnuten,JO39gk,59.4375,6.541666666666657,,,,
+LA8XRR,,,,,Bodøgruppen,JP77fh,67.3125,14.458333333333314,,,,
+LA8YR,,,,,Reinsnuten,JO39fo,59.604166666666686,6.458333333333314,,,,
+LA8ZR,,,,,Andsfjell,JP99gc,69.10416666666669,18.541666666666657,,,,
+LA9AR,,,,,Tronfjell,JP52ie,62.1875,10.708333333333314,,,,
+LA9ARR,,,,,Algasvarre / Tana,KQ40cl,70.47916666666669,28.208333333333314,,,,
+LA9BR,,,,,Bremanger/Steinfjellet,JP21mu,61.854166666666686,5.041666666666657,,,,
+LA9BRR,,,,,Bufjellet,JP88io,68.60416666666669,16.708333333333314,,,,
+LA9CR,,,,,Storåsen,JP21mo,61.604166666666686,5.041666666666657,,,,
+LA9DR,,,,,Nordbykollen,JO59cr,59.729166666666686,10.208333333333314,,,,
+LA9ER,,,,,Mistberget,JP50nj,60.39583333333334,11.125,,,,
+LA9ERR,,,,,Evenskjer,JP88gn,68.5625,16.541666666666657,,,,
+LA9FR,,,,,Tuva,JP77qg,67.27083333333334,15.375,,,,
+LA9FRR,,,,,Andsfjell,JP99gc,69.10416666666669,18.541666666666657,,,,
+LA9GR,,,,,Veten,JP66ue,66.1875,13.708333333333314,,,,
+LA9HR,,,,,Samaåsen,JP88gt,68.8125,16.541666666666657,,,,
+LA9HRR,,,,,Algas,KQ10lc,70.10416666666669,22.958333333333314,,,,
+LA9IR,,,,,Inste Tinden,JO39ht,59.8125,6.625,,,,
+LA9JR,,,,,Jønnbuflåtin/Bø,JO49ml,59.479166666666686,9.041666666666657,,,,
+LA9KR,,,,,Vestre Håland,JO38rb,58.0625,7.458333333333314,,,,offline
+LA9KRR,,,,,Krøttøya,JP89gb,69.0625,16.541666666666657,,,,
+LA9LR,,,,,Ravnafjell,JO39co,59.604166666666686,6.208333333333314,,,,
+LA9LRR,,,,,Falsnes/Storfjord,KP09cj,69.39583333333334,20.208333333333314,,,,
+LA9MR,LA4K,,Mandal Repeater,,Varmestø,JO38rc,58.104166666666686,7.458333333333314,,,,active
+LA9MRR,,,,,Medkilheia,JP88gs,68.77083333333334,16.541666666666657,,,,
+LA9NR,LA1T,,,,"Tønsberg, Frodeåsen",JO59eg,59.27083333333334,10.375,,,,active
 LA9NRR,,,,,,,,,,,,
-LA9PR,,,,,Kjortåsen,JO29xb,,,,,,offline
-LA9QR,,,,,Kjølen/Kvaløya,JP99jr,,,,,,
-LA9RR,,,,,Ombo,JO39ag,,,,,,
-LA9SR,,,,,Gurskøy,JP22vg,,,,,,
-LA9TR,,,,,Trolltind/Arnøya,KQ00fb,,,,,,
-LA9UR,,,,,Ruasetfjellet,JP43vr,,,,,,
-LA9WR,,,,,Geitfjellet,JP64cj,,,,,,
-LA9XRR,,,,,Heggedal,JO59es,,,,,,
-LA9YR,,,,,Reinsnuten,JO39gk,,,,,,
-LA9YRR,,,,,Elvebakken,KP19qx,,,,,,offline
-LA9ZR,,,,,Andsfjell,JP99gc,,,,,,
-LA9ZRR,,,,,Midt-Troms portabel,,,,,,,
-LD1BK,,,,,Kolsås/Bærum,JO59gw,,,,,,
-LD1FA,,,,,Barbertoppen,JO59lf,,,,,,
-LD1FE,,,,,Svartåsen/Enebakk,JO59ms,,,,,,
-LD1FL,,,,,Svartåsen/Enebakk,JO59ms,,,,,,
-LD1FO,,,,,Stangåsen/Oppegård,JO59js,,,,,,
-LD1FR,,,,,Barbertoppen,JO59lf,,,,,,
-LD1FV,,,,,Voksenkollen/Oslo,JO59hx,,,,,,
-LD1HQ,,,,,Oslo/Potabel,,,,,,,
-LD1KO,,,,,Kolsåstoppen,JO59gw,,,,,,
-LD1MD,,,,,Mysen/Dalshøgda,JO59qm,,,,,,
-LD1NR,,,,,Kjeller,JO59mx,,,,,,planned
-LD1OA,LA4O,,,,"Røverkollen, Oslo",JO59kx,,,,,,QRV
-LD1OE,LA4O,,,,"Brannfjell, Oslo",JO59jv,,,,,,QRV
-LD1ON,,,,,Nesodden,JO59hu,,,,,,
-LD1OS,,,,,Oslo Sentrum,JO59iv,,,,,,
-LD1OT,LA4O,,,,"Tryvann, Oslo",JO59ix,,,,,,QRV
-LD1SG,,,,,Grålum,JO59mg,,,,,,
-LD2BI,,,,,Bislingen,JP50hf,,,,,,
-LD2EM,,,,,Mistberget/Eidsvoll,JP50nj,,,,,,
-LD2ER,,,,,Langberget/Elverum,JP50us,,,,,,
-LD2FN,,,,,Fagernes,JP41la,,,,,,
-LD2GB,,,,,Dombås,JP42nc,,,,,,offline
-LD2GC,,,,,Lesjaskog,JP42ef,,,,,,
-LD2GD,,,,,Gudbrandsdalen,JP41ss,,,,,,offline
-LD2GF,,,,,Folldal,JP42ve,,,,,,
-LD2GG,,,,,Gudbrandsdalen/Gålå,JP41vm,,,,,,
-LD2GI,,,,,Høykorset,JP50hl,,,,,,
-LD2GM,,,,,Dombås Skisenter,JP42nb,,,,,,offline
-LD2GN,,,,,Nordhue,JP50qx,,,,,,
-LD2GO,,,,,Trysilfjellet,JP61ch,,,,,,
-LD2GP,,,,,Storhorta,JP51nh,,,,,,
-LD2GQ,,,,,Biri,JP50gx,,,,,,offline
-LD2GR,,,,,Reinsvoll,JP50iq,,,,,,
-LD2GS,,,,,Tverrberget,JP40qu,,,,,,
-LD2GT,,,,,Rånåkollen,JP42cf,,,,,,offline
-LD2GU,,,,,Torseterkampen,JP50ln,,,,,,offline
-LD2GV,,,,,Sølenstua,JP51uu,,,,,,offline
-LD2HA,,,,,Romedal,JP50ju,,,,,,
-LD2HG,,,,,Gråhøgda/Hummelfjell,JP52pk,,,,,,offline
-LD2HJ,,,,,Stenfjellhytta/Vangsåsen,JP50ow,,,,,,offline
-LD2HT,,,,,Romsås/Oslo,JO59kx,,,,,,
-LD2JB,,,,,Jetta,JP41pv,,,,,,
-LD2KF,,,,,Rafjellet,JP60bh,,,,,,
-LD2KR,,,,,Rafjellet,JP60bh,,,,,,
-LD2KS,,,,,Holtberget,JP60af,,,,,,
-LD2LH,,,,,Lillehammer,JP51gd,,,,,,
-LD2LK,,,,,Kråkhugu,JP51ca,,,,,,
-LD2LT,,,,,Hamar,JP50qt,,,,,,
-LD2OH,,,,,Østerud/Hurdal,JP50mi,,,,,,
-LD2RI,,,,,Valebykampen/Gran,JP50hj,,,,,,offline
-LD2RK,,,,,Kopperudåsen/Romeriket,JP50pf,,,,,,
-LD2TR,,,,,Tron,JP52ie,,,,,,
-LD2VR,,,,,Valebykampen,JP50hj,,,,,,
-LD2WA,,,,,Nordhue/Ingerstua,JP50qx,,,,,,
-LD2WB,,,,,Kråkhugukampen,JP41pv,,,,,,
-LD2WC,,,,,Tron,JP52ie,,,,,,
-LD2WD,,,,,Torseterkampen,JP50ln,,,,,,
-LD3BD,,,,,Bronane/Drangedal,JO49lf,,,,,,
-LD3BL,,,,,Lifjell/Bø,JO49ml,,,,,,
-LD3DD,,,,,Lier,JO59ct,,,,,,
-LD3DG,,,,,Gaustatoppen,JO49hu,,,,,,offline
-LD3DN,,,,,Konnerud,JO59br,,,,,,
-LD3DP,,,,,Drammen/Portabel,,,,,,,
-LD3DV,,,,,Vardåsen/Drammen,JO59cs,,,,,,
-LD3DW,,,,,Kraftkollen,JO59du,,,,,,offline
-LD3GB,,,,,Gautefall/Bjørndalsmyra,JO49id,,,,,,
-LD3GD,,,,,Gravarhovda/Dagali,JP40fk,,,,,,
-LD3GE,,,,,Geilotoppen,JP40cm,,,,,,
-LD3GK,,,,,Storkollen/Kragerø,JO48qu,,,,,,
-LD3GL,LA1T,,,,"Skien, Vealøs",JO49uf,,,,,,active
-LD3GO,,,,,Lisbetnuten/Gol,JP40lr,,,,,,
-LD3GT,,,,,Gaustatoppen,JO49hu,,,,,,
-LD3HN,,,,,Nesbyen,JP40mm,,,,,,
-LD3HR,,,,,Geilo,JP40cm,,,,,,
-LD3HS,,,,,Sunhellerskarvet,JP30tr,,,,,,
-LD3HV,,,,,Hvittingen/Sande,JO59cn,,,,,,
-LD3JS,,,,,Jordstøyp,JO49xe,,,,,,
-LD3KF,,,,,Kjerringfjell,JO59ca,,,,,,
-LD3KJ,,,,,Kvelde/Jordstøyp,JO49xe,,,,,,
-LD3KR,,,,,Haus Sachsen,JO49sq,,,,,,
-LD3KS,,,,,Haus Sachsen,JO49sq,,,,,,
-LD3LL,,,,,Lifjell/Bø,JO49ml,,,,,,
-LD3NF,,,,,Norefjellstua,JP40sf,,,,,,offline
-LD3NM,,,,,Norefjellstua,JP40sf,,,,,,
-LD3RI,,,,,Småstein/Skogstad,JP50ee,,,,,,
-LD3SA,,,,,Sollihøgda,JO59ex,,,,,,
-LD3SH,,,,,Hvittingen/Sande,JO59cn,,,,,,
-LD3SK,,,,,Høglikollen,JO49tg,,,,,,
-LD3ST,LA1T,,,,"Tønsberg, Frodeåsen",JO59eg,,,,,,active
-LD3TB,,,,,Bergåsen,JO59ci,,,,,,
-LD3TD,LA1T,,,,Tønsberg,JO59de,,,,,,active
-LD3TE,,,,,Eirefjell/Tokke,JO49bl,,,,,,
-LD3TO,,,,,Tosevikseter,JP40xj,,,,,,
-LD3VL,,,,,Vealøs/Skien,JO49uf,,,,,,
-LD3VM,,,,,Tomtebo/Vikersund,JO49xx,,,,,,
-LD4AA,LA4A,,,,"Tveitheia, Åmli",JO48gs,,,,,,active
-LD4AI,LA4A,,,,"Fjæreheia, Grimstad",JO48gj,,,,,,active
-LD4AK,,,,,Kilsund,JO48ln,,,,,,
-LD4AR,,,,,Kilsund,JO48ln,,,,,,
-LD4AT,LA4A,,,,"Vardåsen, Tromøy",JO48jk,,,,,,active
-LD4BO,,,,,Flakkheia/Birkeland,JO48ci,,,,,,
-LD4EG,,,,,Egersund/Gaupelemfjell,JO38do,,,,,,
-LD4EI,,,,,Egersund,JO28xk,,,,,,
-LD4ER,,,,,Egersund/Gaupelemfjell,JO38do,,,,,,planned
-LD4FF,,,,,Flekkefjord/Storestø,JO38hh,,,,,,offline
-LD4FH,,,,,Fjæreheia/Grimstad,JO48gj,,,,,,
-LD4GA,,,,,Egersund/Gaupelemfjell,JO38do,,,,,,
-LD4GF,,,,,Fjæreheia/Grimstad,JO48gj,,,,,,
-LD4GJ,,,,,Ålgård,JO28ws,,,,,,offline
-LD4GL,,,,,Egersund/Gaupelemfjell,JO38do,,,,,,
-LD4GS,LA4A,,,,Stormyrheia (Hørte),JO48fk,,,,,,active
-LD4HS,,,,,Karmøy/Sandve,JO29oe,,,,,,
-LD4KA,,,,,Kristiansand/Slettheia,JO38xd,,,,,,
-LD4KD,,,,,Setesdal/Hovassfjell,,,,,,,
-LD4KH,,,,,Kvinesheia/Haugeheia,JO38nh,,,,,,
-LD4KO,,,,,Redalshei,JO38xe,,,,,,offline
-LD4KS,,,,,Karmøy/Sandve,JO29oe,,,,,,offline
-LD4LA,,,,,Voreknuten,JO38gi,,,,,,
-LD4LF,LA4A,,,,"Justøy, Lillesand",JO48ee,,,,,,active
-LD4LI,,,,,Stavanger/Lifjell,JO28vw,,,,,,
-LD4LK,,,,,Liknes/Kvinesheia,JO38nh,,,,,,
-LD4NB,,,,,Nærbø/Våland,JO28up,,,,,,
-LD4RH,,,,,Heiberg/Søndeled,JO48ns,,,,,,
-LD4RP,,,,,Puntsnes,JO39,,,,,,
-LD4SH,LA4A,,,,"Viddefjell, Risør",JO48or,,,,,,active
-LD4SJ,,,,,Jæren/Sandved,JO28uu,,,,,,
-LD4ST,,,,,Jørpeland,JO29xb,,,,,,
-LD4VF,,,,,Stavanger/Lifjell,JO28vw,,,,,,
-LD4VK,,,,,Voreknuten,JO38di,,,,,,
-LD4VS,LA4A,,,,"Slettåsheia, Vegårshei",JO48jq,,,,,,active
-LD5AG,,,,,Åsane/Geitanuken,JP20pl,,,,,,
-LD5AV,,,,,Karmøy/Steinsfjellet,JO29pk,,,,,,test
-LD5BE,,,,,Bergen/Bildefjellet,JP20ni,,,,,,
-LD5BF,,,,,Finsehytta,JP30so,,,,,,
-LD5BG,,,,,Bergen/Bildefjellet,JP20ni,,,,,,
-LD5BH,,,,,Hardangerjøkullen,JP30rn,,,,,,
-LD5BR,,,,,Bergen/Rundemannen,JP20qj,,,,,,
-LD5ED,,,,,Bergen/Eksingedalen,JP30bt,,,,,,offline
-LD5GU,,,,,Gulen/Brosviksåta,JP21na,,,,,,
-LD5HH,,,,,Karmøy/Helgelandsfjellet,JO29pi,,,,,,
-LD5HJ,,,,,Hjellstad,JP20og,,,,,,offline
-LD5KH,,,,,Karmøy/Helgelandsfjellet,JO29pi,,,,,,
-LD5KN,,,,,Knarvik,JP20pn,,,,,,
-LD5KS,,,,,Kysnesstranda/Hammaren,JP30be,,,,,,
-LD5MT,,,,,Melstveit,JP30cj,,,,,,
-LD5SK,,,,,Stord/Kattnakken,JO29ru,,,,,,
-LD5VO,,,,,Voss/Lønahorgi,JP30eq,,,,,,
-LD6BE,,,,,"Blåhornet, Norddal",JP32ng,,,,,,
-LD6BK,,,,,Klettkoven,JP77me,,,,,,
-LD6BS,,,,,Bremanger/Steinfjellet,JP21mu,,,,,,
-LD6FD,,,,,Førde/Hafstadfjell,JP21wk,,,,,,
-LD6FF,,,,,Storåsen,JP21mo,,,,,,
-LD6FL,,,,,Florø,JP21mo,,,,,,
-LD6FR,,,,,Hafstadfjellet,JP21wk,,,,,,
-LD6HO,,,,,Hornindal,JP31gw,,,,,,
-LD6KN,,,,,Kristiansund,JP33vc,,,,,,
-LD6LB,,,,,Humla,JP32dk,,,,,,
-LD6LF,,,,,Ørskog/Lebergsfjellet,JP32km,,,,,,
-LD6MD,,,,,Molde/Tussen,JP32ps,,,,,,
-LD6NT,,,,,Nerlandsøy/Teigetua,JP22ti,,,,,,
-LD6RF,,,,,Reinsfjell,JP32xw,,,,,,
-LD6SA,,,,,Sagtennene,JP31bv,,,,,,
-LD6SB,,,,,Svinberget,JP42fr,,,,,,
-LD6SD,,,,,Sunnylven,JP32mi,,,,,,
-LD6SG,,,,,Sunndalen/Grøvllægdin,JP42ko,,,,,,
-LD6SH,,,,,Spjelkavik/Høgelia,JP32ek,,,,,,offline
-LD6SO,,,,,Sogndal/Storehogen,JP31ne,,,,,,
-LD6ST,,,,,Stryn/Svarstadveten,JP31hv,,,,,,offline
-LD6VS,,,,,Volda/Sandhornet,JP32bd,,,,,,
-LD7FB,,,,,Fosen/Bessakerfjorden,JP54ef,,,,,,
-LD7FF,,,,,Forbordsfjell,JP53km,,,,,,
-LD7FO,,,,,Fosen/Tarva,JP43qs,,,,,,
-LD7FS,,,,,Fosen/Stadsbygd,JP43xm,,,,,,
-LD7GG,,,,,Grong/Geitfjellet,JP64cj,,,,,,
-LD7NA,,,,,Namsos/Vattafjell,JP54rl,,,,,,
-LD7ST,,,,,Steinkjer/Offenåsen,JP53sx,,,,,,
-LD7TB,LA2T,,,,Bringen,JP53nb,,,,,,active
-LD7TD,LA2T,,,,Vassfjellet,JP53fi,,,,,,active
-LD7TG,LA2T,,,,Gråkallen,JP53dk,,,,,,active
-LD7TH,LA2T,,,,Tydal,JP52vv,,,,,,active
-LD7TL,,,,,Gråkallen,JP53dk,,,,,,
-LD7TO,LA2T,,,,Oppdal,JP42un,,,,,,active
-LD7TR,LA2T,,,,Ruten,JP43ne,,,,,,active
-LD7TS,LA2T,,,,Støren,JP53da,,,,,,active
-LD7TT,LA2T,,,,Tyholt,JP53fk,,,,,,active
-LD7TV,,,,,Vassfjellet,JP53eg,,,,,,
-LD7VD,,,,,Verdal,JP53su,,,,,,
-LD7VM,,,,,Verdal/Marsteinsvola,JP53su,,,,,,
-LD8AR,,,,,Andenes/Ramnan,JP89ag,,,,,,offline
-LD8BK,,,,,Fauske/Klettkoven,JP77me,,,,,,
-LD8BS,,,,,Mosheim/Brønnøysund,JP65cl,,,,,,
-LD8DF,,,,,Dønnesfjellet/Sandnessjøen,JP66ge,,,,,,
-LD8DN,,,,,Dønnesfjellet/Sandnessjøen,JP66ge,,,,,,offline
-LD8FS,,,,,Fornesfjell,JP77rk,,,,,,
-LD8FT,,,,,Bjørnmoveien,JP77rf,,,,,,
-LD8GS,,,,,Grane/Strendene,JP65qk,,,,,,
-LD8HB,,,,,Hemnes/Bleikvasslia,JP65vu,,,,,,
-LD8HV,,,,,Hemnes/Vettahaugen,JP66ue,,,,,,
-LD8KV,,,,,Keiservarden,JP77fh,,,,,,
-LD8LF,,,,,Telegrafveien,JP77pf,,,,,,
-LD8LK,,,,,Leknes,JP68td,,,,,,
-LD8LR,,,,,Lødingen,JP78xj,,,,,,
-LD8MB,,,,,Mosjøen/Bjørnålia,JP65ps,,,,,,
-LD8MK,,,,,Mosjøen/Kappfjell,JP65rh,,,,,,
-LD8MM,,,,,Meløy/Ørnes,JP66uv,,,,,,
-LD8MR,,,,,Mo i Rana/Toraneset,JP76bh,,,,,,
-LD8MV,,,,,Mosjøen/Vardefjell,JP65ou,,,,,,
-LD8NA,,,,,Narvik/Fjellheisen,JP88rk,,,,,,
-LD8NB,,,,,Narvik/Bjørnfjell,JP98ak,,,,,,
-LD8NK,,,,,Nesna/Kvassnes,JP66mf,,,,,,
-LD8NN,,,,,Nesna/Kvassnes,JP66mf,,,,,,
-LD8NO,,,,,,JP88ol,,,,,,
-LD8NV,,,,,Narvik,JP88rl,,,,,,
-LD8RA,,,,,Andfjell,JP76ok,,,,,,
-LD8RH,,,,,Rana/Hellerfjell,JP76fe,,,,,,
-LD8RS,,,,,Raudtind,JP77rf,,,,,,
-LD8SA,,,,,Høgåsen/Sandnessjøen,JP66ha,,,,,,
-LD8SH,,,,,"Hanken, Sulitjelma",JP87bd,,,,,,
-LD8SS,,,,,Høgåsen/Sandnessjøen,JP66ha,,,,,,
-LD8TB,,,,,Tysfjord/Bognesveten,JP88af,,,,,,offline
-LD8VR,,,,,Sortland,JP78qq,,,,,,
-LD9AB,,,,,Andfjellbruna,JP99gd,,,,,,
-LD9AD,,,,,Algas,KQ10lc,,,,,,offline
-LD9AF,,,,,Andsfjell,JP99gd,,,,,,
-LD9AH,,,,,Hasvik/Sørøya,KQ10bl,,,,,,offline
-LD9AT,,,,,Kråknes,KQ10na,,,,,,
-LD9AV,,,,,Altevann/Slåttmoberget,JP98oi,,,,,,
-LD9BA,,,,,Varhaugen/Balsfjord,JP99qf,,,,,,
-LD9BK,,,,,Bjarkøy/Krøttøykollen,JP89gb,,,,,,
-LD9DM,,,,,Domen/Vardø,KQ50nh,,,,,,
-LD9HA,,,,,Maistua,JP88gs,,,,,,
-LD9HB,,,,,Maistua,JP88gs,,,,,,
-LD9HH,,,,,Heggenkollen,JP88gs,,,,,,
-LD9HK,,,,,Kvæfjord,JP88cs,,,,,,
-LD9HM,,,,,Maistua,JP88gs,,,,,,
-LD9HN,,,,,Hammerfest,KQ10uq,,,,,,
-LD9HO,,,,,Sollifjell,JP88et,,,,,,
-LD9HR,,,,,Samaåsen,JP88gt,,,,,,
-LD9HS,,,,,Hasvik/Sørøya,KQ10bl,,,,,,
-LD9HT,,,,,Nattmålstind/Senja,JP89uh,,,,,,
-LD9KA,,,,,Kautokeino,KP19ma,,,,,,
-LD9KB,,,,,Kvæfjord,JP88bs,,,,,,
-LD9KK,,,,,Kvæfjord/Kveøy,JP88bs,,,,,,
-LD9KR,,,,,Kautokeino,KP19ma,,,,,,
-LD9KS,,,,,Stuorra,KQ20si,,,,,,
-LD9LY,,,,,Årøybukt/Lyngen,KP09dp,,,,,,
-LD9MB,,,,,Andsfjell,JP99gd,,,,,,
-LD9MM,,,,,Setermoen,JP98fv,,,,,,planned
-LD9MS,,,,,Spansdalen,JP88wr,,,,,,planned
-LD9NG,,,,,Gratangen,JP88vp,,,,,,
-LD9NK,,,,,Honningsvågfjell,KQ20wx,,,,,,
-LD9PS,,,,,Porsanger/Sandviktoppen,KQ20oh,,,,,,
-LD9SH,,,,,Storeheia/Hadsel,JP78om,,,,,,
-LD9SJ,,,,,Nattmålstind/Senja,JP89uh,,,,,,
-LD9SK,,,,,Bertelfjell/Sørkjosen,KP09kt,,,,,,
-LD9SM,,,,,Holtet/Setermoen,JP98bq,,,,,,
-LD9SV,,,,,Skrova,JP78he,,,,,,
-LD9TB,,,,,Tromsø,JP99lp,,,,,,
-LD9TD,,,,,Fjellheisen,JP99lp,,,,,,
-LD9TF,,,,,Furuflaten,KP09bk,,,,,,
-LD9TK,,,,,Kjølen,JP99jr,,,,,,
-LD9TN,,,,,Fløyfjellet,JP99mp,,,,,,
-LD9TT,,,,,Tønsnes,JP99nr,,,,,,
-LD9TU,,,,,Ullsneshaugen/Lyngen,JP99vq,,,,,,
-LD9VG,,,,,Hesseng/Verigas,KP49wr,,,,,,
-LD9VN,,,,,Vannøy/Kvalkjeften,JQ90ue,,,,,,
+LA9PR,,,,,Kjortåsen,JO29xb,59.0625,5.958333333333314,,,,offline
+LA9QR,,,,,Kjølen/Kvaløya,JP99jr,69.72916666666669,18.791666666666657,,,,
+LA9RR,,,,,Ombo,JO39ag,59.27083333333334,6.041666666666657,,,,
+LA9SR,,,,,Gurskøy,JP22vg,62.27083333333334,5.791666666666657,,,,
+LA9TR,,,,,Trolltind/Arnøya,KQ00fb,70.0625,20.458333333333314,,,,
+LA9UR,,,,,Ruasetfjellet,JP43vr,63.729166666666686,9.791666666666657,,,,
+LA9WR,,,,,Geitfjellet,JP64cj,64.39583333333334,12.208333333333314,,,,
+LA9XRR,,,,,Heggedal,JO59es,59.77083333333334,10.375,,,,
+LA9YR,,,,,Reinsnuten,JO39gk,59.4375,6.541666666666657,,,,
+LA9YRR,,,,,Elvebakken,KP19qx,69.97916666666669,23.375,,,,offline
+LA9ZR,,,,,Andsfjell,JP99gc,69.10416666666669,18.541666666666657,,,,
+LA9ZRR,,,,,,,,,,,,
+LD1BK,,,,,Kolsås/Bærum,JO59gw,59.9375,10.541666666666657,,,,
+LD1FA,,,,,Barbertoppen,JO59lf,59.229166666666686,10.958333333333314,,,,
+LD1FE,,,,,Svartåsen/Enebakk,JO59ms,59.77083333333334,11.041666666666657,,,,
+LD1FL,,,,,Svartåsen/Enebakk,JO59ms,59.77083333333334,11.041666666666657,,,,
+LD1FO,,,,,Stangåsen/Oppegård,JO59js,59.77083333333334,10.791666666666657,,,,
+LD1FR,,,,,Barbertoppen,JO59lf,59.229166666666686,10.958333333333314,,,,
+LD1FV,,,,,Voksenkollen/Oslo,JO59hx,59.979166666666686,10.625,,,,
+LD1HQ,,,,,,,,,,,,
+LD1KO,,,,,Kolsåstoppen,JO59gw,59.9375,10.541666666666657,,,,
+LD1MD,,,,,Mysen/Dalshøgda,JO59qm,59.52083333333334,11.375,,,,
+LD1NR,,,,,Kjeller,JO59mx,59.979166666666686,11.041666666666657,,,,planned
+LD1OA,LA4O,,,,"Røverkollen, Oslo",JO59kx,59.979166666666686,10.875,,,,QRV
+LD1OE,LA4O,,,,"Brannfjell, Oslo",JO59jv,59.89583333333334,10.791666666666657,,,,QRV
+LD1ON,,,,,Nesodden,JO59hu,59.854166666666686,10.625,,,,
+LD1OS,,,,,Oslo Sentrum,JO59iv,59.89583333333334,10.708333333333314,,,,
+LD1OT,LA4O,,,,"Tryvann, Oslo",JO59ix,59.979166666666686,10.708333333333314,,,,QRV
+LD1SG,,,,,Grålum,JO59mg,59.27083333333334,11.041666666666657,,,,
+LD2BI,,,,,Bislingen,JP50hf,60.229166666666686,10.625,,,,
+LD2EM,,,,,Mistberget/Eidsvoll,JP50nj,60.39583333333334,11.125,,,,
+LD2ER,,,,,Langberget/Elverum,JP50us,60.77083333333334,11.708333333333314,,,,
+LD2FN,,,,,Fagernes,JP41la,61.02083333333334,8.958333333333314,,,,
+LD2GB,,,,,Dombås,JP42nc,62.104166666666686,9.125,,,,offline
+LD2GC,,,,,Lesjaskog,JP42ef,62.229166666666686,8.375,,,,
+LD2GD,,,,,Gudbrandsdalen,JP41ss,61.77083333333334,9.541666666666657,,,,offline
+LD2GF,,,,,Folldal,JP42ve,62.1875,9.791666666666657,,,,
+LD2GG,,,,,Gudbrandsdalen/Gålå,JP41vm,61.52083333333334,9.791666666666657,,,,
+LD2GI,,,,,Høykorset,JP50hl,60.479166666666686,10.625,,,,
+LD2GM,,,,,Dombås Skisenter,JP42nb,62.0625,9.125,,,,offline
+LD2GN,,,,,Nordhue,JP50qx,60.979166666666686,11.375,,,,
+LD2GO,,,,,Trysilfjellet,JP61ch,61.3125,12.208333333333314,,,,
+LD2GP,,,,,Storhorta,JP51nh,61.3125,11.125,,,,
+LD2GQ,,,,,Biri,JP50gx,60.979166666666686,10.541666666666657,,,,offline
+LD2GR,,,,,Reinsvoll,JP50iq,60.6875,10.708333333333314,,,,
+LD2GS,,,,,Tverrberget,JP40qu,60.854166666666686,9.375,,,,
+LD2GT,,,,,Rånåkollen,JP42cf,62.229166666666686,8.208333333333314,,,,offline
+LD2GU,,,,,Torseterkampen,JP50ln,60.5625,10.958333333333314,,,,offline
+LD2GV,,,,,Sølenstua,JP51uu,61.854166666666686,11.708333333333314,,,,offline
+LD2HA,,,,,Romedal,JP50ju,60.854166666666686,10.791666666666657,,,,
+LD2HG,,,,,Gråhøgda/Hummelfjell,JP52pk,62.4375,11.291666666666657,,,,offline
+LD2HJ,,,,,Stenfjellhytta/Vangsåsen,JP50ow,60.9375,11.208333333333314,,,,offline
+LD2HT,,,,,Romsås/Oslo,JO59kx,59.979166666666686,10.875,,,,
+LD2JB,,,,,Jetta,JP41pv,61.89583333333334,9.291666666666657,,,,
+LD2KF,,,,,Rafjellet,JP60bh,60.3125,12.125,,,,
+LD2KR,,,,,Rafjellet,JP60bh,60.3125,12.125,,,,
+LD2KS,,,,,Holtberget,JP60af,60.229166666666686,12.041666666666657,,,,
+LD2LH,,,,,Lillehammer,JP51gd,61.14583333333334,10.541666666666657,,,,
+LD2LK,,,,,Kråkhugu,JP51ca,61.02083333333334,10.208333333333314,,,,
+LD2LT,,,,,Hamar,JP50qt,60.8125,11.375,,,,
+LD2OH,,,,,Østerud/Hurdal,JP50mi,60.354166666666686,11.041666666666657,,,,
+LD2RI,,,,,Valebykampen/Gran,JP50hj,60.39583333333334,10.625,,,,offline
+LD2RK,,,,,Kopperudåsen/Romeriket,JP50pf,60.229166666666686,11.291666666666657,,,,
+LD2TR,,,,,Tron,JP52ie,62.1875,10.708333333333314,,,,
+LD2VR,,,,,Valebykampen,JP50hj,60.39583333333334,10.625,,,,
+LD2WA,,,,,Nordhue/Ingerstua,JP50qx,60.979166666666686,11.375,,,,
+LD2WB,,,,,Kråkhugukampen,JP41pv,61.89583333333334,9.291666666666657,,,,
+LD2WC,,,,,Tron,JP52ie,62.1875,10.708333333333314,,,,
+LD2WD,,,,,Torseterkampen,JP50ln,60.5625,10.958333333333314,,,,
+LD3BD,,,,,Bronane/Drangedal,JO49lf,59.229166666666686,8.958333333333314,,,,
+LD3BL,,,,,Lifjell/Bø,JO49ml,59.479166666666686,9.041666666666657,,,,
+LD3DD,,,,,Lier,JO59ct,59.8125,10.208333333333314,,,,
+LD3DG,,,,,Gaustatoppen,JO49hu,59.854166666666686,8.625,,,,offline
+LD3DN,,,,,Konnerud,JO59br,59.729166666666686,10.125,,,,
+LD3DP,,,,,,,,,,,,
+LD3DV,,,,,Vardåsen/Drammen,JO59cs,59.77083333333334,10.208333333333314,,,,
+LD3DW,,,,,Kraftkollen,JO59du,59.854166666666686,10.291666666666657,,,,offline
+LD3GB,,,,,Gautefall/Bjørndalsmyra,JO49id,59.14583333333334,8.708333333333314,,,,
+LD3GD,,,,,Gravarhovda/Dagali,JP40fk,60.4375,8.458333333333314,,,,
+LD3GE,,,,,Geilotoppen,JP40cm,60.52083333333334,8.208333333333314,,,,
+LD3GK,,,,,Storkollen/Kragerø,JO48qu,58.854166666666686,9.375,,,,
+LD3GL,LA1T,,,,"Skien, Vealøs",JO49uf,59.229166666666686,9.708333333333314,,,,active
+LD3GO,,,,,Lisbetnuten/Gol,JP40lr,60.729166666666686,8.958333333333314,,,,
+LD3GT,,,,,Gaustatoppen,JO49hu,59.854166666666686,8.625,,,,
+LD3HN,,,,,Nesbyen,JP40mm,60.52083333333334,9.041666666666657,,,,
+LD3HR,,,,,Geilo,JP40cm,60.52083333333334,8.208333333333314,,,,
+LD3HS,,,,,Sunhellerskarvet,JP30tr,60.729166666666686,7.625,,,,
+LD3HV,,,,,Hvittingen/Sande,JO59cn,59.5625,10.208333333333314,,,,
+LD3JS,,,,,Jordstøyp,JO49xe,59.1875,9.958333333333314,,,,
+LD3KF,,,,,Kjerringfjell,JO59ca,59.02083333333334,10.208333333333314,,,,
+LD3KJ,,,,,Kvelde/Jordstøyp,JO49xe,59.1875,9.958333333333314,,,,
+LD3KR,,,,,Haus Sachsen,JO49sq,59.6875,9.541666666666657,,,,
+LD3KS,,,,,Haus Sachsen,JO49sq,59.6875,9.541666666666657,,,,
+LD3LL,,,,,Lifjell/Bø,JO49ml,59.479166666666686,9.041666666666657,,,,
+LD3NF,,,,,Norefjellstua,JP40sf,60.229166666666686,9.541666666666657,,,,offline
+LD3NM,,,,,Norefjellstua,JP40sf,60.229166666666686,9.541666666666657,,,,
+LD3RI,,,,,Småstein/Skogstad,JP50ee,60.1875,10.375,,,,
+LD3SA,,,,,Sollihøgda,JO59ex,59.979166666666686,10.375,,,,
+LD3SH,,,,,Hvittingen/Sande,JO59cn,59.5625,10.208333333333314,,,,
+LD3SK,,,,,Høglikollen,JO49tg,59.27083333333334,9.625,,,,
+LD3ST,LA1T,,,,"Tønsberg, Frodeåsen",JO59eg,59.27083333333334,10.375,,,,active
+LD3TB,,,,,Bergåsen,JO59ci,59.354166666666686,10.208333333333314,,,,
+LD3TD,LA1T,,,,Tønsberg,JO59de,59.1875,10.291666666666657,,,,active
+LD3TE,,,,,Eirefjell/Tokke,JO49bl,59.479166666666686,8.125,,,,
+LD3TO,,,,,Tosevikseter,JP40xj,60.39583333333334,9.958333333333314,,,,
+LD3VL,,,,,Vealøs/Skien,JO49uf,59.229166666666686,9.708333333333314,,,,
+LD3VM,,,,,Tomtebo/Vikersund,JO49xx,59.979166666666686,9.958333333333314,,,,
+LD4AA,LA4A,,,,"Tveitheia, Åmli",JO48gs,58.77083333333334,8.541666666666657,,,,active
+LD4AI,LA4A,,,,"Fjæreheia, Grimstad",JO48gj,58.39583333333334,8.541666666666657,,,,active
+LD4AK,,,,,Kilsund,JO48ln,58.5625,8.958333333333314,,,,
+LD4AR,,,,,Kilsund,JO48ln,58.5625,8.958333333333314,,,,
+LD4AT,LA4A,,,,"Vardåsen, Tromøy",JO48jk,58.4375,8.791666666666657,,,,active
+LD4BO,,,,,Flakkheia/Birkeland,JO48ci,58.354166666666686,8.208333333333314,,,,
+LD4EG,,,,,Egersund/Gaupelemfjell,JO38do,58.604166666666686,6.291666666666657,,,,
+LD4EI,,,,,Egersund,JO28xk,58.4375,5.958333333333314,,,,
+LD4ER,,,,,Egersund/Gaupelemfjell,JO38do,58.604166666666686,6.291666666666657,,,,planned
+LD4FF,,,,,Flekkefjord/Storestø,JO38hh,58.3125,6.625,,,,offline
+LD4FH,,,,,Fjæreheia/Grimstad,JO48gj,58.39583333333334,8.541666666666657,,,,
+LD4GA,,,,,Egersund/Gaupelemfjell,JO38do,58.604166666666686,6.291666666666657,,,,
+LD4GF,,,,,Fjæreheia/Grimstad,JO48gj,58.39583333333334,8.541666666666657,,,,
+LD4GJ,,,,,Ålgård,JO28ws,58.77083333333334,5.875,,,,offline
+LD4GL,,,,,Egersund/Gaupelemfjell,JO38do,58.604166666666686,6.291666666666657,,,,
+LD4GS,LA4A,,,,Stormyrheia (Hørte),JO48fk,58.4375,8.458333333333314,,,,active
+LD4HS,,,,,Karmøy/Sandve,JO29oe,59.1875,5.208333333333314,,,,
+LD4KA,,,,,Kristiansand/Slettheia,JO38xd,58.14583333333334,7.958333333333314,,,,
+LD4KD,,,,,,,,,,,,
+LD4KH,,,,,Kvinesheia/Haugeheia,JO38nh,58.3125,7.125,,,,
+LD4KO,,,,,Redalshei,JO38xe,58.1875,7.958333333333314,,,,offline
+LD4KS,,,,,Karmøy/Sandve,JO29oe,59.1875,5.208333333333314,,,,offline
+LD4LA,,,,,Voreknuten,JO38gi,58.354166666666686,6.541666666666657,,,,
+LD4LF,LA4A,,,,"Justøy, Lillesand",JO48ee,58.1875,8.375,,,,active
+LD4LI,,,,,Stavanger/Lifjell,JO28vw,58.9375,5.791666666666657,,,,
+LD4LK,,,,,Liknes/Kvinesheia,JO38nh,58.3125,7.125,,,,
+LD4NB,,,,,Nærbø/Våland,JO28up,58.64583333333334,5.708333333333314,,,,
+LD4RH,,,,,Heiberg/Søndeled,JO48ns,58.77083333333334,9.125,,,,
+LD4RP,,,,,Puntsnes,JO39,59.5,7.0,,,,
+LD4SH,LA4A,,,,"Viddefjell, Risør",JO48or,58.729166666666686,9.208333333333314,,,,active
+LD4SJ,,,,,Jæren/Sandved,JO28uu,58.854166666666686,5.708333333333314,,,,
+LD4ST,,,,,Jørpeland,JO29xb,59.0625,5.958333333333314,,,,
+LD4VF,,,,,Stavanger/Lifjell,JO28vw,58.9375,5.791666666666657,,,,
+LD4VK,,,,,Voreknuten,JO38di,58.354166666666686,6.291666666666657,,,,
+LD4VS,LA4A,,,,"Slettåsheia, Vegårshei",JO48jq,58.6875,8.791666666666657,,,,active
+LD5AG,,,,,Åsane/Geitanuken,JP20pl,60.479166666666686,5.291666666666657,,,,
+LD5AV,,,,,Karmøy/Steinsfjellet,JO29pk,59.4375,5.291666666666657,,,,test
+LD5BE,,,,,Bergen/Bildefjellet,JP20ni,60.354166666666686,5.125,,,,
+LD5BF,,,,,Finsehytta,JP30so,60.604166666666686,7.541666666666657,,,,
+LD5BG,,,,,Bergen/Bildefjellet,JP20ni,60.354166666666686,5.125,,,,
+LD5BH,,,,,Hardangerjøkullen,JP30rn,60.5625,7.458333333333314,,,,
+LD5BR,,,,,Bergen/Rundemannen,JP20qj,60.39583333333334,5.375,,,,
+LD5ED,,,,,Bergen/Eksingedalen,JP30bt,60.8125,6.125,,,,offline
+LD5GU,,,,,Gulen/Brosviksåta,JP21na,61.02083333333334,5.125,,,,
+LD5HH,,,,,Karmøy/Helgelandsfjellet,JO29pi,59.354166666666686,5.291666666666657,,,,
+LD5HJ,,,,,Hjellstad,JP20og,60.27083333333334,5.208333333333314,,,,offline
+LD5KH,,,,,Karmøy/Helgelandsfjellet,JO29pi,59.354166666666686,5.291666666666657,,,,
+LD5KN,,,,,Knarvik,JP20pn,60.5625,5.291666666666657,,,,
+LD5KS,,,,,Kysnesstranda/Hammaren,JP30be,60.1875,6.125,,,,
+LD5MT,,,,,Melstveit,JP30cj,60.39583333333334,6.208333333333314,,,,
+LD5SK,,,,,Stord/Kattnakken,JO29ru,59.854166666666686,5.458333333333314,,,,
+LD5VO,,,,,Voss/Lønahorgi,JP30eq,60.6875,6.375,,,,
+LD6BE,,,,,"Blåhornet, Norddal",JP32ng,62.27083333333334,7.125,,,,
+LD6BK,,,,,Klettkoven,JP77me,67.1875,15.041666666666657,,,,
+LD6BS,,,,,Bremanger/Steinfjellet,JP21mu,61.854166666666686,5.041666666666657,,,,
+LD6FD,,,,,Førde/Hafstadfjell,JP21wk,61.4375,5.875,,,,
+LD6FF,,,,,Storåsen,JP21mo,61.604166666666686,5.041666666666657,,,,
+LD6FL,,,,,Florø,JP21mo,61.604166666666686,5.041666666666657,,,,
+LD6FR,,,,,Hafstadfjellet,JP21wk,61.4375,5.875,,,,
+LD6HO,,,,,Hornindal,JP31gw,61.9375,6.541666666666657,,,,
+LD6KN,,,,,Kristiansund,JP33vc,63.104166666666686,7.791666666666657,,,,
+LD6LB,,,,,Humla,JP32dk,62.4375,6.291666666666657,,,,
+LD6LF,,,,,Ørskog/Lebergsfjellet,JP32km,62.52083333333334,6.875,,,,
+LD6MD,,,,,Molde/Tussen,JP32ps,62.77083333333334,7.291666666666657,,,,
+LD6NT,,,,,Nerlandsøy/Teigetua,JP22ti,62.354166666666686,5.625,,,,
+LD6RF,,,,,Reinsfjell,JP32xw,62.9375,7.958333333333314,,,,
+LD6SA,,,,,Sagtennene,JP31bv,61.89583333333334,6.125,,,,
+LD6SB,,,,,Svinberget,JP42fr,62.729166666666686,8.458333333333314,,,,
+LD6SD,,,,,Sunnylven,JP32mi,62.354166666666686,7.041666666666657,,,,
+LD6SG,,,,,Sunndalen/Grøvllægdin,JP42ko,62.604166666666686,8.875,,,,
+LD6SH,,,,,Spjelkavik/Høgelia,JP32ek,62.4375,6.375,,,,offline
+LD6SO,,,,,Sogndal/Storehogen,JP31ne,61.1875,7.125,,,,
+LD6ST,,,,,Stryn/Svarstadveten,JP31hv,61.89583333333334,6.625,,,,offline
+LD6VS,,,,,Volda/Sandhornet,JP32bd,62.14583333333334,6.125,,,,
+LD7FB,,,,,Fosen/Bessakerfjorden,JP54ef,64.22916666666669,10.375,,,,
+LD7FF,,,,,Forbordsfjell,JP53km,63.52083333333334,10.875,,,,
+LD7FO,,,,,Fosen/Tarva,JP43qs,63.77083333333334,9.375,,,,
+LD7FS,,,,,Fosen/Stadsbygd,JP43xm,63.52083333333334,9.958333333333314,,,,
+LD7GG,,,,,Grong/Geitfjellet,JP64cj,64.39583333333334,12.208333333333314,,,,
+LD7NA,,,,,Namsos/Vattafjell,JP54rl,64.47916666666669,11.458333333333314,,,,
+LD7ST,,,,,Steinkjer/Offenåsen,JP53sx,63.979166666666686,11.541666666666657,,,,
+LD7TB,LA2T,,,,Bringen,JP53nb,63.0625,11.125,,,,active
+LD7TD,LA2T,,,,Vassfjellet,JP53fi,63.354166666666686,10.458333333333314,,,,active
+LD7TG,LA2T,,,,Gråkallen,JP53dk,63.4375,10.291666666666657,,,,active
+LD7TH,LA2T,,,,Tydal,JP52vv,62.89583333333334,11.791666666666657,,,,active
+LD7TL,,,,,Gråkallen,JP53dk,63.4375,10.291666666666657,,,,
+LD7TO,LA2T,,,,Oppdal,JP42un,62.5625,9.708333333333314,,,,active
+LD7TR,LA2T,,,,Ruten,JP43ne,63.1875,9.125,,,,active
+LD7TS,LA2T,,,,Støren,JP53da,63.02083333333334,10.291666666666657,,,,active
+LD7TT,LA2T,,,,Tyholt,JP53fk,63.4375,10.458333333333314,,,,active
+LD7TV,,,,,Vassfjellet,JP53eg,63.27083333333334,10.375,,,,
+LD7VD,,,,,Verdal,JP53su,63.854166666666686,11.541666666666657,,,,
+LD7VM,,,,,Verdal/Marsteinsvola,JP53su,63.854166666666686,11.541666666666657,,,,
+LD8AR,,,,,Andenes/Ramnan,JP89ag,69.27083333333334,16.041666666666657,,,,offline
+LD8BK,,,,,Fauske/Klettkoven,JP77me,67.1875,15.041666666666657,,,,
+LD8BS,,,,,Mosheim/Brønnøysund,JP65cl,65.47916666666669,12.208333333333314,,,,
+LD8DF,,,,,Dønnesfjellet/Sandnessjøen,JP66ge,66.1875,12.541666666666657,,,,
+LD8DN,,,,,Dønnesfjellet/Sandnessjøen,JP66ge,66.1875,12.541666666666657,,,,offline
+LD8FS,,,,,Fornesfjell,JP77rk,67.4375,15.458333333333314,,,,
+LD8FT,,,,,Bjørnmoveien,JP77rf,67.22916666666669,15.458333333333314,,,,
+LD8GS,,,,,Grane/Strendene,JP65qk,65.4375,13.375,,,,
+LD8HB,,,,,Hemnes/Bleikvasslia,JP65vu,65.85416666666669,13.791666666666657,,,,
+LD8HV,,,,,Hemnes/Vettahaugen,JP66ue,66.1875,13.708333333333314,,,,
+LD8KV,,,,,Keiservarden,JP77fh,67.3125,14.458333333333314,,,,
+LD8LF,,,,,Telegrafveien,JP77pf,67.22916666666669,15.291666666666657,,,,
+LD8LK,,,,,Leknes,JP68td,68.14583333333334,13.625,,,,
+LD8LR,,,,,Lødingen,JP78xj,68.39583333333334,15.958333333333314,,,,
+LD8MB,,,,,Mosjøen/Bjørnålia,JP65ps,65.77083333333334,13.291666666666657,,,,
+LD8MK,,,,,Mosjøen/Kappfjell,JP65rh,65.3125,13.458333333333314,,,,
+LD8MM,,,,,Meløy/Ørnes,JP66uv,66.89583333333334,13.708333333333314,,,,
+LD8MR,,,,,Mo i Rana/Toraneset,JP76bh,66.3125,14.125,,,,
+LD8MV,,,,,Mosjøen/Vardefjell,JP65ou,65.85416666666669,13.208333333333314,,,,
+LD8NA,,,,,Narvik/Fjellheisen,JP88rk,68.4375,17.458333333333314,,,,
+LD8NB,,,,,Narvik/Bjørnfjell,JP98ak,68.4375,18.041666666666657,,,,
+LD8NK,,,,,Nesna/Kvassnes,JP66mf,66.22916666666669,13.041666666666657,,,,
+LD8NN,,,,,Nesna/Kvassnes,JP66mf,66.22916666666669,13.041666666666657,,,,
+LD8NO,,,,,,JP88ol,68.47916666666669,17.208333333333314,,,,
+LD8NV,,,,,Narvik,JP88rl,68.47916666666669,17.458333333333314,,,,
+LD8RA,,,,,Andfjell,JP76ok,66.4375,15.208333333333314,,,,
+LD8RH,,,,,Rana/Hellerfjell,JP76fe,66.1875,14.458333333333314,,,,
+LD8RS,,,,,Raudtind,JP77rf,67.22916666666669,15.458333333333314,,,,
+LD8SA,,,,,Høgåsen/Sandnessjøen,JP66ha,66.02083333333334,12.625,,,,
+LD8SH,,,,,Sulitjelma/Hanken,JP87bd,67.14583333333334,16.125,,,,
+LD8SS,,,,,Høgåsen/Sandnessjøen,JP66ha,66.02083333333334,12.625,,,,
+LD8TB,,,,,Tysfjord/Bognesveten,JP88af,68.22916666666669,16.041666666666657,,,,offline
+LD8VR,,,,,Sortland,JP78qq,68.6875,15.375,,,,
+LD9AB,,,,,Andfjellbruna,JP99gd,69.14583333333334,18.541666666666657,,,,
+LD9AD,,,,,Algas,KQ10lc,70.10416666666669,22.958333333333314,,,,offline
+LD9AF,,,,,Andsfjell,JP99gd,69.14583333333334,18.541666666666657,,,,
+LD9AH,,,,,Hasvik/Sørøya,KQ10bl,70.47916666666669,22.125,,,,offline
+LD9AT,,,,,Kråknes,KQ10na,70.02083333333334,23.125,,,,
+LD9AV,,,,,Altevann/Slåttmoberget,JP98oi,68.35416666666669,19.208333333333314,,,,
+LD9BA,,,,,Varhaugen/Balsfjord,JP99qf,69.22916666666669,19.375,,,,
+LD9BK,,,,,Bjarkøy/Krøttøykollen,JP89gb,69.0625,16.541666666666657,,,,
+LD9DM,,,,,Domen/Vardø,KQ50nh,70.3125,31.125,,,,
+LD9HA,,,,,Maistua,JP88gs,68.77083333333334,16.541666666666657,,,,
+LD9HB,,,,,Maistua,JP88gs,68.77083333333334,16.541666666666657,,,,
+LD9HH,,,,,Heggenkollen,JP88gs,68.77083333333334,16.541666666666657,,,,
+LD9HK,,,,,Kvæfjord,JP88cs,68.77083333333334,16.208333333333314,,,,
+LD9HM,,,,,Maistua,JP88gs,68.77083333333334,16.541666666666657,,,,
+LD9HN,,,,,Hammerfest,KQ10uq,70.6875,23.708333333333314,,,,
+LD9HO,,,,,Sollifjell,JP88et,68.8125,16.375,,,,
+LD9HR,,,,,Samaåsen,JP88gt,68.8125,16.541666666666657,,,,
+LD9HS,,,,,Hasvik/Sørøya,KQ10bl,70.47916666666669,22.125,,,,
+LD9HT,,,,,Nattmålstind/Senja,JP89uh,69.3125,17.708333333333314,,,,
+LD9KA,,,,,Kautokeino,KP19ma,69.02083333333334,23.041666666666657,,,,
+LD9KB,,,,,Kvæfjord,JP88bs,68.77083333333334,16.125,,,,
+LD9KK,,,,,Kvæfjord/Kveøy,JP88bs,68.77083333333334,16.125,,,,
+LD9KR,,,,,Kautokeino,KP19ma,69.02083333333334,23.041666666666657,,,,
+LD9KS,,,,,Stuorra,KQ20si,70.35416666666669,25.541666666666657,,,,
+LD9LY,,,,,Årøybukt/Lyngen,KP09dp,69.64583333333334,20.291666666666657,,,,
+LD9MB,,,,,Andsfjell,JP99gd,69.14583333333334,18.541666666666657,,,,
+LD9MM,,,,,Setermoen,JP98fv,68.89583333333334,18.458333333333314,,,,planned
+LD9MS,,,,,Spansdalen,JP88wr,68.72916666666669,17.875,,,,planned
+LD9NG,,,,,Gratangen,JP88vp,68.64583333333334,17.791666666666657,,,,
+LD9NK,,,,,Honningsvågfjell,KQ20wx,70.97916666666669,25.875,,,,
+LD9PS,,,,,Porsanger/Sandviktoppen,KQ20oh,70.3125,25.208333333333314,,,,
+LD9SH,,,,,Storeheia/Hadsel,JP78om,68.52083333333334,15.208333333333314,,,,
+LD9SJ,,,,,Nattmålstind/Senja,JP89uh,69.3125,17.708333333333314,,,,
+LD9SK,,,,,Bertelfjell/Sørkjosen,KP09kt,69.8125,20.875,,,,
+LD9SM,,,,,Holtet/Setermoen,JP98bq,68.6875,18.125,,,,
+LD9SV,,,,,Skrova,JP78he,68.1875,14.625,,,,
+LD9TB,,,,,Tromsø,JP99lp,69.64583333333334,18.958333333333314,,,,
+LD9TD,,,,,Fjellheisen,JP99lp,69.64583333333334,18.958333333333314,,,,
+LD9TF,,,,,Furuflaten,KP09bk,69.4375,20.125,,,,
+LD9TK,,,,,Kjølen,JP99jr,69.72916666666669,18.791666666666657,,,,
+LD9TN,,,,,Fløyfjellet,JP99mp,69.64583333333334,19.041666666666657,,,,
+LD9TT,,,,,Tønsnes,JP99nr,69.72916666666669,19.125,,,,
+LD9TU,,,,,Ullsneshaugen/Lyngen,JP99vq,69.6875,19.791666666666657,,,,
+LD9VG,,,,,Hesseng/Verigas,KP49wr,69.72916666666669,29.875,,,,
+LD9VN,,,,,Vannøy/Kvalkjeften,JQ90ue,70.1875,19.708333333333314,,,,
