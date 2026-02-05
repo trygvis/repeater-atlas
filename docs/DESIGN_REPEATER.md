@@ -69,122 +69,8 @@ repeater_system (identity + site)
        └─ repeater_service_dmr_talkgroup (optional per DMR service)
 ```
 
-### Tables and enums
-
-```sql
--- Physical system identity (what people refer to)
--- Note: the call sign is stored in the global `call_sign` table.
-CREATE TABLE call_sign (
-  value TEXT PRIMARY KEY,
-  kind  call_sign_kind NOT NULL, -- 'repeater' | 'contact'
-
-  CHECK (value = upper(value))
-);
-
-CREATE TABLE contact (
-  id           BIGSERIAL PRIMARY KEY,
-  call_sign    TEXT UNIQUE REFERENCES call_sign(value) ON DELETE CASCADE,
-  kind         contact_kind NOT NULL, -- 'organization' | 'individual'
-  display_name TEXT NOT NULL,
-  description  TEXT,
-  web_url      TEXT,
-  email        TEXT,
-  phone        TEXT,
-  address      TEXT
-);
-
-CREATE TABLE repeater_system (
-  id            BIGSERIAL PRIMARY KEY,
-  call_sign     TEXT NOT NULL UNIQUE REFERENCES call_sign(value) ON DELETE CASCADE,
-
-  -- Optional responsibility/contacts (similar to DNS SOA admin/tech roles).
-  owner         BIGINT REFERENCES contact(id) ON DELETE SET NULL,
-  tech_contact  BIGINT REFERENCES contact(id) ON DELETE SET NULL,
-
-  name          TEXT,
-  description   TEXT,
-  address       TEXT,
-  maidenhead    TEXT,
-  latitude      DOUBLE PRECISION,
-  longitude     DOUBLE PRECISION,
-  elevation_m   INTEGER,
-  country       TEXT,
-  region        TEXT,
-  status        TEXT NOT NULL DEFAULT 'active'
-);
-
--- Spatial index for range queries (derived from lon/lat).
-CREATE INDEX repeater_system_geo_idx
-  ON repeater_system
-  USING GIST (geography(ST_MakePoint(longitude, latitude)))
-  WHERE latitude IS NOT NULL AND longitude IS NOT NULL;
-
-CREATE TYPE repeater_service_kind AS ENUM (
-  'fm',
-  'am',
-  'ssb',
-  'dstar',
-  'dmr',
-  'c4fm',
-  'aprs'
-);
-
-CREATE TYPE fm_bandwidth AS ENUM ('narrow', 'wide');
-CREATE TYPE tone_kind AS ENUM ('none', 'ctcss', 'dcs');
-CREATE TYPE dstar_mode AS ENUM ('dv', 'dd');
-CREATE TYPE aprs_mode AS ENUM ('igate', 'digipeater');
-CREATE TYPE ssb_sideband AS ENUM ('lsb', 'usb');
-
--- Services/features attach to a label + rx/tx pair (label is the RF port name).
-CREATE TABLE repeater_service (
-  id                      BIGSERIAL PRIMARY KEY,
-  repeater_id             BIGINT NOT NULL REFERENCES repeater_system(id) ON DELETE CASCADE,
-  kind                    repeater_service_kind NOT NULL,
-  enabled                 BOOLEAN NOT NULL DEFAULT TRUE,
-  label                   TEXT NOT NULL,
-  note                    TEXT,
-  rx_hz                   BIGINT NOT NULL,
-  tx_hz                   BIGINT NOT NULL,
-
-  fm_bandwidth            fm_bandwidth NOT NULL DEFAULT 'narrow',
-  rx_tone_kind            tone_kind NOT NULL DEFAULT 'none',
-  rx_ctcss_hz             REAL,
-  rx_dcs_code             INTEGER,
-  tx_tone_kind            tone_kind NOT NULL DEFAULT 'none',
-  tx_ctcss_hz             REAL,
-  tx_dcs_code             INTEGER,
-
-  dmr_color_code          SMALLINT NOT NULL DEFAULT 0,
-  dmr_repeater_id         BIGINT,
-  dmr_network             TEXT NOT NULL DEFAULT '',
-
-  dstar_mode              dstar_mode NOT NULL DEFAULT 'dv',
-  dstar_gateway_call_sign TEXT,
-  dstar_reflector         TEXT,
-
-  c4fm_wires_x_node_id    INTEGER,
-  c4fm_room               TEXT,
-
-  aprs_mode               aprs_mode,
-  aprs_path               TEXT,
-
-  ssb_sideband            ssb_sideband
-);
-
--- Prevent duplicates per repeater + label + kind.
-CREATE UNIQUE INDEX repeater_service_unique_label_kind
-  ON repeater_service(repeater_id, label, kind);
-
--- Optional: talkgroups/slots as first-class data (DMR only).
-CREATE TABLE repeater_service_dmr_talkgroup (
-  id                    BIGSERIAL PRIMARY KEY,
-  service_id            BIGINT NOT NULL REFERENCES repeater_service(id) ON DELETE CASCADE,
-  time_slot             SMALLINT NOT NULL,
-  talkgroup             INTEGER NOT NULL,
-  name                  TEXT,
-  UNIQUE(service_id, time_slot, talkgroup)
-);
-```
+The schema is available as `schema.tmp.sql` after running 
+`make db-export-schema`.
 
 ### Suggested constraints (optional, can be added later)
 
@@ -225,6 +111,21 @@ radios/directory listings often refer to “LD1OT B/C” as distinct RF modules.
 
 Model APRS as a normal service row with `aprs_mode` set to `igate` or
 `digipeater`, plus optional `aprs_path`. Use the usual label + rx/tx pair.
+
+## Linking
+
+Some repeaters are RF-linked or otherwise bridged as part of a local network.
+We model these relationships as an undirected link between two repeater
+systems.
+
+-  Stored in `repeater_link` as `(repeater_a_id, repeater_b_id)` with
+  `repeater_a_id < repeater_b_id` to keep the pair unique.
+-  Optional `note` can describe the link (for example, "RF link", "node ID 1234",
+  or a local site label).
+-  Queries should treat the link as symmetric: a repeater can be linked to many
+  others, and the "other" side is whichever ID is not the current repeater.
+-  Rendering should list linked call signs on the repeater detail page, with the
+  note shown only when present.
 
 ## Query Patterns (examples)
 
