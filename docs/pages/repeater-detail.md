@@ -37,6 +37,9 @@
     - Shows "No services defined." when empty.
   - Linked repeaters:
     - List of call signs with optional notes, when any links exist.
+  - Nearby repeaters:
+    - Same set as the map markers, sorted by distance from the current repeater.
+    - Shown after linked repeaters.
   - Map:
     - Leaflet map with a 50 km radius circle around the repeater.
     - Markers for repeaters within 50 km, labeled by call sign.

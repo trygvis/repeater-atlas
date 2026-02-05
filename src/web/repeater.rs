@@ -1,7 +1,7 @@
 use super::AppState;
 use super::auth::auth_header;
 use super::map::{MapContext, MapPoint, MapRepeater, OrganizationMapContext};
-use super::utils::resolve_site_fields;
+use super::utils::{distance_km, resolve_site_fields};
 use crate::dao::repeater_service::{AprsMode, DstarMode, FmBandwidth, SsbSideband};
 use crate::service::repeater_service::RepeaterService;
 use crate::{Frequency, service};
@@ -22,6 +22,12 @@ struct ContactItem {
 struct LinkedRepeaterItem {
     call_sign: String,
     note: String,
+}
+
+struct NearbyRepeaterItem {
+    call_sign: String,
+    distance_km: f64,
+    distance_label: String,
 }
 
 struct OrganizationRepeaterItem {
@@ -276,6 +282,7 @@ struct DetailTemplate {
     owner: Option<ContactItem>,
     tech_contact: Option<ContactItem>,
     links: Vec<LinkedRepeaterItem>,
+    nearby_repeaters: Vec<NearbyRepeaterItem>,
     fm_services: Vec<FmServiceItem>,
     dmr_services: Vec<DmrServiceItem>,
     dstar_services: Vec<DstarServiceItem>,
@@ -421,6 +428,7 @@ async fn render_repeater_detail(
     jar: CookieJar,
     state: AppState,
 ) -> Result<Html<String>, RepeaterAtlasError> {
+    const NEARBY_RADIUS_METERS: f64 = 50_000.0;
     let mut c = state.pool.get().await?;
 
     let repeater = match dao::repeater_system::find_by_call_sign(&mut c, call_sign.clone()).await? {
@@ -468,16 +476,29 @@ async fn render_repeater_detail(
         .clone()
         .unwrap_or_else(|| "-".to_string());
     let resolved = resolve_site_fields(&repeater);
-    let map_context = if let (Some(center_lat), Some(center_lon)) =
+    let (map_context, nearby_repeaters) = if let (Some(center_lat), Some(center_lon)) =
         (resolved.latitude, resolved.longitude)
     {
         let all_repeaters =
-            dao::repeater_system::select_within_radius(&mut c, center_lat, center_lon, 50_000.0)
+            dao::repeater_system::select_within_radius(
+                &mut c,
+                center_lat,
+                center_lon,
+                NEARBY_RADIUS_METERS,
+            )
                 .await?;
         let mut nearby_repeaters = Vec::new();
+        let mut nearby_list = Vec::new();
 
         for candidate in all_repeaters {
             if let (Some(lat), Some(lon)) = (candidate.latitude, candidate.longitude) {
+                let distance = distance_km(center_lat, center_lon, lat, lon);
+                nearby_list.push(NearbyRepeaterItem {
+                    call_sign: candidate.call_sign.clone(),
+                    distance_km: distance,
+                    distance_label: format!("{distance:.1} km"),
+                });
+
                 nearby_repeaters.push(MapRepeater {
                     call_sign: candidate.call_sign,
                     latitude: lat,
@@ -488,16 +509,26 @@ async fn render_repeater_detail(
             }
         }
 
-        Some(MapContext {
-            center: MapPoint {
-                latitude: center_lat,
+        nearby_list.sort_by(|a, b| {
+            a.distance_km
+                .partial_cmp(&b.distance_km)
+                .unwrap_or(std::cmp::Ordering::Equal)
+                .then_with(|| a.call_sign.cmp(&b.call_sign))
+        });
+
+        (
+            Some(MapContext {
+                center: MapPoint {
+                    latitude: center_lat,
                 longitude: center_lon,
             },
-            radius_meters: 50_000,
+            radius_meters: NEARBY_RADIUS_METERS as u32,
             repeaters: nearby_repeaters,
-        })
+        }),
+            nearby_list,
+        )
     } else {
-        None
+        (None, Vec::new())
     };
 
     let auth = auth_header(&jar, &state);
@@ -508,6 +539,7 @@ async fn render_repeater_detail(
         owner,
         tech_contact,
         links,
+        nearby_repeaters,
         fm_services,
         dmr_services,
         dstar_services,

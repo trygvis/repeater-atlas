@@ -255,6 +255,20 @@
           </ul>
         </section>
       {% endif %}
+
+      {% if nearby_repeaters.len() > 0 %}
+        <section>
+          <h2>Nearby repeaters</h2>
+          <ul>
+            {% for nearby in nearby_repeaters %}
+              <li>
+                <a href="/call-sign/{{ nearby.call_sign }}">{{ nearby.call_sign }}</a>
+                — {{ nearby.distance_label }}
+              </li>
+            {% endfor %}
+          </ul>
+        </section>
+      {% endif %}
     </div>
     {% if map_context.is_some() %}
     <section>
