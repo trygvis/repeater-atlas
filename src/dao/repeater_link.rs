@@ -1,7 +1,7 @@
 use crate::RepeaterAtlasError;
 use diesel::prelude::*;
 use diesel::sql_query;
-use diesel::sql_types::{Array, Int4, Text};
+use diesel::sql_types::{Array, BigInt, Int4, Text};
 use diesel_async::{AsyncPgConnection, RunQueryDsl};
 
 #[derive(Insertable)]
@@ -29,13 +29,6 @@ pub struct RepeaterLink {
     pub id: i64,
     pub repeater_a_id: i64,
     pub repeater_b_id: i64,
-    pub note: String,
-}
-
-#[derive(Clone)]
-pub struct RepeaterLinkWithOtherCallSign {
-    pub other_repeater_id: i64,
-    pub other_call_sign: String,
     pub note: String,
 }
 
@@ -74,39 +67,45 @@ pub async fn select_by_repeater_id(
         .await
 }
 
+#[derive(QueryableByName)]
+pub struct RepeaterLinkWithOtherCallSign {
+    #[diesel(sql_type = BigInt)]
+    pub other_repeater_id: i64,
+    #[diesel(sql_type = Text)]
+    pub other_call_sign: String,
+    #[diesel(sql_type = Text)]
+    pub note: String,
+}
+
 pub async fn select_with_other_call_sign(
     c: &mut AsyncPgConnection,
     repeater_id: i64,
 ) -> QueryResult<Vec<RepeaterLinkWithOtherCallSign>> {
-    use crate::schema::repeater_link::dsl as l;
-    use crate::schema::repeater_system::dsl as rs;
+    // Diesel DSL cannot express the conditional "other" side selection + join cleanly.
+    let rows = sql_query(
+        r#"
+        SELECT
+            CASE
+                WHEN rl.repeater_a_id = $1 THEN rl.repeater_b_id
+                ELSE rl.repeater_a_id
+            END AS other_repeater_id,
+            rs.call_sign AS other_call_sign,
+            rl.note
+        FROM repeater_link rl
+        JOIN repeater_system rs
+          ON rs.id = CASE
+                         WHEN rl.repeater_a_id = $1 THEN rl.repeater_b_id
+                         ELSE rl.repeater_a_id
+                     END
+        WHERE rl.repeater_a_id = $1 OR rl.repeater_b_id = $1
+        ORDER BY rs.call_sign ASC
+        "#,
+    )
+    .bind::<BigInt, _>(repeater_id)
+    .get_results::<RepeaterLinkWithOtherCallSign>(c)
+    .await?;
 
-    // Two queries keeps this simple in Diesel: one for "A is self", one for "B is self".
-    let a_rows: Vec<(i64, String, String)> = l::repeater_link
-        .filter(l::repeater_a_id.eq(repeater_id))
-        .inner_join(rs::repeater_system.on(rs::id.eq(l::repeater_b_id)))
-        .select((l::repeater_b_id, rs::call_sign, l::note))
-        .get_results(c)
-        .await?;
-
-    let b_rows: Vec<(i64, String, String)> = l::repeater_link
-        .filter(l::repeater_b_id.eq(repeater_id))
-        .inner_join(rs::repeater_system.on(rs::id.eq(l::repeater_a_id)))
-        .select((l::repeater_a_id, rs::call_sign, l::note))
-        .get_results(c)
-        .await?;
-
-    let mut out = Vec::with_capacity(a_rows.len() + b_rows.len());
-    for (other_repeater_id, call_sign, note) in a_rows.into_iter().chain(b_rows) {
-        out.push(RepeaterLinkWithOtherCallSign {
-            other_repeater_id,
-            other_call_sign: call_sign,
-            note,
-        });
-    }
-
-    out.sort_by(|a, b| a.other_call_sign.cmp(&b.other_call_sign));
-    Ok(out)
+    Ok(rows)
 }
 
 #[derive(Debug, QueryableByName)]
