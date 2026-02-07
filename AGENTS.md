@@ -26,7 +26,7 @@
 - _NEVER_ commit any code without explicit instructions. Ask if a commit should
   be made, only if everything builds and all tests pass.
 - `schema.rs` should never be edited manually. Run the database migrations with
-  `make db-init`, it will reinitialize the database and run the migrations.
+  `just db-init`, it will reinitialize the database and run the migrations.
   Diesel will generate `schema.rs` automatically.
 - There are pre-commit hooks installed that will be executed automatically. If
   these fail, there is an issue that has to be fixed before continuing. DO NOT
@@ -54,12 +54,12 @@
   - The `tk` command will edit Markdown files for you, those should also be run
     through `prettier` after editing via `tk`.
 - Follow these steps when changing code:
-  1. Run `make all` to make sure that everything compiles. This must pass before
+  1. Run `just all` to make sure that everything compiles. This must pass before
      continuing.
-  2. Run `make test` to make sure that all tests pass before continuing.
-  3. Check that the database migrations work with `make db-init`. This will
+  2. Run `just test` to make sure that all tests pass before continuing.
+  3. Check that the database migrations work with `just db-init`. This will
      clean the database and run all migrations
-  4. Check that the data loading still works with `make db-setup`. This will do
+  4. Check that the data loading still works with `just db-setup`. This will do
      `db-init` again, but also load the data.
 
 ## Documentation
@@ -74,8 +74,8 @@ These must be read before doing any work.
 
 ## CLI tools and commands
 
-- Read the entire Makefile, look at all targets and comments. Learn the
-  top-level targets as commands to run.
+- Run `just` to get the overview of available recipes and agent notes. Use
+  `direnv exec . just` to ensure the environment is loaded.
 - This project uses a CLI ticket system for task management. Run `tk help` when
   you need to use it.
 - Generate migrations via `diesel migration generate`, not by hand.
