@@ -1,6 +1,5 @@
 use super::AppState;
 use super::auth::auth_header;
-use super::utils::resolve_site_fields;
 use crate::{RepeaterAtlasError, dao};
 use askama::Template;
 use axum::{extract::State, response::Html};
@@ -10,9 +9,10 @@ use axum_extra::routing::TypedPath;
 struct RepeaterListItem {
     call_sign: String,
     status: String,
-    description: String,
-    maidenhead: String,
-    location: String,
+    description: Option<String>,
+    maidenhead: Option<String>,
+    latitude: Option<f64>,
+    longitude: Option<f64>,
 }
 
 #[derive(TypedPath)]
@@ -43,17 +43,16 @@ async fn render_repeaters_list(
     let repeaters = dao::repeater_system::select_with_call_sign(&mut c).await?;
     let mut items = Vec::with_capacity(repeaters.len());
     for repeater in repeaters {
-        let resolved = resolve_site_fields(&repeater);
         let call_sign = repeater.call_sign.clone();
         let status = repeater.status.clone();
-        let description = repeater.description.clone();
 
         items.push(RepeaterListItem {
             call_sign,
             status,
-            description: description.unwrap_or_else(|| "-".to_string()),
-            maidenhead: resolved.maidenhead,
-            location: resolved.location,
+            description: repeater.description.clone(),
+            maidenhead: repeater.maidenhead.as_ref().map(|value| value.to_string()),
+            latitude: repeater.latitude,
+            longitude: repeater.longitude,
         });
     }
 

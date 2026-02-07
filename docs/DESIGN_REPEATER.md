@@ -53,7 +53,9 @@ multiple RF ports (different bands, cross-band links, simplex nodes, etc.).
   owner/club, site).
 - **Site:** The location metadata (lat/lon, address, grid locator). We keep this
   at the system level for now, and use a PostGIS geography index derived from
-  (longitude, latitude) for range queries.
+  (longitude, latitude) for range queries. Lat/long are the authoritative
+  coordinates; the grid locator is optional metadata and should not be used to
+  derive coordinates at render time.
 - **RF port / channel:** A specific RX/TX frequency plan (may be same band or
   cross-band).
 - **Service / feature:** A capability running on a port (FM, DMR, D-STAR, APRS,
@@ -69,7 +71,7 @@ repeater_system (identity + site)
        └─ repeater_service_dmr_talkgroup (optional per DMR service)
 ```
 
-The schema is available as `schema.tmp.sql` after running 
+The schema is available as `schema.tmp.sql` after running
 `just db-export-schema`.
 
 ### Suggested constraints (optional, can be added later)
@@ -114,17 +116,16 @@ Model APRS as a normal service row with `aprs_mode` set to `igate` or
 
 ## Linking
 
-Some repeaters are RF-linked or otherwise bridged as part of a local network.
-We model these relationships as an undirected link between two repeater
-systems.
+Some repeaters are RF-linked or otherwise bridged as part of a local network. We
+model these relationships as an undirected link between two repeater systems.
 
--  Stored in `repeater_link` as `(repeater_a_id, repeater_b_id)` with
+- Stored in `repeater_link` as `(repeater_a_id, repeater_b_id)` with
   `repeater_a_id < repeater_b_id` to keep the pair unique.
--  Optional `note` can describe the link (for example, "RF link", "node ID 1234",
+- Optional `note` can describe the link (for example, "RF link", "node ID 1234",
   or a local site label).
--  Queries should treat the link as symmetric: a repeater can be linked to many
+- Queries should treat the link as symmetric: a repeater can be linked to many
   others, and the "other" side is whichever ID is not the current repeater.
--  Rendering should list linked call signs on the repeater detail page, with the
+- Rendering should list linked call signs on the repeater detail page, with the
   note shown only when present.
 
 ## Query Patterns (examples)

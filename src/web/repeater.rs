@@ -1,7 +1,7 @@
 use super::AppState;
 use super::auth::auth_header;
 use super::map::{MapContext, MapPoint, MapRepeater, OrganizationMapContext};
-use super::utils::{distance_km, resolve_site_fields};
+use super::utils::distance_km;
 use crate::dao::repeater_service::{AprsMode, DstarMode, FmBandwidth, SsbSideband};
 use crate::service::repeater_service::RepeaterService;
 use crate::{Frequency, service};
@@ -33,7 +33,7 @@ struct NearbyRepeaterItem {
 struct OrganizationRepeaterItem {
     call_sign: String,
     status: String,
-    description: String,
+    description: Option<String>,
     services: ServiceItems,
 }
 
@@ -291,9 +291,10 @@ struct DetailTemplate {
     ssb_services: Vec<SsbServiceItem>,
     am_services: Vec<AmServiceItem>,
     status: String,
-    description: String,
-    maidenhead: String,
-    location: String,
+    description: Option<String>,
+    maidenhead: Option<String>,
+    latitude: Option<f64>,
+    longitude: Option<f64>,
     map_context: Option<MapContext>,
 }
 
@@ -380,8 +381,7 @@ async fn render_contact_detail(
     for (_call_sign, repeater) in repeaters_by_call_sign {
         let services = dao::repeater_service::select_by_repeater_id(&mut c, repeater.id).await?;
         let service_items = build_service_items(services);
-        let resolved = resolve_site_fields(&repeater);
-        if let (Some(latitude), Some(longitude)) = (resolved.latitude, resolved.longitude) {
+        if let (Some(latitude), Some(longitude)) = (repeater.latitude, repeater.longitude) {
             map_repeaters.push(MapRepeater {
                 call_sign: repeater.call_sign.clone(),
                 latitude,
@@ -394,10 +394,7 @@ async fn render_contact_detail(
         repeaters.push(OrganizationRepeaterItem {
             call_sign: repeater.call_sign.clone(),
             status: repeater.status.clone(),
-            description: repeater
-                .description
-                .clone()
-                .unwrap_or_else(|| "-".to_string()),
+            description: repeater.description.clone(),
             services: service_items,
         });
     }
@@ -471,65 +468,62 @@ async fn render_repeater_detail(
         am_services,
     } = service_items;
     let status = repeater.status.clone();
-    let description = repeater
-        .description
-        .clone()
-        .unwrap_or_else(|| "-".to_string());
-    let resolved = resolve_site_fields(&repeater);
-    let (map_context, nearby_repeaters) = if let (Some(center_lat), Some(center_lon)) =
-        (resolved.latitude, resolved.longitude)
-    {
-        let all_repeaters =
-            dao::repeater_system::select_within_radius(
+    let description = repeater.description.clone();
+    let maidenhead = repeater.maidenhead.as_ref().map(|value| value.to_string());
+    let latitude = repeater.latitude;
+    let longitude = repeater.longitude;
+    let (map_context, nearby_repeaters) =
+        if let (Some(center_lat), Some(center_lon)) = (latitude, longitude) {
+            let all_repeaters = dao::repeater_system::select_within_radius(
                 &mut c,
                 center_lat,
                 center_lon,
                 NEARBY_RADIUS_METERS,
             )
-                .await?;
-        let mut nearby_repeaters = Vec::new();
-        let mut nearby_list = Vec::new();
+            .await?;
+            let mut nearby_repeaters = Vec::new();
+            let mut nearby_list = Vec::new();
 
-        for candidate in all_repeaters {
-            if let (Some(lat), Some(lon)) = (candidate.latitude, candidate.longitude) {
-                let distance = distance_km(center_lat, center_lon, lat, lon);
-                nearby_list.push(NearbyRepeaterItem {
-                    call_sign: candidate.call_sign.clone(),
-                    distance_km: distance,
-                    distance_label: format!("{distance:.1} km"),
-                });
+            for candidate in all_repeaters {
+                if let (Some(lat), Some(lon)) = (candidate.latitude, candidate.longitude) {
+                    let distance = distance_km(center_lat, center_lon, lat, lon);
+                    nearby_list.push(NearbyRepeaterItem {
+                        call_sign: candidate.call_sign.clone(),
+                        distance_km: distance,
+                        distance_label: format!("{distance:.1} km"),
+                    });
 
-                nearby_repeaters.push(MapRepeater {
-                    call_sign: candidate.call_sign,
-                    latitude: lat,
-                    longitude: lon,
-                    status: candidate.status,
-                    services: Vec::new(),
-                });
+                    nearby_repeaters.push(MapRepeater {
+                        call_sign: candidate.call_sign,
+                        latitude: lat,
+                        longitude: lon,
+                        status: candidate.status,
+                        services: Vec::new(),
+                    });
+                }
             }
-        }
 
-        nearby_list.sort_by(|a, b| {
-            a.distance_km
-                .partial_cmp(&b.distance_km)
-                .unwrap_or(std::cmp::Ordering::Equal)
-                .then_with(|| a.call_sign.cmp(&b.call_sign))
-        });
+            nearby_list.sort_by(|a, b| {
+                a.distance_km
+                    .partial_cmp(&b.distance_km)
+                    .unwrap_or(std::cmp::Ordering::Equal)
+                    .then_with(|| a.call_sign.cmp(&b.call_sign))
+            });
 
-        (
-            Some(MapContext {
-                center: MapPoint {
-                    latitude: center_lat,
-                longitude: center_lon,
-            },
-            radius_meters: NEARBY_RADIUS_METERS as u32,
-            repeaters: nearby_repeaters,
-        }),
-            nearby_list,
-        )
-    } else {
-        (None, Vec::new())
-    };
+            (
+                Some(MapContext {
+                    center: MapPoint {
+                        latitude: center_lat,
+                        longitude: center_lon,
+                    },
+                    radius_meters: NEARBY_RADIUS_METERS as u32,
+                    repeaters: nearby_repeaters,
+                }),
+                nearby_list,
+            )
+        } else {
+            (None, Vec::new())
+        };
 
     let auth = auth_header(&jar, &state);
     let template = DetailTemplate {
@@ -549,8 +543,9 @@ async fn render_repeater_detail(
         am_services,
         status,
         description,
-        maidenhead: resolved.maidenhead,
-        location: resolved.location,
+        maidenhead,
+        latitude,
+        longitude,
         map_context,
     };
     let body = template.render()?;

@@ -82,15 +82,21 @@
           </div>
           <div>
             <dt>Description</dt>
-            <dd>{{ description }}</dd>
+            <dd>{% if description.is_some() %}{{ description.as_ref().unwrap() }}{% else %}-{% endif %}</dd>
           </div>
           <div>
             <dt>Maidenhead locator</dt>
-            <dd>{{ maidenhead }}</dd>
+            <dd>{% if maidenhead.is_some() %}{{ maidenhead.as_ref().unwrap() }}{% else %}-{% endif %}</dd>
           </div>
           <div>
             <dt>Lat/Long</dt>
-            <dd>{{ location }}</dd>
+            <dd>
+              {% if latitude.is_some() && longitude.is_some() %}
+                {{ latitude.as_ref().unwrap() }}, {{ longitude.as_ref().unwrap() }}
+              {% else %}
+                -
+              {% endif %}
+            </dd>
           </div>
         </dl>
       </section>
