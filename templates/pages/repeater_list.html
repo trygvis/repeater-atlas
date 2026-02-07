@@ -25,15 +25,21 @@
             </div>
             <div>
               <dt>Description</dt>
-              <dd>{{ item.description }}</dd>
+              <dd>{% if item.description.is_some() %}{{ item.description.as_ref().unwrap() }}{% else %}-{% endif %}</dd>
             </div>
             <div>
               <dt>Maidenhead locator</dt>
-              <dd>{{ item.maidenhead }}</dd>
+              <dd>{% if item.maidenhead.is_some() %}{{ item.maidenhead.as_ref().unwrap() }}{% else %}-{% endif %}</dd>
             </div>
             <div>
               <dt>Lat/Long</dt>
-              <dd>{{ item.location }}</dd>
+              <dd>
+                {% if item.latitude.is_some() && item.longitude.is_some() %}
+                  {{ item.latitude.as_ref().unwrap() }}, {{ item.longitude.as_ref().unwrap() }}
+                {% else %}
+                  -
+                {% endif %}
+              </dd>
             </div>
           </dl>
         </article>

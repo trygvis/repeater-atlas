@@ -62,7 +62,13 @@
         <article>
           <header>
             <h3><a href="/call-sign/{{ repeater.call_sign }}">{{ repeater.call_sign }}</a></h3>
-            <p>{{ repeater.status }}{% if repeater.description.trim() != "-" %} — {{ repeater.description }}{% endif %}</p>
+            <p>
+              {{ repeater.status }}
+              {% if repeater.description.is_some() %}
+                {% let desc = repeater.description.as_ref().unwrap() %}
+                {% if desc.trim() != "" %} — {{ desc }}{% endif %}
+              {% endif %}
+            </p>
           </header>
 
           {% if repeater.services.fm_services.len() == 0

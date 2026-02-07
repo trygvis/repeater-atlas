@@ -103,10 +103,11 @@ mod tests {
     }
 
     // Trondheim-ish.
-    const TRONDHEIM: crate::service::geocoding::GeocodedLocation = crate::service::geocoding::GeocodedLocation {
-        latitude: 63.4305,
-        longitude: 10.3951,
-    };
+    const TRONDHEIM: crate::service::geocoding::GeocodedLocation =
+        crate::service::geocoding::GeocodedLocation {
+            latitude: 63.4305,
+            longitude: 10.3951,
+        };
 
     #[tokio::test]
     async fn enriches_location_when_maidenhead_missing() {
@@ -124,7 +125,10 @@ mod tests {
         .await
         .unwrap();
         assert_eq!(changed.address, Some("Trondheim, Norway".to_string()));
-        assert_eq!(changed.maidenhead, Some(MaidenheadLocator::new("JP53ek").unwrap()));
+        assert_eq!(
+            changed.maidenhead,
+            Some(MaidenheadLocator::new("JP53ek").unwrap())
+        );
         assert_eq!(changed.latitude, Some(63.4305));
         assert_eq!(changed.longitude, Some(10.3951));
         assert_eq!(geocoder.calls.load(Ordering::SeqCst), 1);

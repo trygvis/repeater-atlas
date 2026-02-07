@@ -1,6 +1,5 @@
 use super::AppState;
 use super::auth::auth_header;
-use super::utils::resolve_site_fields;
 use crate::{RepeaterAtlasError, dao};
 use askama::Template;
 use axum::{extract::State, response::Html};
@@ -57,8 +56,7 @@ pub async fn home(
     let mut candidates = Vec::new();
 
     for repeater in repeaters {
-        let resolved = resolve_site_fields(&repeater);
-        if let (Some(latitude), Some(longitude)) = (resolved.latitude, resolved.longitude) {
+        if let (Some(latitude), Some(longitude)) = (repeater.latitude, repeater.longitude) {
             candidates.push((
                 repeater.id,
                 repeater.call_sign,
