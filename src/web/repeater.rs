@@ -117,7 +117,7 @@ struct AmServiceItem {
     note: String,
 }
 
-impl ContactItem {
+impl From<dao::contact::Contact> for ContactItem {
     fn from(row: dao::contact::Contact) -> Self {
         Self {
             display_name: row.display_name,
@@ -428,22 +428,18 @@ async fn render_repeater_detail(
     const NEARBY_RADIUS_METERS: f64 = 50_000.0;
     let mut c = state.pool.get().await?;
 
-    let repeater = match dao::repeater_system::find_by_call_sign(&mut c, call_sign.clone()).await? {
-        Some(row) => row,
-        None => return Err(RepeaterAtlasError::NotFound),
+    let Some(repeater) = dao::repeater_system::find_by_call_sign(&mut c, call_sign.clone()).await?
+    else {
+        return Err(RepeaterAtlasError::NotFound);
     };
 
     let owner = match repeater.owner {
-        Some(contact_id) => dao::contact::find_with_call_sign(&mut c, contact_id)
-            .await?
-            .map(ContactItem::from),
+        Some(contact_id) => Some(dao::contact::get(&mut c, contact_id).await?.into()),
         None => None,
     };
 
     let tech_contact = match repeater.tech_contact {
-        Some(contact_id) => dao::contact::find_with_call_sign(&mut c, contact_id)
-            .await?
-            .map(ContactItem::from),
+        Some(contact_id) => Some(dao::contact::get(&mut c, contact_id).await?.into()),
         None => None,
     };
 
