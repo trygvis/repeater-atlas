@@ -70,7 +70,7 @@ repeater_system (identity + site)
 ```
 
 The schema is available as `schema.tmp.sql` after running 
-`make db-export-schema`.
+`just db-export-schema`.
 
 ### Suggested constraints (optional, can be added later)
 
