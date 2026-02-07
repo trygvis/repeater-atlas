@@ -82,13 +82,6 @@ pub async fn get(c: &mut AsyncPgConnection, contact_id: i64) -> QueryResult<Cont
         .await
 }
 
-pub async fn find_with_call_sign(
-    c: &mut AsyncPgConnection,
-    contact_id: i64,
-) -> QueryResult<Option<Contact>> {
-    get(c, contact_id).await.optional()
-}
-
 pub async fn find_by_call_sign(
     c: &mut AsyncPgConnection,
     call_sign: String,
