@@ -19,3 +19,4 @@ static/vendor
 !.prettierignore
 !.prettierrc.yaml
 !.tickets
+!.pgpass
