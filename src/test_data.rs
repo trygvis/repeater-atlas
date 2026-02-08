@@ -1,7 +1,7 @@
 use crate::dao::call_sign::NewCallSign;
 use crate::dao::contact::{Contact, ContactKind, NewContact};
 use crate::dao::repeater_service::{AprsMode, FmBandwidth};
-use crate::dao::repeater_system::{NewRepeaterSystem, RepeaterSystem};
+use crate::dao::repeater_system::{NewRepeaterSystem, RepeaterSystemDao};
 use crate::service::enrich_location::EnrichedLocation;
 use crate::service::repeater_service::{RepeaterService, Tone};
 use crate::{Frequency, RepeaterAtlasError, dao};
@@ -148,7 +148,7 @@ fn service_kind(service: &RepeaterService) -> RepeaterServiceKind {
 
 async fn add_service_if_missing(
     c: &mut AsyncPgConnection,
-    repeater: &RepeaterSystem,
+    repeater: &RepeaterSystemDao,
     service: RepeaterService,
     known_services: &mut HashSet<(String, RepeaterServiceKind)>,
 ) -> Result<bool, RepeaterAtlasError> {
@@ -1055,7 +1055,7 @@ async fn create_repeater(
     status: String,
     address: Option<String>,
     maidenhead: Option<String>,
-) -> Result<RepeaterSystem, RepeaterAtlasError> {
+) -> Result<RepeaterSystemDao, RepeaterAtlasError> {
     let existing = dao::repeater_system::find_by_call_sign(c, call_sign.clone()).await?;
 
     let maidenhead = maidenhead.and_then(|s| MaidenheadLocator::new(s).ok());
