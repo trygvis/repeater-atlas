@@ -45,8 +45,8 @@
           <div>
             <dt>Owner</dt>
             <dd>
-              {% if owner.is_some() %}
-                {% let o = owner.as_ref().unwrap() %}
+              {% if repeater.owner.is_some() %}
+                {% let o = repeater.owner.as_ref().unwrap() %}
                 {% if o.call_sign.is_some() %}
                   {% let cs = o.call_sign.as_ref().unwrap() %}
                   <a href="/call-sign/{{ cs }}">{{ o.display_name }}</a>
@@ -64,8 +64,8 @@
           <div>
             <dt>Technical contact</dt>
             <dd>
-              {% if tech_contact.is_some() %}
-                {% let t = tech_contact.as_ref().unwrap() %}
+              {% if repeater.tech_contact.is_some() %}
+                {% let t = repeater.tech_contact.as_ref().unwrap() %}
                 {% if t.call_sign.is_some() %}
                   {% let cs = t.call_sign.as_ref().unwrap() %}
                   <a href="/call-sign/{{ cs }}">{{ t.display_name }}</a>
@@ -102,18 +102,18 @@
       </section>
       <section>
         <h2>Services</h2>
-        {% if fm_services.len() == 0
-          && dmr_services.len() == 0
-          && dstar_services.len() == 0
-          && c4fm_services.len() == 0
-          && aprs_services.len() == 0
-          && ssb_services.len() == 0
-          && am_services.len() == 0 %}
+        {% if repeater.services.fm_services.len() == 0
+          && repeater.services.dmr_services.len() == 0
+          && repeater.services.dstar_services.len() == 0
+          && repeater.services.c4fm_services.len() == 0
+          && repeater.services.aprs_services.len() == 0
+          && repeater.services.ssb_services.len() == 0
+          && repeater.services.am_services.len() == 0 %}
           <p>No services defined.</p>
         {% else %}
-          {% if fm_services.len() > 0 %}
+          {% if repeater.services.fm_services.len() > 0 %}
             <h3>FM</h3>
-            {% for service in fm_services %}
+            {% for service in repeater.services.fm_services %}
               <article>
                 <header>
                   <strong>{{ service.label }}</strong>
@@ -131,9 +131,9 @@
             {% endfor %}
           {% endif %}
 
-          {% if dmr_services.len() > 0 %}
+          {% if repeater.services.dmr_services.len() > 0 %}
             <h3>DMR</h3>
-            {% for service in dmr_services %}
+            {% for service in repeater.services.dmr_services %}
               <article>
                 <header>
                   <strong>{{ service.label }}</strong>
@@ -151,9 +151,9 @@
             {% endfor %}
           {% endif %}
 
-          {% if dstar_services.len() > 0 %}
+          {% if repeater.services.dstar_services.len() > 0 %}
             <h3>D-STAR</h3>
-            {% for service in dstar_services %}
+            {% for service in repeater.services.dstar_services %}
               <article>
                 <header>
                   <strong>{{ service.label }}</strong>
@@ -171,9 +171,9 @@
             {% endfor %}
           {% endif %}
 
-          {% if c4fm_services.len() > 0 %}
+          {% if repeater.services.c4fm_services.len() > 0 %}
             <h3>C4FM</h3>
-            {% for service in c4fm_services %}
+            {% for service in repeater.services.c4fm_services %}
               <article>
                 <header>
                   <strong>{{ service.label }}</strong>
@@ -190,9 +190,9 @@
             {% endfor %}
           {% endif %}
 
-          {% if aprs_services.len() > 0 %}
+          {% if repeater.services.aprs_services.len() > 0 %}
             <h3>APRS</h3>
-            {% for service in aprs_services %}
+            {% for service in repeater.services.aprs_services %}
               <article>
                 <header>
                   <strong>{{ service.label }}</strong>
@@ -209,9 +209,9 @@
             {% endfor %}
           {% endif %}
 
-          {% if ssb_services.len() > 0 %}
+          {% if repeater.services.ssb_services.len() > 0 %}
             <h3>SSB</h3>
-            {% for service in ssb_services %}
+            {% for service in repeater.services.ssb_services %}
               <article>
                 <header>
                   <strong>{{ service.label }}</strong>
@@ -227,9 +227,9 @@
             {% endfor %}
           {% endif %}
 
-          {% if am_services.len() > 0 %}
+          {% if repeater.services.am_services.len() > 0 %}
             <h3>AM</h3>
-            {% for service in am_services %}
+            {% for service in repeater.services.am_services %}
               <article>
                 <header>
                   <strong>{{ service.label }}</strong>

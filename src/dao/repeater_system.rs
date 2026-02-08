@@ -60,7 +60,7 @@ impl NewRepeaterSystem {
 #[derive(Clone, Queryable, Selectable, AsChangeset)]
 #[diesel(table_name = crate::schema::repeater_system)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
-pub struct RepeaterSystem {
+pub struct RepeaterSystemDao {
     pub id: i64,
     pub call_sign: String,
     pub owner: Option<i64>,
@@ -80,35 +80,35 @@ pub struct RepeaterSystem {
 pub async fn insert(
     c: &mut AsyncPgConnection,
     new_repeater: NewRepeaterSystem,
-) -> QueryResult<RepeaterSystem> {
+) -> QueryResult<RepeaterSystemDao> {
     use crate::schema::repeater_system::dsl as r;
 
     diesel::insert_into(r::repeater_system)
         .values(&new_repeater)
-        .returning(RepeaterSystem::as_returning())
+        .returning(RepeaterSystemDao::as_returning())
         .get_result(c)
         .await
 }
 
 pub async fn update(
     c: &mut AsyncPgConnection,
-    repeater: RepeaterSystem,
-) -> QueryResult<RepeaterSystem> {
+    repeater: RepeaterSystemDao,
+) -> QueryResult<RepeaterSystemDao> {
     use crate::schema::repeater_system::dsl as r;
 
     diesel::update(r::repeater_system.filter(r::id.eq(repeater.id)))
         .set(&repeater)
-        .returning(RepeaterSystem::as_returning())
+        .returning(RepeaterSystemDao::as_returning())
         .get_result(c)
         .await
 }
 
-pub async fn get(c: &mut AsyncPgConnection, repeater_id: i64) -> QueryResult<RepeaterSystem> {
+pub async fn get(c: &mut AsyncPgConnection, repeater_id: i64) -> QueryResult<RepeaterSystemDao> {
     use crate::schema::repeater_system::dsl as r;
 
     r::repeater_system
         .filter(r::id.eq(repeater_id))
-        .select(RepeaterSystem::as_select())
+        .select(RepeaterSystemDao::as_select())
         .first(c)
         .await
 }
@@ -116,22 +116,24 @@ pub async fn get(c: &mut AsyncPgConnection, repeater_id: i64) -> QueryResult<Rep
 pub async fn find_by_call_sign(
     c: &mut AsyncPgConnection,
     call_sign: String,
-) -> QueryResult<Option<RepeaterSystem>> {
+) -> QueryResult<Option<RepeaterSystemDao>> {
     use crate::schema::repeater_system::dsl as r;
 
     r::repeater_system
         .filter(r::call_sign.eq(call_sign))
-        .select(RepeaterSystem::as_select())
+        .select(RepeaterSystemDao::as_select())
         .first(c)
         .await
         .optional()
 }
 
-pub async fn select_with_call_sign(c: &mut AsyncPgConnection) -> QueryResult<Vec<RepeaterSystem>> {
+pub async fn select_with_call_sign(
+    c: &mut AsyncPgConnection,
+) -> QueryResult<Vec<RepeaterSystemDao>> {
     use crate::schema::repeater_system::dsl as r;
 
     r::repeater_system
-        .select(RepeaterSystem::as_select())
+        .select(RepeaterSystemDao::as_select())
         .order_by(r::call_sign.asc())
         .get_results(c)
         .await
@@ -169,7 +171,7 @@ struct RepeaterSystemRow {
     status: String,
 }
 
-impl From<RepeaterSystemRow> for RepeaterSystem {
+impl From<RepeaterSystemRow> for RepeaterSystemDao {
     fn from(row: RepeaterSystemRow) -> Self {
         Self {
             id: row.id,
@@ -195,7 +197,7 @@ pub async fn select_within_radius(
     center_lat: f64,
     center_lon: f64,
     radius_meters: f64,
-) -> QueryResult<Vec<RepeaterSystem>> {
+) -> QueryResult<Vec<RepeaterSystemDao>> {
     let rows: Vec<RepeaterSystemRow> = sql_query(
         r#"
         SELECT
@@ -230,32 +232,34 @@ pub async fn select_within_radius(
     .get_results(c)
     .await?;
 
-    Ok(rows.into_iter().map(RepeaterSystem::from).collect())
+    Ok(rows.into_iter().map(RepeaterSystemDao::from).collect())
 }
 
+// TODO: rename to by_owner
 pub async fn select_with_call_sign_by_owner(
     c: &mut AsyncPgConnection,
     contact_id: i64,
-) -> QueryResult<Vec<RepeaterSystem>> {
+) -> QueryResult<Vec<RepeaterSystemDao>> {
     use crate::schema::repeater_system::dsl as r;
 
     r::repeater_system
         .filter(r::owner.eq(contact_id))
-        .select(RepeaterSystem::as_select())
+        .select(RepeaterSystemDao::as_select())
         .order_by(r::call_sign.asc())
         .get_results(c)
         .await
 }
 
+// TODO: rename to by_tech_contact
 pub async fn select_with_call_sign_by_tech_contact(
     c: &mut AsyncPgConnection,
     contact_id: i64,
-) -> QueryResult<Vec<RepeaterSystem>> {
+) -> QueryResult<Vec<RepeaterSystemDao>> {
     use crate::schema::repeater_system::dsl as r;
 
     r::repeater_system
         .filter(r::tech_contact.eq(contact_id))
-        .select(RepeaterSystem::as_select())
+        .select(RepeaterSystemDao::as_select())
         .order_by(r::call_sign.asc())
         .get_results(c)
         .await
