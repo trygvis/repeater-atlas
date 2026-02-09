@@ -31,3 +31,8 @@ Ask for details if required.
 
 Created and closed sub-tickets for map page spec, search UI design, generic
 search docs, and page design index updates.
+
+**2026-02-09T21:40:14Z**
+
+Implemented read-only call sign search (query, endpoint, map UI) via
+ra-73ce/ra-e6f3/ra-6363.

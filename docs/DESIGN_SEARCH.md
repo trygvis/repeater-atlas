@@ -10,12 +10,14 @@
 
 ## Placement
 
-- Add the search field to the map page hero overlay.
+- Add a search link to the map page hero overlay.
 - Place it directly after the login button/link in the same overlay.
 
 ## Interactions
 
-- Typing in the field opens a large modal with results.
+- Selecting the search link opens a large modal with results.
+- The search field lives inside the modal.
+- Typing in the field updates the results list.
 - The modal persists until closed or a result is selected.
 - Selecting a result navigates to `/call-sign/{call_sign}`.
 
@@ -32,6 +34,7 @@
 - Only call signs are searched.
 - Results may include both repeaters and organizations.
 - The modal must be large enough to scan multiple results quickly.
+- The modal remains full height even when results are short.
 
 ## Scope
 

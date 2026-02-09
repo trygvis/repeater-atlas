@@ -1,7 +1,7 @@
 use axum::Router;
 use axum_extra::routing::RouterExt;
 use repeater_atlas::web::AppState;
-use repeater_atlas::web::{auth, map, organization_list, repeater, repeater_list};
+use repeater_atlas::web::{auth, map, organization_list, repeater, repeater_list, search};
 use std::net::SocketAddr;
 use tower_http::services::ServeDir;
 use tracing_subscriber::EnvFilter;
@@ -28,6 +28,7 @@ async fn main() {
         .typed_get(organization_list::organizations)
         .typed_get(repeater::call_sign)
         .typed_get(repeater::detail)
+        .typed_get(search::call_sign_search)
         .typed_get(auth::login_form)
         .typed_post(auth::login_submit)
         .typed_get(auth::logout)

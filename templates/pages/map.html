@@ -71,6 +71,89 @@
     .repeater-details a {
       display: inline-block;
     }
+
+    .search-trigger {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 12px;
+      font-weight: 600;
+    }
+
+    .search-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: rgba(11, 18, 28, 0.55);
+      backdrop-filter: blur(3px);
+    }
+
+    .search-modal-content {
+      width: min(720px, calc(100vw - 32px));
+      height: calc(100vh - 48px);
+      overflow: hidden;
+      border-radius: calc(3 * var(--pico-border-radius));
+      background: var(--pico-card-background-color);
+      border: 1px solid var(--pico-card-border-color);
+      box-shadow: var(--pico-card-box-shadow);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .search-modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px 8px;
+    }
+
+    .search-modal-header h2 {
+      margin: 0;
+    }
+
+    .search-modal-body {
+      padding: 0 20px 20px;
+      overflow: auto;
+      flex: 1;
+    }
+
+    .search-results {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      gap: 12px;
+    }
+
+    .search-result {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 14px;
+      border-radius: var(--pico-border-radius);
+      border: 1px solid var(--pico-card-border-color);
+      background: var(--pico-background-color);
+    }
+
+    .search-result a {
+      font-weight: 600;
+    }
+
+    .search-kind {
+      font-size: 0.75rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--pico-muted-color);
+    }
+
+    .search-input-field {
+      margin-top: 12px;
+    }
   </style>
 {% endblock %}
 
@@ -90,6 +173,7 @@
     <a href="/login">Log in</a>
     {% endif %}
   </p>
+  <a href="#" class="search-trigger" id="search-open">Search call signs</a>
 </aside>
 <aside class="map-overlay repeater-details" id="repeater-details" hidden>
   <div class="repeater-details-header">
@@ -115,6 +199,22 @@
     </div>
   </dl>
 </aside>
+<div class="search-modal" id="search-modal" hidden>
+  <div class="search-modal-content" role="dialog" aria-modal="true" aria-labelledby="search-modal-title">
+    <div class="search-modal-header">
+      <h2 id="search-modal-title">Search results</h2>
+      <button type="button" class="repeater-details-close" id="search-modal-close" aria-label="Close">X</button>
+    </div>
+    <div class="search-modal-body">
+      <label class="search-input-field">
+        <span>Call sign</span>
+        <input type="search" id="call-sign-search" name="q" placeholder="LA1ABC" autocomplete="off">
+      </label>
+      <p id="search-empty" hidden>No call signs match.</p>
+      <ul class="search-results" id="search-results"></ul>
+    </div>
+  </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
@@ -128,6 +228,16 @@
     const repeaterDetailsClose = document.getElementById("repeater-details-close");
     const repeaterDetailsEmpty = document.getElementById("repeater-details-empty");
     const repeaterDetailsFields = document.getElementById("repeater-details-fields");
+    const searchInput = document.getElementById("call-sign-search");
+    const searchModal = document.getElementById("search-modal");
+    const searchResults = document.getElementById("search-results");
+    const searchEmpty = document.getElementById("search-empty");
+    const searchModalClose = document.getElementById("search-modal-close");
+    const searchOpen = document.getElementById("search-open");
+
+    let searchTimer = null;
+    let searchAbort = null;
+    let hasSearched = false;
 
     function clearRepeaterDetails() {
       if (!repeaterDetails) {
@@ -211,10 +321,137 @@
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape") {
         clearRepeaterDetails();
+        closeSearchModal();
       }
     });
 
     clearRepeaterDetails();
+
+    function closeSearchModal() {
+      if (!searchModal) {
+        return;
+      }
+
+      if (searchInput) {
+        searchInput.value = "";
+      }
+
+      if (searchResults) {
+        searchResults.innerHTML = "";
+      }
+
+      if (searchEmpty) {
+        searchEmpty.hidden = true;
+      }
+
+      hasSearched = false;
+      searchModal.hidden = true;
+    }
+
+    function renderSearchResults(results) {
+      if (!searchResults || !searchEmpty) {
+        return;
+      }
+
+      searchResults.innerHTML = "";
+
+      if (!Array.isArray(results) || results.length === 0) {
+        searchEmpty.hidden = !hasSearched;
+        return;
+      }
+
+      searchEmpty.hidden = true;
+
+      results.forEach((item) => {
+        const listItem = document.createElement("li");
+        listItem.className = "search-result";
+
+        const link = document.createElement("a");
+        link.href = `/call-sign/${encodeURIComponent(item.call_sign)}`;
+        link.textContent = item.call_sign;
+
+        const kind = document.createElement("span");
+        kind.className = "search-kind";
+        kind.textContent = item.kind;
+
+        listItem.appendChild(link);
+        listItem.appendChild(kind);
+        searchResults.appendChild(listItem);
+      });
+    }
+
+    function openSearchModal() {
+      if (!searchModal) {
+        return;
+      }
+
+      searchModal.hidden = false;
+      if (searchInput) {
+        searchInput.focus();
+      }
+    }
+
+    async function runSearch(query) {
+      if (!searchInput || !searchModal) {
+        return;
+      }
+
+      if (!query) {
+        hasSearched = false;
+        renderSearchResults([]);
+        return;
+      }
+
+      if (searchAbort) {
+        searchAbort.abort();
+      }
+
+      searchAbort = new AbortController();
+      openSearchModal();
+      hasSearched = true;
+
+      try {
+        const response = await fetch(`/search?q=${encodeURIComponent(query)}`, {
+          signal: searchAbort.signal,
+        });
+        if (!response.ok) {
+          renderSearchResults([]);
+          return;
+        }
+        const payload = await response.json();
+        renderSearchResults(payload.results || []);
+      } catch (error) {
+        if (error.name !== "AbortError") {
+          renderSearchResults([]);
+        }
+      }
+    }
+
+    if (searchInput) {
+      searchInput.addEventListener("input", (event) => {
+        const query = event.target.value.trim();
+
+        if (searchTimer) {
+          window.clearTimeout(searchTimer);
+        }
+
+        searchTimer = window.setTimeout(() => {
+          runSearch(query);
+        }, 250);
+      });
+    }
+
+    if (searchModalClose) {
+      searchModalClose.addEventListener("click", closeSearchModal);
+    }
+
+    if (searchOpen) {
+      searchOpen.addEventListener("click", (event) => {
+        event.preventDefault();
+        openSearchModal();
+        renderSearchResults([]);
+      });
+    }
 
     if (data.length === 0) {
       map.setView([64.4, 11.7], 4);

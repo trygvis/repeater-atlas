@@ -88,3 +88,21 @@ pub async fn find_by_call_sign(
         .await
         .optional()
 }
+
+pub async fn search_by_prefix(
+    c: &mut AsyncPgConnection,
+    prefix: String,
+    limit: i64,
+) -> QueryResult<Vec<CallSign>> {
+    use crate::schema::call_sign::dsl as cs;
+
+    let pattern = format!("{prefix}%");
+
+    cs::call_sign
+        .filter(cs::value.like(pattern))
+        .order_by(cs::value.asc())
+        .limit(limit)
+        .select(CallSign::as_select())
+        .get_results(c)
+        .await
+}

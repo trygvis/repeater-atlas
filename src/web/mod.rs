@@ -7,6 +7,7 @@ pub mod map;
 pub mod organization_list;
 pub mod repeater;
 pub mod repeater_list;
+pub mod search;
 pub mod utils;
 
 #[derive(Clone)]
