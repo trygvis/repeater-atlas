@@ -225,8 +225,30 @@
     const map = buildLeafletMap(document.getElementById("organization-map-host"));
     const markers = [];
 
+    const coreColor = "#1f7ae0";
+    const externalColor = "#d06a6a";
+
+    mapContext.links.forEach((link) => {
+      L.polyline([
+        [link.from.latitude, link.from.longitude],
+        [link.to.latitude, link.to.longitude],
+      ], {
+        color: coreColor,
+        weight: 2,
+        opacity: 0.6,
+      }).addTo(map);
+    });
+
     mapContext.repeaters.forEach((item) => {
-      const marker = L.marker([item.latitude, item.longitude]).addTo(map);
+      const color = item.is_external ? externalColor : coreColor;
+      const marker = L.circleMarker([item.point.latitude, item.point.longitude], {
+        radius: 7,
+        color,
+        fillColor: color,
+        fillOpacity: 0.9,
+        weight: 2,
+      }).addTo(map);
+      addCallSignLabel(marker, item.call_sign);
       marker.bindPopup(`<strong>${item.call_sign}</strong>`);
       markers.push(marker);
     });

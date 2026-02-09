@@ -139,6 +139,42 @@ pub async fn select_with_call_sign(
         .await
 }
 
+pub async fn select_by_ids(
+    c: &mut AsyncPgConnection,
+    repeater_ids: &[i64],
+) -> QueryResult<Vec<RepeaterSystemDao>> {
+    use crate::schema::repeater_system::dsl as r;
+
+    if repeater_ids.is_empty() {
+        return Ok(Vec::new());
+    }
+
+    r::repeater_system
+        .filter(r::id.eq_any(repeater_ids))
+        .select(RepeaterSystemDao::as_select())
+        .order_by(r::call_sign.asc())
+        .get_results(c)
+        .await
+}
+
+pub async fn select_by_call_signs(
+    c: &mut AsyncPgConnection,
+    call_signs: &[String],
+) -> QueryResult<Vec<RepeaterSystemDao>> {
+    use crate::schema::repeater_system::dsl as r;
+
+    if call_signs.is_empty() {
+        return Ok(Vec::new());
+    }
+
+    r::repeater_system
+        .filter(r::call_sign.eq_any(call_signs))
+        .select(RepeaterSystemDao::as_select())
+        .order_by(r::call_sign.asc())
+        .get_results(c)
+        .await
+}
+
 #[derive(QueryableByName)]
 struct RepeaterSystemRow {
     #[diesel(sql_type = diesel::sql_types::BigInt)]

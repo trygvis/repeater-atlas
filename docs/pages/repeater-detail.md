@@ -15,10 +15,12 @@
 
 ## Data sources
 
-- `dao::repeater_system::find_by_call_sign` loads the repeater system.
-- `dao::contact::find_with_call_sign` loads owner/technical contact details.
-- `dao::repeater_service::select_by_repeater_id` loads service rows.
+- `service::repeater_system::load_by_call_sign` loads the repeater, contacts,
+  and services.
 - `dao::repeater_link::select_with_other_call_sign` loads linked repeaters.
+- `dao::repeater_link::find_linked_repeaters` loads the linked network map data.
+- `dao::repeater_system::select_by_call_signs` loads linked network repeaters.
+- `dao::repeater_link::select_for_repeater_ids` loads network link segments.
 - `dao::repeater_system::select_within_radius` provides map markers within 50
   km.
 
@@ -40,6 +42,8 @@
   - Shows "No services defined." when empty.
 - Linked repeaters:
   - List of call signs with optional notes, when any links exist.
+- Linked network map:
+  - Shows all repeaters in the linked network, with lines between linked nodes.
 - Nearby repeaters:
   - Same set as the map markers, sorted by distance from the current repeater.
   - Shown after linked repeaters.

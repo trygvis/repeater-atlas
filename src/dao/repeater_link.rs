@@ -37,6 +37,7 @@ pub async fn insert(c: &mut AsyncPgConnection, link: NewRepeaterLink) -> QueryRe
 
     let mut link = link;
     // Normalize order to satisfy (a<b) constraint for undirected links.
+    // See docs/DESIGN_REPEATER.md#linking for constraints.
     if link.repeater_a_id > link.repeater_b_id {
         std::mem::swap(&mut link.repeater_a_id, &mut link.repeater_b_id);
     }
@@ -60,6 +61,28 @@ pub async fn select_by_repeater_id(
             l::repeater_a_id
                 .eq(repeater_id)
                 .or(l::repeater_b_id.eq(repeater_id)),
+        )
+        .select(RepeaterLink::as_select())
+        .order_by((l::repeater_a_id.asc(), l::repeater_b_id.asc()))
+        .get_results(c)
+        .await
+}
+
+pub async fn select_for_repeater_ids(
+    c: &mut AsyncPgConnection,
+    repeater_ids: &[i64],
+) -> QueryResult<Vec<RepeaterLink>> {
+    use crate::schema::repeater_link::dsl as l;
+
+    if repeater_ids.is_empty() {
+        return Ok(Vec::new());
+    }
+
+    l::repeater_link
+        .filter(
+            l::repeater_a_id
+                .eq_any(repeater_ids)
+                .or(l::repeater_b_id.eq_any(repeater_ids)),
         )
         .select(RepeaterLink::as_select())
         .order_by((l::repeater_a_id.asc(), l::repeater_b_id.asc()))
@@ -122,6 +145,7 @@ pub async fn find_linked_repeaters(
     c: &mut AsyncPgConnection,
     call_sign: String,
 ) -> Result<Vec<LinkedRepeaterPath>, RepeaterAtlasError> {
+    // Recursive walk of the linked network; see docs/DESIGN_REPEATER.md#linking.
     let rows = sql_query(
         r#"WITH RECURSIVE
     initial AS (SELECT id, call_sign

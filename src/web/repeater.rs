@@ -1,6 +1,8 @@
 use super::AppState;
 use super::auth::auth_header;
-use super::map::{MapContext, MapPoint, MapRepeater, OrganizationMapContext};
+use super::map::{
+    LinkedMapContext, MapContext, MapLink, MapPoint, MapRepeater, OrganizationMapContext,
+};
 use super::utils::distance_km;
 use crate::service;
 use crate::service::repeater_system::{Repeater, ServiceItems};
@@ -10,6 +12,7 @@ use axum::{extract::State, response::Html};
 use axum_extra::extract::cookie::CookieJar;
 use axum_extra::routing::TypedPath;
 use serde::Deserialize;
+use std::collections::{BTreeMap, HashMap, HashSet};
 
 #[derive(Clone)]
 struct LinkedRepeaterItem {
@@ -50,6 +53,7 @@ struct DetailTemplate {
     latitude: Option<f64>,
     longitude: Option<f64>,
     map_context: Option<MapContext>,
+    linked_map_context: Option<LinkedMapContext>,
 }
 
 pub async fn detail(
@@ -119,39 +123,91 @@ async fn render_contact_detail(
     let tech_contact_repeaters =
         dao::repeater_system::select_with_call_sign_by_tech_contact(&mut c, contact.id).await?;
 
-    // let mut repeaters_by_call_sign = std::collections::BTreeMap::new();
-    let mut repeaters = Vec::with_capacity(owned_repeaters.len() + tech_contact_repeaters.len());
-    let mut map_repeaters = Vec::new();
+    let mut repeaters_by_call_sign = BTreeMap::new();
+    let mut map_repeaters_by_id: HashMap<i64, MapRepeater> =
+        HashMap::with_capacity(owned_repeaters.len() + tech_contact_repeaters.len());
+    let mut club_repeater_ids =
+        Vec::with_capacity(owned_repeaters.len() + tech_contact_repeaters.len());
+    let mut club_repeater_id_set = HashSet::new();
 
     for repeater in owned_repeaters
         .into_iter()
         .chain(tech_contact_repeaters.into_iter())
     {
+        if !club_repeater_id_set.insert(repeater.id) {
+            continue;
+        }
+        club_repeater_ids.push(repeater.id);
+
         let repeater = service::repeater_system::load(&mut c, repeater).await?;
 
         if let (Some(latitude), Some(longitude)) = (repeater.latitude, repeater.longitude) {
-            map_repeaters.push(MapRepeater {
-                call_sign: repeater.call_sign.clone(),
-                latitude,
-                longitude,
-                status: repeater.status.clone(),
-                services: Vec::new(),
-            });
+            map_repeaters_by_id.insert(
+                repeater.id,
+                MapRepeater {
+                    call_sign: repeater.call_sign.clone(),
+                    point: MapPoint {
+                        latitude,
+                        longitude,
+                    },
+                    status: repeater.status.clone(),
+                    services: Vec::new(),
+                    is_external: false,
+                },
+            );
         }
 
-        repeaters.push(OrganizationRepeaterItem {
-            call_sign: repeater.call_sign.clone(),
-            status: repeater.status.clone(),
-            description: repeater.description.clone(),
-            services: repeater.services,
-        });
+        repeaters_by_call_sign.insert(
+            repeater.call_sign.clone(),
+            OrganizationRepeaterItem {
+                call_sign: repeater.call_sign.clone(),
+                status: repeater.status.clone(),
+                description: repeater.description.clone(),
+                services: repeater.services,
+            },
+        );
     }
+
+    let mut map_links = Vec::new();
+    if !club_repeater_ids.is_empty() {
+        let links = dao::repeater_link::select_for_repeater_ids(&mut c, &club_repeater_ids).await?;
+        let mut linked_ids: HashSet<i64> = HashSet::new();
+        for link in &links {
+            linked_ids.insert(link.repeater_a_id);
+            linked_ids.insert(link.repeater_b_id);
+        }
+
+        if !linked_ids.is_empty() {
+            let linked_repeaters = dao::repeater_system::select_by_ids(
+                &mut c,
+                &linked_ids.iter().copied().collect::<Vec<_>>(),
+            )
+            .await?;
+            for repeater in linked_repeaters {
+                if map_repeaters_by_id.contains_key(&repeater.id) {
+                    continue;
+                }
+                let repeater_id = repeater.id;
+                // External markers highlight linked repeaters outside the club set.
+                // See docs/DESIGN_REPEATER.md#linking.
+                let is_external = !club_repeater_id_set.contains(&repeater_id);
+                if let Some(map_repeater) = map_repeater_for_display(&repeater, is_external) {
+                    map_repeaters_by_id.insert(repeater_id, map_repeater);
+                }
+            }
+        }
+
+        map_links = build_map_links(&map_repeaters_by_id, links);
+    }
+
+    let map_repeaters = finalize_map_repeaters(map_repeaters_by_id);
 
     let map_context = if map_repeaters.is_empty() {
         None
     } else {
         Some(OrganizationMapContext {
             repeaters: map_repeaters,
+            links: map_links,
         })
     };
 
@@ -160,7 +216,7 @@ async fn render_contact_detail(
         auth,
         call_sign,
         contact,
-        repeaters,
+        repeaters: repeaters_by_call_sign.into_values().collect(),
         map_context,
     };
     let body = template.render()?;
@@ -178,14 +234,58 @@ async fn render_repeater_detail(
 
     let repeater = service::repeater_system::load_by_call_sign(&mut c, call_sign.clone()).await?;
 
-    let links = dao::repeater_link::select_with_other_call_sign(&mut c, repeater.id)
-        .await?
-        .into_iter()
-        .map(|row| LinkedRepeaterItem {
-            call_sign: row.other_call_sign,
-            note: row.note,
-        })
-        .collect();
+    let links: Vec<LinkedRepeaterItem> =
+        dao::repeater_link::select_with_other_call_sign(&mut c, repeater.id)
+            .await?
+            .into_iter()
+            .map(|row| LinkedRepeaterItem {
+                call_sign: row.other_call_sign,
+                note: row.note,
+            })
+            .collect();
+
+    // Linked network map rules: only show when more than one node exists, and
+    // only link nodes with coordinates. See docs/DESIGN_REPEATER.md#linking.
+    let linked_map_context = if links.is_empty() {
+        None
+    } else {
+        let linked_paths =
+            dao::repeater_link::find_linked_repeaters(&mut c, repeater.call_sign.clone()).await?;
+        if linked_paths.len() <= 1 {
+            None
+        } else {
+            let linked_call_signs: Vec<String> =
+                linked_paths.into_iter().map(|row| row.call_sign).collect();
+            let linked_repeaters =
+                dao::repeater_system::select_by_call_signs(&mut c, &linked_call_signs).await?;
+            let linked_ids: Vec<i64> = linked_repeaters
+                .iter()
+                .map(|repeater| repeater.id)
+                .collect();
+            let mut map_repeaters_by_id: HashMap<i64, MapRepeater> = HashMap::new();
+
+            for repeater in linked_repeaters {
+                if let Some(map_repeater) = map_repeater_for_display(&repeater, false) {
+                    map_repeaters_by_id.insert(repeater.id, map_repeater);
+                }
+            }
+
+            if map_repeaters_by_id.is_empty() {
+                None
+            } else {
+                let link_rows =
+                    dao::repeater_link::select_for_repeater_ids(&mut c, &linked_ids).await?;
+                let map_links = build_map_links(&map_repeaters_by_id, link_rows);
+
+                let map_repeaters = finalize_map_repeaters(map_repeaters_by_id);
+
+                Some(LinkedMapContext {
+                    repeaters: map_repeaters,
+                    links: map_links,
+                })
+            }
+        }
+    };
 
     let status = repeater.status.clone();
     let description = repeater.description.clone();
@@ -215,10 +315,13 @@ async fn render_repeater_detail(
 
                     nearby_repeaters.push(MapRepeater {
                         call_sign: candidate.call_sign,
-                        latitude: lat,
-                        longitude: lon,
+                        point: MapPoint {
+                            latitude: lat,
+                            longitude: lon,
+                        },
                         status: candidate.status,
                         services: Vec::new(),
+                        is_external: false,
                     });
                 }
             }
@@ -258,8 +361,58 @@ async fn render_repeater_detail(
         latitude,
         longitude,
         map_context,
+        linked_map_context,
     };
     let body = template.render()?;
 
     Ok(Html(body))
+}
+
+fn map_repeater_for_display(
+    repeater: &dao::repeater_system::RepeaterSystemDao,
+    is_external: bool,
+) -> Option<MapRepeater> {
+    let (Some(latitude), Some(longitude)) = (repeater.latitude, repeater.longitude) else {
+        return None;
+    };
+
+    Some(MapRepeater {
+        call_sign: repeater.call_sign.clone(),
+        point: MapPoint {
+            latitude,
+            longitude,
+        },
+        status: repeater.status.clone(),
+        services: Vec::new(),
+        is_external,
+    })
+}
+
+fn build_map_links(
+    map_repeaters_by_id: &HashMap<i64, MapRepeater>,
+    links: Vec<dao::repeater_link::RepeaterLink>,
+) -> Vec<MapLink> {
+    let mut map_links = Vec::new();
+
+    for link in links {
+        if let (Some(a), Some(b)) = (
+            map_repeaters_by_id.get(&link.repeater_a_id),
+            map_repeaters_by_id.get(&link.repeater_b_id),
+        ) {
+            map_links.push(MapLink {
+                from: a.point.clone(),
+                to: b.point.clone(),
+                from_call_sign: a.call_sign.clone(),
+                to_call_sign: b.call_sign.clone(),
+            });
+        }
+    }
+
+    map_links
+}
+
+fn finalize_map_repeaters(map_repeaters_by_id: HashMap<i64, MapRepeater>) -> Vec<MapRepeater> {
+    let mut map_repeaters: Vec<MapRepeater> = map_repeaters_by_id.into_values().collect();
+    map_repeaters.sort_by(|a, b| a.call_sign.cmp(&b.call_sign));
+    map_repeaters
 }
