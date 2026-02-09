@@ -22,6 +22,13 @@
       border-radius: 16px;
       overflow: hidden;
     }
+
+    #repeater-network-map-host {
+      height: min(360px, 60vh);
+      width: 100%;
+      border-radius: 16px;
+      overflow: hidden;
+    }
   </style>
 {% endblock %}
 
@@ -262,6 +269,13 @@
         </section>
       {% endif %}
 
+      {% if linked_map_context.is_some() %}
+        <section>
+          <h2>Linked network map</h2>
+          <div id="repeater-network-map-host"></div>
+        </section>
+      {% endif %}
+
       {% if nearby_repeaters.len() > 0 %}
         <section>
           <h2>Nearby repeaters</h2>
@@ -298,10 +312,10 @@
       const bounds = [center];
 
       mapContext.repeaters.forEach((item) => {
-        const marker = L.marker([item.latitude, item.longitude]);
+        const marker = L.marker([item.point.latitude, item.point.longitude]);
         addCallSignLabel(marker, item.call_sign);
         marker.addTo(map);
-        bounds.push([item.latitude, item.longitude]);
+        bounds.push([item.point.latitude, item.point.longitude]);
       });
 
       L.circle(center, {
@@ -319,6 +333,50 @@
       }
 
       map.invalidateSize();
+    </script>
+  {% endif %}
+
+  {% if linked_map_context.is_some() %}
+    <script>
+      const linkedMapContext = {{ linked_map_context.as_ref().unwrap() | json | safe }};
+    </script>
+    <script>
+      const linkedMap = buildLeafletMap(document.getElementById("repeater-network-map-host"));
+      const linkedBounds = [];
+      const linkColor = "#1f7ae0";
+
+      linkedMapContext.links.forEach((link) => {
+        L.polyline([
+          [link.from.latitude, link.from.longitude],
+          [link.to.latitude, link.to.longitude],
+        ], {
+          color: linkColor,
+          weight: 2,
+          opacity: 0.7,
+        }).addTo(linkedMap);
+      });
+
+      linkedMapContext.repeaters.forEach((item) => {
+        const marker = L.circleMarker([item.point.latitude, item.point.longitude], {
+          radius: 7,
+          color: linkColor,
+          fillColor: linkColor,
+          fillOpacity: 0.9,
+          weight: 2,
+        });
+        addCallSignLabel(marker, item.call_sign);
+        marker.addTo(linkedMap);
+        linkedBounds.push(marker.getLatLng());
+      });
+
+      if (linkedBounds.length > 0) {
+        const linkedBoundsBox = L.latLngBounds(linkedBounds);
+        linkedMap.fitBounds(linkedBoundsBox, {padding: [20, 20]});
+      } else {
+        linkedMap.setView([64.4, 11.7], 4);
+      }
+
+      linkedMap.invalidateSize();
     </script>
   {% endif %}
 {% endblock %}

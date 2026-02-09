@@ -11,13 +11,13 @@ use std::collections::HashMap;
 #[derive(Serialize)]
 pub struct MapRepeater {
     pub call_sign: String,
-    pub latitude: f64,
-    pub longitude: f64,
+    pub point: MapPoint,
     pub status: String,
     pub services: Vec<String>,
+    pub is_external: bool,
 }
 
-#[derive(Serialize)]
+#[derive(Clone, Serialize)]
 pub struct MapPoint {
     pub latitude: f64,
     pub longitude: f64,
@@ -31,8 +31,23 @@ pub struct MapContext {
 }
 
 #[derive(Serialize)]
+pub struct MapLink {
+    pub from: MapPoint,
+    pub to: MapPoint,
+    pub from_call_sign: String,
+    pub to_call_sign: String,
+}
+
+#[derive(Serialize)]
 pub struct OrganizationMapContext {
     pub repeaters: Vec<MapRepeater>,
+    pub links: Vec<MapLink>,
+}
+
+#[derive(Serialize)]
+pub struct LinkedMapContext {
+    pub repeaters: Vec<MapRepeater>,
+    pub links: Vec<MapLink>,
 }
 
 #[derive(TypedPath)]
@@ -86,10 +101,13 @@ pub async fn home(
 
         map_repeaters.push(MapRepeater {
             call_sign,
-            latitude,
-            longitude,
+            point: MapPoint {
+                latitude,
+                longitude,
+            },
             status,
             services,
+            is_external: false,
         });
     }
 

@@ -462,10 +462,10 @@
       });
       const bounds = [];
       data.forEach((item) => {
-        const marker = L.marker([item.latitude, item.longitude]);
+        const marker = L.marker([item.point.latitude, item.point.longitude]);
         addCallSignLabel(marker, item.call_sign);
         marker.on("click", () => updateRepeaterDetails(item));
-        bounds.push([item.latitude, item.longitude]);
+        bounds.push([item.point.latitude, item.point.longitude]);
         clusterGroup.addLayer(marker);
       });
       clusterGroup.addTo(map);

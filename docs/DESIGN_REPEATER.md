@@ -121,12 +121,35 @@ model these relationships as an undirected link between two repeater systems.
 
 - Stored in `repeater_link` as `(repeater_a_id, repeater_b_id)` with
   `repeater_a_id < repeater_b_id` to keep the pair unique.
+- Links are undirected, so the application treats `(A,B)` the same as `(B,A)`.
+- Constraints enforced in the database:
+  - `repeater_a_id <> repeater_b_id` (no self-links)
+  - `repeater_a_id < repeater_b_id` (canonical ordering)
+  - `UNIQUE (repeater_a_id, repeater_b_id)` (no duplicates)
 - Optional `note` can describe the link (for example, "RF link", "node ID 1234",
   or a local site label).
 - Queries should treat the link as symmetric: a repeater can be linked to many
   others, and the "other" side is whichever ID is not the current repeater.
 - Rendering should list linked call signs on the repeater detail page, with the
   note shown only when present.
+
+### Linked network discovery
+
+We compute the full linked network for a repeater via a recursive traversal:
+
+- Start from the requested repeater call sign.
+- Walk through `repeater_link` edges in either direction (undirected graph).
+- Track the path of call signs to prevent cycles.
+- Emit each reachable repeater with its depth and path.
+- Results are ordered by depth, then call sign.
+
+This produces the list used by the "linked network map" on the repeater detail
+page. The map is only shown when the network has more than one node, and link
+segments are only rendered for repeaters that have coordinates.
+
+For contact/club pages, the linked map starts from the club's owned or technical
+contact repeaters, then adds any linked repeaters outside the club as "external"
+markers to distinguish them visually.
 
 ## Query Patterns (examples)
 
