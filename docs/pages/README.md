@@ -1,3 +1,4 @@
 # Specifications for main pages in Repeater Atlas
 
-  - `repeater-detail.md`
+- `map.md`
+- `repeater-detail.md`

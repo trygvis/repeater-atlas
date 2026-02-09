@@ -67,16 +67,13 @@ Describe the components and their interactions. Initial strawman:
   spatial queries via PostGIS.
 - External integrations: Optional map tile provider and geocoding.
 
-## Data Model (if applicable)
+## Detailed design
 
-- Entities: Repeater, User, Contact, Contact Membership, Repeater Change Log
-  Entry.
-- Relationships: Repeaters are associated with contacts; users manage repeaters
-  via contact roles.
-- Core fields (MVP draft): callsign, location (lat/lon, region), band, RX/TX
-  freq, offset, tone (CTCSS/DCS), modes, power, status, description, changelog,
-  last-updated. Spatial lookups use a PostGIS geography index derived from
-  lat/lon.
+- `docs/DESIGN_AUTHENTICATION.md`: Authentication framework options and the
+  current JWT-cookie recommendation.
+- `docs/DESIGN_REPEATER.md`: Repeater system data model, services, and linking
+  concepts.
+- `docs/DESIGN_SEARCH.md`: Call sign search UX, constraints, and result model.
 
 ## Interfaces
 
