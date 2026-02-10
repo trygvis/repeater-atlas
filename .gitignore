@@ -12,8 +12,11 @@ static/vendor
 
 !.beads
 !.editorconfig
+!.dockerignore
 !.envrc
 !.gitignore
+!.github
+!.github/**
 !.nvmrc
 !.pre-commit-config.yaml
 !.prettierignore
