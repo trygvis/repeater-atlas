@@ -10,6 +10,7 @@ use csv::StringRecord;
 use dao::repeater_service::{DstarMode, RepeaterServiceKind, SsbSideband, ToneKind};
 use diesel::QueryResult;
 use diesel_async::AsyncPgConnection;
+use regex::Regex;
 use serde::Serialize;
 use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
@@ -36,6 +37,15 @@ fn split_call_sign(input: String) -> (String, Option<String>) {
 
 fn normalize_call_sign(input: String) -> String {
     input.trim().to_ascii_uppercase()
+}
+
+fn normalize_nrrl_address(address: &str) -> String {
+    let portabel_re = Regex::new("(?i)/portabel").unwrap();
+    let space_re = Regex::new(r"\s+").unwrap();
+
+    let address = portabel_re.replace_all(address, "").replace('/', ", ");
+
+    space_re.replace_all(&address, " ").trim().to_string()
 }
 
 fn load_csv(path: &Path) -> Result<CsvFile, RepeaterAtlasError> {
@@ -377,7 +387,9 @@ pub async fn load_nrrl_repeaters(
             .get_opt(row, &group_idx)
             .map(normalize_call_sign)
             .and_then(|group| contacts.get(&group).cloned());
-        let address = csv.get_opt(row, &qth_idx);
+        let address = csv
+            .get_opt(row, &qth_idx)
+            .map(|s| normalize_nrrl_address(&s));
         let maidenhead = csv.get_opt(row, &locator_idx);
 
         let info = csv.get_opt(row, &info_idx).unwrap_or_default();
