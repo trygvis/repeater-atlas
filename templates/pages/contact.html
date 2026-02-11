@@ -14,26 +14,36 @@
   <section>
     <h2>Details</h2>
     <dl class="kv-list">
-      <div>
-        <dt>Description</dt>
-        <dd>{% if contact.description.is_some() %}{{ contact.description.as_ref().unwrap() }}{% else %}-{% endif %}</dd>
-      </div>
-      <div>
-        <dt>Web</dt>
-        <dd>{% if contact.web_url.is_some() %}{{ contact.web_url.as_ref().unwrap() }}{% else %}-{% endif %}</dd>
-      </div>
-      <div>
-        <dt>Email</dt>
-        <dd>{% if contact.email.is_some() %}{{ contact.email.as_ref().unwrap() }}{% else %}-{% endif %}</dd>
-      </div>
-      <div>
-        <dt>Phone</dt>
-        <dd>{% if contact.phone.is_some() %}{{ contact.phone.as_ref().unwrap() }}{% else %}-{% endif %}</dd>
-      </div>
-      <div>
-        <dt>Address</dt>
-        <dd>{% if contact.address.is_some() %}{{ contact.address.as_ref().unwrap() }}{% else %}-{% endif %}</dd>
-      </div>
+      {% if let Some(description) = contact.description.as_ref() %}
+        <div>
+          <dt>Description</dt>
+          <dd>{{ description }}</dd>
+        </div>
+      {% endif %}
+      {% if let Some(url) = contact.web_url.as_ref() %}
+        <div>
+          <dt>Web</dt>
+          <dd><a href="{{ url }}">{{ url }}</a></dd>
+        </div>
+      {% endif %}
+      {% if let Some(email) = contact.email.as_ref() %}
+        <div>
+          <dt>Email</dt>
+          <dd>{{ email }}</dd>
+        </div>
+      {% endif %}
+      {% if let Some(phone) = contact.phone.as_ref() %}
+        <div>
+          <dt>Phone</dt>
+          <dd>{{ phone }}</dd>
+        </div>
+      {% endif %}
+      {% if let Some(address) = contact.address.as_ref() %}
+        <div>
+          <dt>Address</dt>
+          <dd>{{ address }}</dd>
+        </div>
+      {% endif %}
     </dl>
   </section>
 
