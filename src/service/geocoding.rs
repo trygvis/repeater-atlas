@@ -1,7 +1,9 @@
 use crate::RepeaterAtlasError;
 use async_trait::async_trait;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::fmt;
+use std::path::{Path, PathBuf};
 use std::sync::OnceLock;
 use std::time::{Duration, Instant};
 use tokio::sync::Mutex;
@@ -70,16 +72,24 @@ pub struct NominatimGeocoder {
     base_url: String,
     // Simple single-process rate limiter to avoid hammering the public instance.
     next_allowed: Mutex<Instant>,
+    cache: Mutex<HashMap<String, GeocodedLocation>>,
+    cache_path: PathBuf,
+    cache_write: Mutex<()>,
 }
 
 impl NominatimGeocoder {
-    pub fn from_env() -> Result<Self, reqwest::Error> {
+    pub fn from_env() -> Result<Self, RepeaterAtlasError> {
         let user_agent = user_agent_from_env();
         let client = reqwest::Client::builder().user_agent(user_agent).build()?;
+        let cache_path = PathBuf::from("data/geocoder.csv");
+        let cache = Self::load_cache(&cache_path)?;
         Ok(Self {
             client,
             base_url: base_url_from_env(),
             next_allowed: Mutex::new(Instant::now()),
+            cache: Mutex::new(cache),
+            cache_path,
+            cache_write: Mutex::new(()),
         })
     }
 
@@ -92,6 +102,69 @@ impl NominatimGeocoder {
         }
         *next_allowed = Instant::now() + Duration::from_secs(1);
     }
+
+    fn load_cache(path: &Path) -> Result<HashMap<String, GeocodedLocation>, RepeaterAtlasError> {
+        let file = match std::fs::File::open(path) {
+            Ok(file) => file,
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+                return Ok(HashMap::new());
+            }
+            Err(error) => return Err(error.into()),
+        };
+
+        let mut reader = csv::Reader::from_reader(file);
+        let mut cache = HashMap::new();
+        for record in reader.deserialize::<GeocoderCacheRow>() {
+            let record = record?;
+            let query = record.query.trim();
+            if query.is_empty() {
+                continue;
+            }
+
+            if !record.latitude.is_finite() || !record.longitude.is_finite() {
+                warn!(
+                    latitude = %record.latitude,
+                    longitude = %record.longitude,
+                    "Skipping non-finite cached geocode coordinates"
+                );
+                continue;
+            }
+
+            cache.insert(
+                query.to_string(),
+                GeocodedLocation {
+                    latitude: record.latitude,
+                    longitude: record.longitude,
+                },
+            );
+        }
+
+        Ok(cache)
+    }
+
+    async fn append_cache(
+        &self,
+        query: &str,
+        location: GeocodedLocation,
+    ) -> Result<(), RepeaterAtlasError> {
+        let _guard = self.cache_write.lock().await;
+        let file_exists = self.cache_path.exists();
+        let file = std::fs::OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(&self.cache_path)?;
+        let write_headers = !file_exists || file.metadata()?.len() == 0;
+        let mut writer = csv::WriterBuilder::new()
+            .has_headers(write_headers)
+            .from_writer(file);
+        writer.serialize(GeocoderCacheRow {
+            query: query.to_string(),
+            latitude: location.latitude,
+            longitude: location.longitude,
+        })?;
+        writer.flush()?;
+        Ok(())
+    }
 }
 
 #[derive(Debug, Deserialize)]
@@ -100,6 +173,13 @@ struct NominatimSearchResult {
     lon: String,
     #[allow(dead_code)]
     display_name: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct GeocoderCacheRow {
+    query: String,
+    latitude: f64,
+    longitude: f64,
 }
 
 #[async_trait]
@@ -111,6 +191,10 @@ impl Geocoder for NominatimGeocoder {
         let query = query.trim();
         if query.is_empty() {
             return Ok(None);
+        }
+
+        if let Some(location) = self.cache.lock().await.get(query).copied() {
+            return Ok(Some(location));
         }
 
         self.wait_turn().await;
@@ -149,10 +233,26 @@ impl Geocoder for NominatimGeocoder {
             return Ok(None);
         }
 
-        Ok(Some(GeocodedLocation {
+        let location = GeocodedLocation {
             latitude,
             longitude,
-        }))
+        };
+
+        let mut cache = self.cache.lock().await;
+        let should_write = match cache.entry(query.to_string()) {
+            std::collections::hash_map::Entry::Vacant(entry) => {
+                entry.insert(location);
+                true
+            }
+            std::collections::hash_map::Entry::Occupied(_) => false,
+        };
+        drop(cache);
+
+        if should_write {
+            self.append_cache(query, location).await?;
+        }
+
+        Ok(Some(location))
     }
 }
 

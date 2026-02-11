@@ -32,12 +32,16 @@ pub async fn call_sign_search(
     Query(query): Query<CallSignSearchQuery>,
 ) -> Result<Json<CallSignSearchResponse>, RepeaterAtlasError> {
     let Some(raw_query) = query.q else {
-        return Ok(Json(CallSignSearchResponse { results: Vec::new() }));
+        return Ok(Json(CallSignSearchResponse {
+            results: Vec::new(),
+        }));
     };
 
     let normalized = raw_query.trim();
     if normalized.is_empty() {
-        return Ok(Json(CallSignSearchResponse { results: Vec::new() }));
+        return Ok(Json(CallSignSearchResponse {
+            results: Vec::new(),
+        }));
     }
 
     let prefix = normalized.to_uppercase();

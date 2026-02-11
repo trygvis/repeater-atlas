@@ -109,6 +109,9 @@
 - When saving/importing a repeater that has `address` set but no `maidenhead`,
   the service can (optionally) use Nominatim to geocode the address to lat/lon,
   derive Maidenhead from that, and persist all three fields.
+- Geocoding uses a local CSV cache at `data/geocoder.csv` with columns:
+  `query,latitude,longitude`. The cache is loaded at startup, checked before
+  hitting Nominatim, and successful lookups are appended to the file.
 - Controlled by env:
   - `NOMINATIM_ENABLED` (default: on; set to `0` to disable)
   - `NOMINATIM_BASE_URL` (default: public OSM Nominatim)
