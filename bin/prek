@@ -11,7 +11,7 @@ if [[ ! -r "$cookie" ]]
 then
   # Silence the warning about missing from path
   PATH="$basedir/.cargo/bin:$PATH"
-  cargo install --root "$basedir/.cargo" "prek@$v"
+  cargo install --root "$basedir/.cargo" --locked "prek@$v"
 
   touch "$cookie"
 fi
