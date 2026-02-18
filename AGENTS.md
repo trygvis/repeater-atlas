@@ -47,12 +47,9 @@
     - A testing step to run all tests
     - A step to update the documentation under `/docs`
   - When working on an epic, each bug should follow this process.
-- Follow these steps when changing Makefile files (`*.md`, including
-  `.tickets/*.md`):
-  - Run `prettier --write $FILE` to reformat the file after editing. This
-    ensures consistent formatting of all Markdown files.
-  - The `tk` command will edit Markdown files for you, those should also be run
-    through `prettier` after editing via `tk`.
+- After editing files, ensure that they are consistent with the project's rules
+  by running `prek run --files $FILES` where `$FILES` is the files that has been
+  edited.
 - Follow these steps when changing code:
   1. Run `just all` to make sure that everything compiles. This must pass before
      continuing.
@@ -77,7 +74,8 @@ These must be read before doing any work.
 - Run `just` to get the overview of available recipes and agent notes. Use
   `direnv exec . just` to ensure the environment is loaded.
 - This project uses a CLI ticket system for task management. Run `tk help` when
-  you need to use it.
+  you need to use it. Files under `.tickets/` MUST NOT be edited by hand, always
+  use `add-node`, `close` and `show` to work with tickets.
 - Generate migrations via `diesel migration generate`, not by hand.
   - Requires `diesel_cli` installed
     (`cargo install diesel_cli --no-default-features --features postgres`).
