@@ -82,6 +82,11 @@ impl Frequency {
     pub fn hz(&self) -> i64 {
         self.0
     }
+
+    /// Formats the frequency as MHz with 6 decimal places, suitable for CSV exports.
+    pub fn to_string_mhz(&self) -> String {
+        format!("{:.6}", self.0 as f64 / 1_000_000.0)
+    }
 }
 
 impl fmt::Display for Frequency {

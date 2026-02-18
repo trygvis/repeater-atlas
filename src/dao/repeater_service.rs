@@ -380,6 +380,26 @@ pub async fn select_by_repeater_id(
         .await
 }
 
+pub async fn select_by_repeater_ids(
+    c: &mut AsyncPgConnection,
+    repeater_ids: &[i64],
+) -> QueryResult<Vec<RepeaterServiceDao>> {
+    use crate::schema::repeater_service::dsl as s;
+
+    if repeater_ids.is_empty() {
+        return Ok(Vec::new());
+    }
+
+    s::repeater_service
+        .filter(s::repeater_id.eq_any(repeater_ids))
+        .select(RepeaterServiceDao::as_select())
+        .order_by(s::repeater_id.asc())
+        .order_by(s::kind.asc())
+        .order_by(s::id.asc())
+        .get_results(c)
+        .await
+}
+
 pub async fn select_kinds_by_repeater_ids(
     c: &mut AsyncPgConnection,
     repeater_ids: &[i64],

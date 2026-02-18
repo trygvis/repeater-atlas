@@ -71,6 +71,7 @@ Describe the components and their interactions. Initial strawman:
 
 - `docs/DESIGN_AUTHENTICATION.md`: Authentication framework options and the
   current JWT-cookie recommendation.
+- `docs/DESIGN_EXPORT.md`: Export architecture and CHIRP CSV mapping details.
 - `docs/DESIGN_REPEATER.md`: Repeater system data model, services, and linking
   concepts.
 - `docs/DESIGN_SEARCH.md`: Call sign search UX, constraints, and result model.
