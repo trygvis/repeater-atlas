@@ -23,14 +23,17 @@
 - Generate migrations via `diesel migration generate`, not by hand.
 - Before closing an issue, include a note on what was done. Summarize code and
   design changes and anything related that was done.
-- _NEVER_ commit any code without explicit instructions. Ask if a commit should
-  be made, only if everything builds and all tests pass.
 - `schema.rs` should never be edited manually. Run the database migrations with
   `just db-init`, it will reinitialize the database and run the migrations.
   Diesel will generate `schema.rs` automatically.
 - There are pre-commit hooks installed that will be executed automatically. If
   these fail, there is an issue that has to be fixed before continuing. DO NOT
   run with `--no-verify` as a workaround.
+- _NEVER_ commit any code without explicit instructions. Ask if a commit should
+  be made, only if everything builds and all tests pass.
+  - Between stating the code and doing the actual commit, run `prek run`. This
+    will reformat all code and do other tasks to ensure consistency. Include
+    whatever changes it does into the commit.
 - Commit messages:
   - All commit messages should be put into a file called `commit.tmp`, and used
     with the `-F` flag to `git commit`. After putting the message into the file,
