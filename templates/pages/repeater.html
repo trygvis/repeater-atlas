@@ -98,8 +98,8 @@
           <div>
             <dt>Lat/Long</dt>
             <dd>
-              {% if latitude.is_some() && longitude.is_some() %}
-                {{ latitude.as_ref().unwrap() }}, {{ longitude.as_ref().unwrap() }}
+              {% if let Some(point) = repeater.point %}
+                {{ point.latitude }}, {{ point.longitude }}
               {% else %}
                 -
               {% endif %}

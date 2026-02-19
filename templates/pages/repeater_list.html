@@ -34,8 +34,8 @@
             <div>
               <dt>Lat/Long</dt>
               <dd>
-                {% if item.latitude.is_some() && item.longitude.is_some() %}
-                  {{ item.latitude.as_ref().unwrap() }}, {{ item.longitude.as_ref().unwrap() }}
+                {% if let Some(point) = item.point %}
+                  {{ point.latitude }}, {{ point.longitude }}
                 {% else %}
                   -
                 {% endif %}

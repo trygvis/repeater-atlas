@@ -1,6 +1,6 @@
 use super::AppState;
 use super::auth::auth_header;
-use crate::{RepeaterAtlasError, dao};
+use crate::{Point, RepeaterAtlasError, dao};
 use askama::Template;
 use axum::{extract::State, response::Html};
 use axum_extra::extract::cookie::CookieJar;
@@ -11,29 +11,23 @@ use std::collections::HashMap;
 #[derive(Serialize)]
 pub struct MapRepeater {
     pub call_sign: String,
-    pub point: MapPoint,
+    pub point: Point,
     pub status: String,
     pub services: Vec<String>,
     pub is_external: bool,
 }
 
-#[derive(Clone, Serialize)]
-pub struct MapPoint {
-    pub latitude: f64,
-    pub longitude: f64,
-}
-
 #[derive(Serialize)]
 pub struct MapContext {
-    pub center: MapPoint,
+    pub center: Point,
     pub radius_meters: u32,
     pub repeaters: Vec<MapRepeater>,
 }
 
 #[derive(Serialize)]
 pub struct MapLink {
-    pub from: MapPoint,
-    pub to: MapPoint,
+    pub from: Point,
+    pub to: Point,
     pub from_call_sign: String,
     pub to_call_sign: String,
 }
@@ -71,18 +65,12 @@ pub async fn home(
     let mut candidates = Vec::new();
 
     for repeater in repeaters {
-        if let (Some(latitude), Some(longitude)) = (repeater.latitude, repeater.longitude) {
-            candidates.push((
-                repeater.id,
-                repeater.call_sign,
-                repeater.status,
-                latitude,
-                longitude,
-            ));
+        if let Some(point) = repeater.location() {
+            candidates.push((repeater.id, repeater.call_sign, repeater.status, point));
         }
     }
 
-    let repeater_ids: Vec<i64> = candidates.iter().map(|(id, _, _, _, _)| *id).collect();
+    let repeater_ids: Vec<i64> = candidates.iter().map(|(id, _, _, _)| *id).collect();
     let mut kinds_by_id: HashMap<i64, Vec<String>> = HashMap::new();
     for (repeater_id, kind) in
         dao::repeater_service::select_kinds_by_repeater_ids(&mut c, &repeater_ids).await?
@@ -94,17 +82,14 @@ pub async fn home(
     }
 
     let mut map_repeaters = Vec::with_capacity(candidates.len());
-    for (id, call_sign, status, latitude, longitude) in candidates {
+    for (id, call_sign, status, point) in candidates {
         let mut services = kinds_by_id.remove(&id).unwrap_or_default();
         services.sort();
         services.dedup();
 
         map_repeaters.push(MapRepeater {
             call_sign,
-            point: MapPoint {
-                latitude,
-                longitude,
-            },
+            point,
             status,
             services,
             is_external: false,

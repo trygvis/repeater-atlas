@@ -56,6 +56,8 @@ while the public should be able to access the data without logins.
 - English is the primary language; translations can be added later.
 - Single global instance; clubs use CNAMEs for branded read-only views.
 - PostGIS extension is available for spatial range queries.
+- Coordinates are stored and serialized as lat/lon; internal code uses a `Point`
+  type to represent locations.
 
 ## High-Level Architecture
 

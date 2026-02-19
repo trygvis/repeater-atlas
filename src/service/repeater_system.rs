@@ -3,7 +3,7 @@ use crate::dao::contact::Contact;
 use crate::dao::repeater_service::{AprsMode, DstarMode, FmBandwidth, SsbSideband};
 use crate::dao::repeater_system::{NewRepeaterSystem, RepeaterSystemDao};
 use crate::service::repeater_service::RepeaterService;
-use crate::{Frequency, MaidenheadLocator, RepeaterAtlasError, dao, service};
+use crate::{Frequency, MaidenheadLocator, Point, RepeaterAtlasError, dao, service};
 use diesel_async::AsyncPgConnection;
 use tracing::info;
 
@@ -57,8 +57,7 @@ pub struct Repeater {
     pub description: Option<String>,
     pub address: Option<String>,
     pub maidenhead: Option<MaidenheadLocator>,
-    pub latitude: Option<f64>,
-    pub longitude: Option<f64>,
+    pub point: Option<Point>,
     pub elevation_m: Option<i32>,
     pub country: Option<String>,
     pub region: Option<String>,
@@ -185,6 +184,8 @@ pub async fn load(
     let services = dao::repeater_service::select_by_repeater_id(c, repeater.id).await?;
     let service_items = build_service_items(services);
 
+    let point = repeater.location();
+
     Ok(Repeater {
         id: repeater.id,
         call_sign: repeater.call_sign,
@@ -194,8 +195,7 @@ pub async fn load(
         description: repeater.description,
         address: repeater.address,
         maidenhead: repeater.maidenhead,
-        latitude: repeater.latitude,
-        longitude: repeater.longitude,
+        point,
         elevation_m: repeater.elevation_m,
         country: repeater.country,
         region: repeater.region,

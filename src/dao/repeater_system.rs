@@ -2,7 +2,7 @@ use diesel::prelude::*;
 use diesel::{QueryableByName, sql_query};
 use diesel_async::{AsyncPgConnection, RunQueryDsl};
 
-use crate::MaidenheadLocator;
+use crate::{MaidenheadLocator, Point};
 
 #[derive(Insertable)]
 #[diesel(table_name = crate::schema::repeater_system)]
@@ -75,6 +75,12 @@ pub struct RepeaterSystemDao {
     pub country: Option<String>,
     pub region: Option<String>,
     pub status: String,
+}
+
+impl RepeaterSystemDao {
+    pub fn location(&self) -> Option<Point> {
+        Point::from_optional(self.latitude, self.longitude)
+    }
 }
 
 pub async fn insert(
@@ -230,8 +236,7 @@ impl From<RepeaterSystemRow> for RepeaterSystemDao {
 
 pub async fn select_within_radius(
     c: &mut AsyncPgConnection,
-    center_lat: f64,
-    center_lon: f64,
+    center: Point,
     radius_meters: f64,
 ) -> QueryResult<Vec<RepeaterSystemDao>> {
     let rows: Vec<RepeaterSystemRow> = sql_query(
@@ -262,8 +267,8 @@ pub async fn select_within_radius(
         ORDER BY call_sign ASC
         "#,
     )
-    .bind::<diesel::sql_types::Double, _>(center_lon)
-    .bind::<diesel::sql_types::Double, _>(center_lat)
+    .bind::<diesel::sql_types::Double, _>(center.longitude)
+    .bind::<diesel::sql_types::Double, _>(center.latitude)
     .bind::<diesel::sql_types::Double, _>(radius_meters)
     .get_results(c)
     .await?;

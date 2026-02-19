@@ -1,8 +1,6 @@
 use super::AppState;
 use super::auth::auth_header;
-use super::map::{
-    LinkedMapContext, MapContext, MapLink, MapPoint, MapRepeater, OrganizationMapContext,
-};
+use super::map::{LinkedMapContext, MapContext, MapLink, MapRepeater, OrganizationMapContext};
 use super::utils::distance_km;
 use crate::service;
 use crate::service::repeater_system::{Repeater, ServiceItems};
@@ -50,8 +48,6 @@ struct DetailTemplate {
     status: String,
     description: Option<String>,
     maidenhead: Option<String>,
-    latitude: Option<f64>,
-    longitude: Option<f64>,
     map_context: Option<MapContext>,
     linked_map_context: Option<LinkedMapContext>,
 }
@@ -141,15 +137,12 @@ async fn render_contact_detail(
 
         let repeater = service::repeater_system::load(&mut c, repeater).await?;
 
-        if let (Some(latitude), Some(longitude)) = (repeater.latitude, repeater.longitude) {
+        if let Some(point) = repeater.point {
             map_repeaters_by_id.insert(
                 repeater.id,
                 MapRepeater {
                     call_sign: repeater.call_sign.clone(),
-                    point: MapPoint {
-                        latitude,
-                        longitude,
-                    },
+                    point,
                     status: repeater.status.clone(),
                     services: Vec::new(),
                     is_external: false,
@@ -290,63 +283,51 @@ async fn render_repeater_detail(
     let status = repeater.status.clone();
     let description = repeater.description.clone();
     let maidenhead = repeater.maidenhead.as_ref().map(|value| value.to_string());
-    let latitude = repeater.latitude.clone();
-    let longitude = repeater.longitude.clone();
-    let (map_context, nearby_repeaters) =
-        if let (Some(center_lat), Some(center_lon)) = (latitude, longitude) {
-            let all_repeaters = dao::repeater_system::select_within_radius(
-                &mut c,
-                center_lat,
-                center_lon,
-                NEARBY_RADIUS_METERS,
-            )
-            .await?;
-            let mut nearby_repeaters = Vec::new();
-            let mut nearby_list = Vec::new();
+    let point = repeater.point;
+    let (map_context, nearby_repeaters) = if let Some(center) = point {
+        let all_repeaters =
+            dao::repeater_system::select_within_radius(&mut c, center, NEARBY_RADIUS_METERS)
+                .await?;
+        let mut nearby_repeaters = Vec::new();
+        let mut nearby_list = Vec::new();
 
-            for candidate in all_repeaters {
-                if let (Some(lat), Some(lon)) = (candidate.latitude, candidate.longitude) {
-                    let distance = distance_km(center_lat, center_lon, lat, lon);
-                    nearby_list.push(NearbyRepeaterItem {
-                        call_sign: candidate.call_sign.clone(),
-                        distance_km: distance,
-                        distance_label: format!("{distance:.1} km"),
-                    });
+        for candidate in all_repeaters {
+            if let Some(candidate_point) = candidate.location() {
+                let distance = distance_km(center, candidate_point);
+                nearby_list.push(NearbyRepeaterItem {
+                    call_sign: candidate.call_sign.clone(),
+                    distance_km: distance,
+                    distance_label: format!("{distance:.1} km"),
+                });
 
-                    nearby_repeaters.push(MapRepeater {
-                        call_sign: candidate.call_sign,
-                        point: MapPoint {
-                            latitude: lat,
-                            longitude: lon,
-                        },
-                        status: candidate.status,
-                        services: Vec::new(),
-                        is_external: false,
-                    });
-                }
+                nearby_repeaters.push(MapRepeater {
+                    call_sign: candidate.call_sign,
+                    point: candidate_point,
+                    status: candidate.status,
+                    services: Vec::new(),
+                    is_external: false,
+                });
             }
+        }
 
-            nearby_list.sort_by(|a, b| {
-                a.distance_km
-                    .partial_cmp(&b.distance_km)
-                    .unwrap_or(std::cmp::Ordering::Equal)
-                    .then_with(|| a.call_sign.cmp(&b.call_sign))
-            });
+        nearby_list.sort_by(|a, b| {
+            a.distance_km
+                .partial_cmp(&b.distance_km)
+                .unwrap_or(std::cmp::Ordering::Equal)
+                .then_with(|| a.call_sign.cmp(&b.call_sign))
+        });
 
-            (
-                Some(MapContext {
-                    center: MapPoint {
-                        latitude: center_lat,
-                        longitude: center_lon,
-                    },
-                    radius_meters: NEARBY_RADIUS_METERS as u32,
-                    repeaters: nearby_repeaters,
-                }),
-                nearby_list,
-            )
-        } else {
-            (None, Vec::new())
-        };
+        (
+            Some(MapContext {
+                center,
+                radius_meters: NEARBY_RADIUS_METERS as u32,
+                repeaters: nearby_repeaters,
+            }),
+            nearby_list,
+        )
+    } else {
+        (None, Vec::new())
+    };
 
     let auth = auth_header(&jar, &state);
     let template = DetailTemplate {
@@ -358,8 +339,6 @@ async fn render_repeater_detail(
         status,
         description,
         maidenhead,
-        latitude,
-        longitude,
         map_context,
         linked_map_context,
     };
@@ -372,16 +351,13 @@ fn map_repeater_for_display(
     repeater: &dao::repeater_system::RepeaterSystemDao,
     is_external: bool,
 ) -> Option<MapRepeater> {
-    let (Some(latitude), Some(longitude)) = (repeater.latitude, repeater.longitude) else {
+    let Some(point) = repeater.location() else {
         return None;
     };
 
     Some(MapRepeater {
         call_sign: repeater.call_sign.clone(),
-        point: MapPoint {
-            latitude,
-            longitude,
-        },
+        point,
         status: repeater.status.clone(),
         services: Vec::new(),
         is_external,

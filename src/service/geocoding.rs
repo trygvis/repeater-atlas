@@ -1,42 +1,23 @@
-use crate::RepeaterAtlasError;
+use crate::{Point, RepeaterAtlasError};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::fmt;
 use std::path::{Path, PathBuf};
 use std::sync::OnceLock;
 use std::time::{Duration, Instant};
 use tokio::sync::Mutex;
 use tracing::{debug, warn};
 
-#[derive(Debug, Clone, Copy)]
-pub struct GeocodedLocation {
-    pub latitude: f64,
-    pub longitude: f64,
-}
-
-impl fmt::Display for GeocodedLocation {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}, {}", self.latitude, self.longitude)
-    }
-}
-
 #[async_trait]
 pub trait Geocoder: Send + Sync {
-    async fn geocode_one(
-        &self,
-        query: &str,
-    ) -> Result<Option<GeocodedLocation>, RepeaterAtlasError>;
+    async fn geocode_one(&self, query: &str) -> Result<Option<Point>, RepeaterAtlasError>;
 }
 
 pub struct NullGeocoder;
 
 #[async_trait]
 impl Geocoder for NullGeocoder {
-    async fn geocode_one(
-        &self,
-        _query: &str,
-    ) -> Result<Option<GeocodedLocation>, RepeaterAtlasError> {
+    async fn geocode_one(&self, _query: &str) -> Result<Option<Point>, RepeaterAtlasError> {
         Ok(None)
     }
 }
@@ -72,7 +53,7 @@ pub struct NominatimGeocoder {
     base_url: String,
     // Simple single-process rate limiter to avoid hammering the public instance.
     next_allowed: Mutex<Instant>,
-    cache: Mutex<HashMap<String, GeocodedLocation>>,
+    cache: Mutex<HashMap<String, Point>>,
     cache_path: PathBuf,
     cache_write: Mutex<()>,
 }
@@ -103,7 +84,7 @@ impl NominatimGeocoder {
         *next_allowed = Instant::now() + Duration::from_secs(1);
     }
 
-    fn load_cache(path: &Path) -> Result<HashMap<String, GeocodedLocation>, RepeaterAtlasError> {
+    fn load_cache(path: &Path) -> Result<HashMap<String, Point>, RepeaterAtlasError> {
         let file = match std::fs::File::open(path) {
             Ok(file) => file,
             Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
@@ -132,21 +113,14 @@ impl NominatimGeocoder {
 
             cache.insert(
                 query.to_string(),
-                GeocodedLocation {
-                    latitude: record.latitude,
-                    longitude: record.longitude,
-                },
+                Point::from_latlon(record.latitude, record.longitude),
             );
         }
 
         Ok(cache)
     }
 
-    async fn append_cache(
-        &self,
-        query: &str,
-        location: GeocodedLocation,
-    ) -> Result<(), RepeaterAtlasError> {
+    async fn append_cache(&self, query: &str, location: Point) -> Result<(), RepeaterAtlasError> {
         let _guard = self.cache_write.lock().await;
         let file_exists = self.cache_path.exists();
         let file = std::fs::OpenOptions::new()
@@ -184,10 +158,7 @@ struct GeocoderCacheRow {
 
 #[async_trait]
 impl Geocoder for NominatimGeocoder {
-    async fn geocode_one(
-        &self,
-        query: &str,
-    ) -> Result<Option<GeocodedLocation>, RepeaterAtlasError> {
+    async fn geocode_one(&self, query: &str) -> Result<Option<Point>, RepeaterAtlasError> {
         let query = query.trim();
         if query.is_empty() {
             return Ok(None);
@@ -233,10 +204,7 @@ impl Geocoder for NominatimGeocoder {
             return Ok(None);
         }
 
-        let location = GeocodedLocation {
-            latitude,
-            longitude,
-        };
+        let location = Point::from_latlon(latitude, longitude);
 
         let mut cache = self.cache.lock().await;
         let should_write = match cache.entry(query.to_string()) {

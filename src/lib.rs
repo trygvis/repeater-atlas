@@ -7,6 +7,7 @@ pub mod dao;
 pub mod error;
 pub mod frequency;
 pub mod maidenhead_locator;
+pub mod point;
 pub mod schema;
 pub mod service;
 pub mod test_data;
@@ -15,6 +16,7 @@ pub mod web;
 pub use error::RepeaterAtlasError;
 pub use frequency::Frequency;
 pub use maidenhead_locator::MaidenheadLocator;
+pub use point::Point;
 
 pub async fn init() -> bb8::Pool<AsyncDieselConnectionManager<AsyncPgConnection>> {
     dotenvy::dotenv().ok();

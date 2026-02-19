@@ -36,7 +36,8 @@ in the database schema.
 - Identity: callsign, name/label.
 - Technical settings: band, RX/TX frequencies, offset, tones.
 - Status: active/offline/planned, last updated.
-- Location: coordinates, region, country.
+- Location: coordinates, region, country. Internal Rust code represents
+  coordinates as a `Point` (lat/lon pair) while storage stays as lat/lon.
 - Metadata: description (freeform), changelog, provenance.
 
 ### Modes (one or more)

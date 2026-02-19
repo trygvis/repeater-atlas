@@ -1,6 +1,5 @@
-use crate::MaidenheadLocator;
-use crate::RepeaterAtlasError;
 use crate::service::geocoding::Geocoder;
+use crate::{MaidenheadLocator, Point, RepeaterAtlasError};
 use tracing::{info, warn};
 
 const DEFAULT_MAIDENHEAD_LEN: usize = 6;
@@ -8,16 +7,14 @@ const DEFAULT_MAIDENHEAD_LEN: usize = 6;
 pub struct EnrichedLocation {
     pub address: Option<String>,
     pub maidenhead: Option<MaidenheadLocator>,
-    pub latitude: Option<f64>,
-    pub longitude: Option<f64>,
+    pub point: Option<Point>,
 }
 
 impl EnrichedLocation {
     const NONE: EnrichedLocation = EnrichedLocation {
         address: None,
         maidenhead: None,
-        latitude: None,
-        longitude: None,
+        point: None,
     };
 }
 
@@ -34,12 +31,10 @@ pub async fn enrich_location<G: Geocoder + ?Sized>(
 
     // If we have a maidenhead, resolve to lat/lon and return everything
     if let Some(maidenhead) = maidenhead {
-        let (long, lat) = maidenhead.clone().longlat();
         return Ok(EnrichedLocation {
             address: address.map(|s| s.to_string()),
+            point: Some(Point::from(maidenhead.clone())),
             maidenhead: Some(maidenhead),
-            latitude: Some(lat),
-            longitude: Some(long),
         });
     }
 
@@ -72,8 +67,7 @@ pub async fn enrich_location<G: Geocoder + ?Sized>(
             Ok(EnrichedLocation {
                 address: Some(address.to_string()),
                 maidenhead: locator,
-                latitude: Some(location.latitude),
-                longitude: Some(location.longitude),
+                point: Some(location),
             })
         }
     }
@@ -87,7 +81,7 @@ mod tests {
 
     struct FakeGeocoder {
         calls: AtomicUsize,
-        location: Option<crate::service::geocoding::GeocodedLocation>,
+        location: Option<crate::Point>,
     }
 
     #[async_trait]
@@ -95,19 +89,14 @@ mod tests {
         async fn geocode_one(
             &self,
             _query: &str,
-        ) -> Result<Option<crate::service::geocoding::GeocodedLocation>, RepeaterAtlasError>
-        {
+        ) -> Result<Option<crate::Point>, RepeaterAtlasError> {
             self.calls.fetch_add(1, Ordering::SeqCst);
             Ok(self.location)
         }
     }
 
     // Trondheim-ish.
-    const TRONDHEIM: crate::service::geocoding::GeocodedLocation =
-        crate::service::geocoding::GeocodedLocation {
-            latitude: 63.4305,
-            longitude: 10.3951,
-        };
+    const TRONDHEIM: crate::Point = crate::Point::from_latlon(63.4305, 10.3951);
 
     #[tokio::test]
     async fn enriches_location_when_maidenhead_missing() {
@@ -129,8 +118,7 @@ mod tests {
             changed.maidenhead,
             Some(MaidenheadLocator::new("JP53ek").unwrap())
         );
-        assert_eq!(changed.latitude, Some(63.4305));
-        assert_eq!(changed.longitude, Some(10.3951));
+        assert_eq!(changed.point, Some(TRONDHEIM));
         assert_eq!(geocoder.calls.load(Ordering::SeqCst), 1);
     }
 
@@ -152,8 +140,13 @@ mod tests {
         .unwrap();
         assert_eq!(changed.address, Some("Trondheim, Norway".to_string()));
         assert_eq!(changed.maidenhead, Some(maidenhead));
-        assert_eq!(changed.latitude, Some(63.354166666666686));
-        assert_eq!(changed.longitude, Some(10.458333333333314));
+        assert_eq!(
+            changed.point,
+            Some(crate::Point::from_latlon(
+                63.354166666666686,
+                10.458333333333314
+            ))
+        );
         assert_eq!(geocoder.calls.load(Ordering::SeqCst), 0);
     }
 }

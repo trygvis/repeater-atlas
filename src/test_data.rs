@@ -1076,10 +1076,13 @@ async fn create_repeater(
     let EnrichedLocation {
         address,
         maidenhead,
-        latitude,
-        longitude,
+        point,
     } = service::enrich_location::enrich_location(geocoder, &call_sign, address, maidenhead)
         .await?;
+    let (latitude, longitude) = match point {
+        Some(point) => (Some(point.latitude), Some(point.longitude)),
+        None => (None, None),
+    };
 
     match existing {
         Some(mut existing) => {

@@ -1,6 +1,6 @@
 use super::AppState;
 use super::auth::auth_header;
-use crate::{RepeaterAtlasError, dao};
+use crate::{Point, RepeaterAtlasError, dao};
 use askama::Template;
 use axum::{extract::State, response::Html};
 use axum_extra::extract::cookie::CookieJar;
@@ -11,8 +11,7 @@ struct RepeaterListItem {
     status: String,
     description: Option<String>,
     maidenhead: Option<String>,
-    latitude: Option<f64>,
-    longitude: Option<f64>,
+    point: Option<Point>,
 }
 
 #[derive(TypedPath)]
@@ -51,8 +50,7 @@ async fn render_repeaters_list(
             status,
             description: repeater.description.clone(),
             maidenhead: repeater.maidenhead.as_ref().map(|value| value.to_string()),
-            latitude: repeater.latitude,
-            longitude: repeater.longitude,
+            point: repeater.location(),
         });
     }
 
