@@ -8,9 +8,7 @@
 
 ## Routes
 
-- `/repeater/{call_sign}` renders this page.
-- `/call-sign/{call_sign}` resolves to this page when the call sign is a
-  repeater.
+- `/{call_sign}` renders this page when the call sign is a repeater.
 - Call signs are uppercased before lookup.
 
 ## Data sources
@@ -50,7 +48,7 @@
 - Map:
   - Leaflet map with a 50 km radius circle around the repeater.
   - Markers for repeaters within 50 km, labeled by call sign.
-- Navigation: "Back to list" link to `/repeater`.
+- Navigation: "Back to list" link to `/-/repeater`.
 
 ## Behavior
 

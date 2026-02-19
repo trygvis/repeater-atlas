@@ -27,7 +27,6 @@ async fn main() {
         .typed_get(repeater_list::repeaters)
         .typed_get(organization_list::organizations)
         .typed_get(repeater::call_sign)
-        .typed_get(repeater::detail)
         .typed_get(search::call_sign_search)
         .typed_get(auth::login_form)
         .typed_post(auth::login_submit)

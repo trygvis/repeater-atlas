@@ -22,16 +22,16 @@
             <a href="/">Map</a>
           </li>
           <li>
-            <a href="/organization">Organizations</a>
+            <a href="/-/organization">Organizations</a>
           </li>
           <li>
-            <a href="/repeater">Repeaters</a>
+            <a href="/-/repeater">Repeaters</a>
           </li>
           {% if auth.logged_in %}
             <li>Logged in as {{ auth.call_sign }}</li>
-            <li><a href="/logout">Log out</a></li>
+            <li><a href="/-/logout">Log out</a></li>
           {% else %}
-            <li><a href="/login">Log in</a></li>
+            <li><a href="/-/login">Log in</a></li>
           {% endif %}
         </ul>
       </nav>

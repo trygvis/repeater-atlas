@@ -37,7 +37,7 @@
   - Search results modal:
     - Call sign search field and results list.
     - List of call sign matches (repeaters and organizations).
-    - Each result links to `/call-sign/{call_sign}`.
+    - Each result links to `/{call_sign}`.
 
 ## Behavior
 

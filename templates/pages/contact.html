@@ -71,7 +71,7 @@
       {% for repeater in repeaters %}
         <article>
           <header>
-            <h3><a href="/call-sign/{{ repeater.call_sign }}">{{ repeater.call_sign }}</a></h3>
+            <h3><a href="/{{ repeater.call_sign }}">{{ repeater.call_sign }}</a></h3>
             <p>
               {{ repeater.status }}
               {% if repeater.description.is_some() %}

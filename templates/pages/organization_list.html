@@ -19,7 +19,7 @@
             <h3>
               {% if org.call_sign.is_some() %}
                 {% let cs = org.call_sign.as_ref().unwrap() %}
-                <a href="/call-sign/{{ cs }}">{{ cs }}</a>
+                <a href="/{{ cs }}">{{ cs }}</a>
               {% else %}
                 -
               {% endif %}
@@ -32,4 +32,3 @@
   </section>
 </main>
 {% endblock %}
-

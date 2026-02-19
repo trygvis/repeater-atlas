@@ -85,6 +85,26 @@ Describe the components and their interactions. Initial strawman:
 - Club views: CNAME-based virtual hosts and embeddable read-only pages.
 - Protocols/transport: HTTPS/JSON.
 
+## URL Layout
+
+Public routes put call signs at the root and keep supporting endpoints under
+`/-/`.
+
+### Current
+
+- `/` map page.
+- `/$CALL_SIGN` call sign resolver (repeater or organization).
+- `/-/repeater` repeater list.
+- `/-/organization` organization list.
+- `/-/embed/club/:id` embeddable club views.
+- `/-/search` call sign search endpoint.
+- `/-/login` login form.
+- `/-/logout` log out.
+
+### Planned
+
+- `/-/admin/...` admin-only pages and APIs.
+
 ## Operational Considerations
 
 - Deployment model:

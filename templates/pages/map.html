@@ -168,9 +168,9 @@
   <p>
     {% if auth.logged_in %}
     {{ auth.call_sign }}<br>
-    <a href="/logout">Log out</a>
+    <a href="/-/logout">Log out</a>
     {% else %}
-    <a href="/login">Log in</a>
+    <a href="/-/login">Log in</a>
     {% endif %}
   </p>
   <a href="#" class="search-trigger" id="search-open">Search call signs</a>
@@ -291,7 +291,7 @@
         callSign.textContent = item.call_sign;
       }
       if (detailsLink) {
-        detailsLink.href = `/call-sign/${encodeURIComponent(item.call_sign)}`;
+        detailsLink.href = `/${encodeURIComponent(item.call_sign)}`;
       }
       if (status) {
         status.textContent = item.status || "-";
@@ -367,7 +367,7 @@
         listItem.className = "search-result";
 
         const link = document.createElement("a");
-        link.href = `/call-sign/${encodeURIComponent(item.call_sign)}`;
+        link.href = `/${encodeURIComponent(item.call_sign)}`;
         link.textContent = item.call_sign;
 
         const kind = document.createElement("span");
@@ -411,7 +411,7 @@
       hasSearched = true;
 
       try {
-        const response = await fetch(`/search?q=${encodeURIComponent(query)}`, {
+        const response = await fetch(`/-/search?q=${encodeURIComponent(query)}`, {
           signal: searchAbort.signal,
         });
         if (!response.ok) {

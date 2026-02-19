@@ -15,7 +15,7 @@ struct RepeaterListItem {
 }
 
 #[derive(TypedPath)]
-#[typed_path("/repeater")]
+#[typed_path("/-/repeater")]
 pub struct RepeaterListPath;
 
 #[derive(Template)]

@@ -13,7 +13,7 @@ use axum_extra::routing::TypedPath;
 use serde::Deserialize;
 
 #[derive(TypedPath)]
-#[typed_path("/login")]
+#[typed_path("/-/login")]
 pub struct LoginPagePath;
 
 #[derive(Deserialize)]
@@ -81,7 +81,7 @@ pub async fn logout(_: LogoutActionPath, jar: CookieJar) -> Result<Response, Rep
 }
 
 #[derive(TypedPath)]
-#[typed_path("/logout")]
+#[typed_path("/-/logout")]
 pub struct LogoutActionPath;
 
 async fn login_error(

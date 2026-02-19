@@ -19,7 +19,7 @@
 - The search field lives inside the modal.
 - Typing in the field updates the results list.
 - The modal persists until closed or a result is selected.
-- Selecting a result navigates to `/call-sign/{call_sign}`.
+- Selecting a result navigates to `/{call_sign}`.
 
 ## Results
 
@@ -44,7 +44,7 @@
 ## Data sources
 
 - `call_sign` registry table, which records the call sign value and kind.
-- The `/call-sign/{call_sign}` route resolves the kind into the correct page.
+- The `/{call_sign}` route resolves the kind into the correct page.
 
 ## Matching
 
@@ -56,7 +56,7 @@
 
 - `call_sign`: normalized call sign value.
 - `kind`: `repeater` or `contact`.
-- `href`: `/call-sign/{call_sign}`.
+- `href`: `/{call_sign}`.
 
 ## Ordering
 

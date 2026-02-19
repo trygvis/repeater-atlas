@@ -66,14 +66,13 @@ async fn call_sign_routes_resolve_repeater_and_contact()
         .typed_get(repeater_list::repeaters)
         .typed_get(organization_list::organizations)
         .typed_get(repeater::call_sign)
-        .typed_get(repeater::detail)
         .with_state(state);
 
     let repeater_response = app
         .clone()
         .oneshot(
             Request::builder()
-                .uri(format!("/call-sign/{repeater_call_sign}"))
+                .uri(format!("/{repeater_call_sign}"))
                 .body(Body::empty())?,
         )
         .await?;
@@ -89,7 +88,7 @@ async fn call_sign_routes_resolve_repeater_and_contact()
         .clone()
         .oneshot(
             Request::builder()
-                .uri(format!("/call-sign/{contact_call_sign}"))
+                .uri(format!("/{contact_call_sign}"))
                 .body(Body::empty())?,
         )
         .await?;
@@ -105,7 +104,7 @@ async fn call_sign_routes_resolve_repeater_and_contact()
         .clone()
         .oneshot(
             Request::builder()
-                .uri("/organization")
+                .uri("/-/organization")
                 .body(Body::empty())?,
         )
         .await?;
@@ -119,19 +118,9 @@ async fn call_sign_routes_resolve_repeater_and_contact()
 
     let repeaters_response = app
         .clone()
-        .oneshot(Request::builder().uri("/repeater").body(Body::empty())?)
+        .oneshot(Request::builder().uri("/-/repeater").body(Body::empty())?)
         .await?;
     assert_eq!(repeaters_response.status(), StatusCode::OK);
-
-    let legacy_detail_response = app
-        .clone()
-        .oneshot(
-            Request::builder()
-                .uri(format!("/repeater/{repeater_call_sign}"))
-                .body(Body::empty())?,
-        )
-        .await?;
-    assert_eq!(legacy_detail_response.status(), StatusCode::OK);
 
     // Cleanup: delete only the call_sign rows we created. This cascades to
     // (call_sign -> contact/repeater_system -> dependent rows).

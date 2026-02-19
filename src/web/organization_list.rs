@@ -12,7 +12,7 @@ struct OrganizationListItem {
 }
 
 #[derive(TypedPath)]
-#[typed_path("/organization")]
+#[typed_path("/-/organization")]
 pub struct OrganizationListPath;
 
 #[derive(Template)]

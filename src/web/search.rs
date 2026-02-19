@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 const SEARCH_LIMIT: i64 = 50;
 
 #[derive(TypedPath)]
-#[typed_path("/search")]
+#[typed_path("/-/search")]
 pub struct CallSignSearchPath;
 
 #[derive(Deserialize)]

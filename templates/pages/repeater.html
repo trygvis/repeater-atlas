@@ -56,7 +56,7 @@
                 {% let o = repeater.owner.as_ref().unwrap() %}
                 {% if o.call_sign.is_some() %}
                   {% let cs = o.call_sign.as_ref().unwrap() %}
-                  <a href="/call-sign/{{ cs }}">{{ o.display_name }}</a>
+                  <a href="/{{ cs }}">{{ o.display_name }}</a>
                   {% if o.display_name != cs.as_str() %}
                     ({{ cs }})
                   {% endif %}
@@ -75,7 +75,7 @@
                 {% let t = repeater.tech_contact.as_ref().unwrap() %}
                 {% if t.call_sign.is_some() %}
                   {% let cs = t.call_sign.as_ref().unwrap() %}
-                  <a href="/call-sign/{{ cs }}">{{ t.display_name }}</a>
+                  <a href="/{{ cs }}">{{ t.display_name }}</a>
                   {% if t.display_name != cs.as_str() %}
                     ({{ cs }})
                   {% endif %}
@@ -259,7 +259,7 @@
           <ul>
             {% for link in links %}
               <li>
-                <a href="/call-sign/{{ link.call_sign }}">{{ link.call_sign }}</a>
+                <a href="/{{ link.call_sign }}">{{ link.call_sign }}</a>
                 {% if !link.note.trim().is_empty() %}
                   — {{ link.note }}
                 {% endif %}
@@ -282,7 +282,7 @@
           <ul>
             {% for nearby in nearby_repeaters %}
               <li>
-                <a href="/call-sign/{{ nearby.call_sign }}">{{ nearby.call_sign }}</a>
+                <a href="/{{ nearby.call_sign }}">{{ nearby.call_sign }}</a>
                 — {{ nearby.distance_label }}
               </li>
             {% endfor %}
@@ -297,7 +297,7 @@
     </section>
     {% endif %}
   </div>
-  <p><a href="/repeater">Back to list</a></p>
+  <p><a href="/-/repeater">Back to list</a></p>
 </main>
 {% endblock %}
 

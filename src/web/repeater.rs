@@ -31,12 +31,6 @@ struct OrganizationRepeaterItem {
     services: ServiceItems,
 }
 
-#[derive(TypedPath, Deserialize)]
-#[typed_path("/repeater/{call_sign}")]
-pub struct RepeaterDetailPagePath {
-    pub call_sign: String,
-}
-
 #[derive(Template)]
 #[template(path = "pages/repeater.html")]
 struct DetailTemplate {
@@ -52,17 +46,8 @@ struct DetailTemplate {
     linked_map_context: Option<LinkedMapContext>,
 }
 
-pub async fn detail(
-    RepeaterDetailPagePath { call_sign }: RepeaterDetailPagePath,
-    jar: CookieJar,
-    State(state): State<AppState>,
-) -> Result<Html<String>, RepeaterAtlasError> {
-    let call_sign = call_sign.to_uppercase();
-    render_repeater_detail(call_sign, jar, state).await
-}
-
 #[derive(TypedPath, Deserialize)]
-#[typed_path("/call-sign/{call_sign}")]
+#[typed_path("/{call_sign}")]
 pub struct CallSignDetailPath {
     pub call_sign: String,
 }

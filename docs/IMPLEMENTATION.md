@@ -77,19 +77,21 @@
 ### Public
 
 - `/` map page (primary entry point).
-- `/repeater` repeater list.
-- `/call-sign/:call_sign` call sign registry resolver:
-  - repeater -> repeater page
+- `/$CALL_SIGN` call sign resolver:
+  - repeater -> repeater detail page
   - contact -> organization page
-- `/organization` organization list.
-- `/embed/club/:id` embeddable club-scoped list/detail (minimal layout).
+- `/-/repeater` repeater list.
+- `/-/organization` organization list.
+- `/-/embed/club/:id` embeddable club-scoped list/detail (minimal layout).
+- `/-/search` call sign search endpoint.
 
 ### Admin
 
-- `/admin/login` login form.
-- `/admin/repeaters` list/manage.
-- `/admin/repeaters/new` create form.
-- `/admin/repeaters/:id/edit` edit form.
+- `/-/login` login form.
+- `/-/logout` log out.
+- `/-/admin/repeaters` list/manage.
+- `/-/admin/repeaters/new` create form.
+- `/-/admin/repeaters/:id/edit` edit form.
 
 ## Behaviors
 
