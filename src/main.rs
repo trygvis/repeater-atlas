@@ -1,7 +1,9 @@
 use axum::Router;
 use axum_extra::routing::RouterExt;
 use repeater_atlas::web::AppState;
-use repeater_atlas::web::{auth, map, organization_list, repeater, repeater_list, search};
+use repeater_atlas::web::{
+    auth, export, map, my_page, organization_list, repeater, repeater_list, search,
+};
 use std::net::SocketAddr;
 use tower_http::services::ServeDir;
 use tracing_subscriber::EnvFilter;
@@ -31,6 +33,8 @@ async fn main() {
         .typed_get(auth::login_form)
         .typed_post(auth::login_submit)
         .typed_get(auth::logout)
+        .typed_get(my_page::my_page)
+        .typed_get(export::chirp_export)
         .with_state(state);
 
     let addr: SocketAddr = std::env::var("BIND_ADDR")

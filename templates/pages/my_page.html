@@ -1,0 +1,20 @@
+{% extends "layouts/main.html" %}
+
+{% block content %}
+<main class="container">
+  <hgroup>
+    <h1>My page</h1>
+    <p>Account tools and exports.</p>
+  </hgroup>
+  <section>
+    <h2>Exports</h2>
+    <article>
+      <header>
+        <h3>CHIRP CSV</h3>
+      </header>
+      <p>Download a CSV file for CHIRP and compatible radios.</p>
+      <a href="/-/export/chirp.csv" role="button">Download CHIRP CSV</a>
+    </article>
+  </section>
+</main>
+{% endblock %}

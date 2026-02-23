@@ -3,7 +3,9 @@ use diesel_async::AsyncPgConnection;
 use diesel_async::pooled_connection::bb8::Pool;
 
 pub mod auth;
+pub mod export;
 pub mod map;
+pub mod my_page;
 pub mod organization_list;
 pub mod repeater;
 pub mod repeater_list;

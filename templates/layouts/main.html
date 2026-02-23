@@ -28,7 +28,7 @@
             <a href="/-/repeater">Repeaters</a>
           </li>
           {% if auth.logged_in %}
-            <li>Logged in as {{ auth.call_sign }}</li>
+            <li><a href="/-/my">{{ auth.call_sign }}</a></li>
             <li><a href="/-/logout">Log out</a></li>
           {% else %}
             <li><a href="/-/login">Log in</a></li>
