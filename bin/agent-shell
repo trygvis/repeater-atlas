@@ -1,0 +1,22 @@
+#!/bin/bash
+
+set -euo pipefail
+
+echo "Agent shell starting"
+
+uid=$1; shift
+gid=$1; shift
+
+groupadd -g "$gid" agent
+
+cmd=(useradd)
+cmd+=(--uid "$uid")
+cmd+=(--gid agent)
+[[ ! -d /home/agent ]] && cmd+=(--create-home)
+cmd+=(agent)
+
+"${cmd[@]}"
+
+cd /workspaces
+
+exec sudo -u agent bash -li

@@ -10,5 +10,44 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  agent:
+    profiles:
+      - agent
+    build:
+      context: ./
+      dockerfile_inline: |
+        FROM debian:trixie
+        RUN apt-get update && apt-get install --no-install-recommends --yes \
+          bash-completion \
+          ca-certificates \
+          curl \
+          direnv \
+          git \
+          less \
+          man \
+          postgresql-client \
+          ripgrep \
+          rustup \
+          sudo \
+          vim \
+          wget \
+          zstd \
+          ;
+        
+        COPY bin/codex /usr/local/bin/
+        # This downloads codex
+        RUN codex --version
+        RUN echo ". <(codex completion)" > /etc/bash_completion.d/codex
+        RUN echo ". <(direnv hook bash)" > /etc/profile.d/direnv.sh
+        # RUN echo "echo DIRENV!!" > /etc/profile.d/direnv
+        
+        COPY bin/agent-shell /usr/bin/agent-shell
+        CMD /usr/bin/agent-shell
+    volumes:
+      - home:/home
+      - ./workspaces:/workspaces
+      - ./.git:/git:ro
+
 volumes:
   postgres_data:
+  home:

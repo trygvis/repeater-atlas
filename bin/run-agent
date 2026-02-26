@@ -1,0 +1,11 @@
+#!/bin/sh
+
+uid="$(id -u)"
+gid="$(id -g)"
+
+docker compose run \
+  --build \
+  --quiet-build \
+  --rm \
+  -it \
+  agent /usr/bin/agent-shell "$uid" "$gid"

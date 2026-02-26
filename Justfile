@@ -8,7 +8,7 @@ help:
   @just --list --unsorted
   @echo ""
   @echo "Notes for agents:"
-  @echo "  - Run via: direnv exec . just <recipe>"
+  @echo "  - Run via: just <recipe>"
   @echo "  - For change validation: just all, just test, just db-init, just db-setup"
   @echo "  - For commands that require non-sandbox access, make sure to request."
 

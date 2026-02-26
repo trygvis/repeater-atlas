@@ -18,8 +18,6 @@
 
 ## Conventions
 
-- All commands have to be run with `direnv exec .` as a prefix to get a working
-  environment.
 - Generate migrations via `diesel migration generate`, not by hand.
 - Before closing an issue, include a note on what was done. Summarize code and
   design changes and anything related that was done.
@@ -74,8 +72,7 @@ These must be read before doing any work.
 
 ## CLI tools and commands
 
-- Run `just` to get the overview of available recipes and agent notes. Use
-  `direnv exec . just` to ensure the environment is loaded.
+- Run `just` to get the overview of available recipes and agent notes.
 - This project uses a CLI ticket system for task management. Run `tk help` when
   you need to use it. Files under `.tickets/` MUST NOT be edited by hand, always
   use `add-node`, `close` and `show` to work with tickets.
