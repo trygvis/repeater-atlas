@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-v=0.105.0
+v=0.106.0
 
 basedir="${0%/*}"
 self="${0##*/}"
