@@ -1,11 +1,17 @@
 use axum::Router;
 use axum_extra::routing::RouterExt;
+use bb8::Pool;
+use diesel_async::AsyncPgConnection;
+use diesel_async::pooled_connection::AsyncDieselConnectionManager;
+use repeater_atlas::RepeaterAtlasError;
+use repeater_atlas::dao;
 use repeater_atlas::web::AppState;
 use repeater_atlas::web::{
     auth, export, map, my_page, organization_list, repeater, repeater_list, search,
 };
 use std::net::SocketAddr;
 use tower_http::services::ServeDir;
+use tracing::info;
 use tracing_subscriber::EnvFilter;
 
 #[tokio::main]
@@ -17,6 +23,10 @@ async fn main() {
         .init();
 
     let pool = repeater_atlas::init().await;
+
+    check_db(&pool)
+        .await
+        .expect("Bad database connection and/or schema");
 
     let jwt_secret =
         std::env::var("JWT_SECRET").unwrap_or_else(|_| uuid::Uuid::new_v4().to_string());
@@ -46,7 +56,17 @@ async fn main() {
         .await
         .expect("failed to bind address");
 
-    println!("Listening on {}", addr);
+    info!("Listening on {}", addr);
 
     axum::serve(listener, app).await.expect("server error");
+}
+
+async fn check_db(
+    pool: &Pool<AsyncDieselConnectionManager<AsyncPgConnection>>,
+) -> Result<(), RepeaterAtlasError> {
+    let mut c = pool.get().await?;
+    let call_signs = dao::call_sign::search_by_prefix(&mut c, "LA".to_string(), 1).await?;
+    info!("DB ok, contains {} call-signs", call_signs.len());
+
+    Ok(())
 }
