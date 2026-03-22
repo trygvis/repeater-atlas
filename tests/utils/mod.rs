@@ -1,13 +1,13 @@
+use bb8::Pool;
 use diesel::{Connection, PgConnection};
 use diesel_async::AsyncPgConnection;
-use diesel_async::pooled_connection::AsyncDieselConnectionManager;
-use diesel_async::pooled_connection::bb8::Pool;
 use diesel_migrations::{EmbeddedMigrations, MigrationHarness, embed_migrations};
+use repeater_atlas::db_pool::{AppPool, LoggingConnectionManager};
 use tokio::sync::OnceCell;
 use tracing_subscriber::EnvFilter;
 
 pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!();
-type AsyncPool = Pool<AsyncPgConnection>;
+type AsyncPool = AppPool;
 
 static DB_POOL: OnceCell<AsyncPool> = OnceCell::const_new();
 static LOGGING: std::sync::Once = std::sync::Once::new();
@@ -43,7 +43,7 @@ pub(crate) async fn pool() -> AsyncPool {
             .expect("migration task failed")
             .expect("migration failed");
 
-            let manager = AsyncDieselConnectionManager::<AsyncPgConnection>::new(database_url);
+            let manager = LoggingConnectionManager::<AsyncPgConnection>::new(database_url);
             Pool::builder()
                 .build(manager)
                 .await

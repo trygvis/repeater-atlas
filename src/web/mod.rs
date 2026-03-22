@@ -1,6 +1,5 @@
+use crate::db_pool::AppPool;
 use askama::Template;
-use diesel_async::AsyncPgConnection;
-use diesel_async::pooled_connection::bb8::Pool;
 
 pub mod auth;
 pub mod export;
@@ -14,7 +13,7 @@ pub mod utils;
 
 #[derive(Clone)]
 pub struct AppState {
-    pub pool: Pool<AsyncPgConnection>,
+    pub pool: AppPool,
     pub jwt_secret: String,
 }
 

@@ -1,10 +1,8 @@
 use axum::Router;
 use axum_extra::routing::RouterExt;
-use bb8::Pool;
-use diesel_async::AsyncPgConnection;
-use diesel_async::pooled_connection::AsyncDieselConnectionManager;
 use repeater_atlas::RepeaterAtlasError;
 use repeater_atlas::dao;
+use repeater_atlas::db_pool::AppPool;
 use repeater_atlas::web::AppState;
 use repeater_atlas::web::{
     auth, export, map, my_page, organization_list, repeater, repeater_list, search,
@@ -61,9 +59,7 @@ async fn main() {
     axum::serve(listener, app).await.expect("server error");
 }
 
-async fn check_db(
-    pool: &Pool<AsyncDieselConnectionManager<AsyncPgConnection>>,
-) -> Result<(), RepeaterAtlasError> {
+async fn check_db(pool: &AppPool) -> Result<(), RepeaterAtlasError> {
     let mut c = pool.get().await?;
     let call_signs = dao::call_sign::search_by_prefix(&mut c, "LA".to_string(), 1).await?;
     info!("DB ok, contains {} call-signs", call_signs.len());
