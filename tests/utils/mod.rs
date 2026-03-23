@@ -1,6 +1,5 @@
 use bb8::Pool;
 use diesel::{Connection, PgConnection};
-use diesel_async::AsyncPgConnection;
 use diesel_migrations::{EmbeddedMigrations, MigrationHarness, embed_migrations};
 use repeater_atlas::db_pool::{AppPool, LoggingConnectionManager};
 use tokio::sync::OnceCell;
@@ -43,7 +42,7 @@ pub(crate) async fn pool() -> AsyncPool {
             .expect("migration task failed")
             .expect("migration failed");
 
-            let manager = LoggingConnectionManager::<AsyncPgConnection>::new(database_url);
+            let manager = LoggingConnectionManager::new(database_url);
             Pool::builder()
                 .build(manager)
                 .await

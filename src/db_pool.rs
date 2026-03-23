@@ -1,45 +1,46 @@
 use bb8::ManageConnection;
-use diesel::query_builder::QueryFragment;
+use diesel::ConnectionError;
+use diesel::ConnectionResult;
+use diesel_async::AsyncPgConnection;
 use diesel_async::pooled_connection::AsyncDieselConnectionManager;
+use diesel_async::pooled_connection::ManagerConfig;
 use diesel_async::pooled_connection::PoolError;
-use diesel_async::pooled_connection::PoolableConnection;
-use diesel_async::{AsyncConnection, AsyncPgConnection};
+use rustls::ClientConfig;
 use std::fmt;
 use std::ops::{Deref, DerefMut};
+use std::sync::OnceLock;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::Instant;
+use tokio_postgres_rustls::MakeRustlsConnect;
 use tracing::{debug, warn};
 
 // Diesel's bb8 manager does not expose enough lifecycle visibility for the
 // kind of connection debugging we need when startup checks or test migrations
 // fail. Keep the app on bb8, but route connection creation through a local
 // manager so those events show up in normal tracing output.
-pub type AppPool = bb8::Pool<LoggingConnectionManager<AsyncPgConnection>>;
+pub type AppPool = bb8::Pool<LoggingConnectionManager>;
 
-pub struct LoggingConnectionManager<C> {
-    inner: AsyncDieselConnectionManager<C>,
+pub struct LoggingConnectionManager {
+    inner: AsyncDieselConnectionManager<AsyncPgConnection>,
     next_connection_id: AtomicU64,
 }
 
-impl<C> LoggingConnectionManager<C>
-where
-    C: AsyncConnection + 'static,
-{
+impl LoggingConnectionManager {
     pub fn new(connection_url: impl Into<String>) -> Self {
+        let mut manager_config = ManagerConfig::default();
+        manager_config.custom_setup =
+            Box::new(|database_url| Box::pin(establish_tls(database_url)));
+
         Self {
-            inner: AsyncDieselConnectionManager::new(connection_url),
+            inner: AsyncDieselConnectionManager::new_with_config(connection_url, manager_config),
             next_connection_id: AtomicU64::new(1),
         }
     }
 }
 
-impl<C> fmt::Debug for LoggingConnectionManager<C> {
+impl fmt::Debug for LoggingConnectionManager {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "LoggingConnectionManager<{}>",
-            std::any::type_name::<C>()
-        )
+        f.write_str("LoggingConnectionManager<AsyncPgConnection>")
     }
 }
 
@@ -87,14 +88,8 @@ impl<C> Drop for LoggedConnection<C> {
     }
 }
 
-impl<C> ManageConnection for LoggingConnectionManager<C>
-where
-    C: PoolableConnection + 'static,
-    diesel::dsl::select<diesel::dsl::AsExprOf<i32, diesel::sql_types::Integer>>:
-        diesel_async::methods::ExecuteDsl<C>,
-    diesel::query_builder::SqlQuery: QueryFragment<C::Backend>,
-{
-    type Connection = LoggedConnection<C>;
+impl ManageConnection for LoggingConnectionManager {
+    type Connection = LoggedConnection<AsyncPgConnection>;
     type Error = PoolError;
 
     async fn connect(&self) -> Result<Self::Connection, Self::Error> {
@@ -147,4 +142,49 @@ where
 
         broken
     }
+}
+
+async fn establish_tls(database_url: &str) -> ConnectionResult<AsyncPgConnection> {
+    let tls = tls_connector()?;
+    let (client, connection) = tokio_postgres::connect(database_url, tls)
+        .await
+        .map_err(|error| ConnectionError::BadConnection(error.to_string()))?;
+
+    AsyncPgConnection::try_from_client_and_connection(client, connection).await
+}
+
+fn tls_connector() -> ConnectionResult<MakeRustlsConnect> {
+    static TLS_CONNECTOR: OnceLock<Result<MakeRustlsConnect, String>> = OnceLock::new();
+
+    TLS_CONNECTOR
+        .get_or_init(build_tls_connector)
+        .as_ref()
+        .map(Clone::clone)
+        .map_err(|error| ConnectionError::BadConnection(error.clone()))
+}
+
+fn build_tls_connector() -> Result<MakeRustlsConnect, String> {
+    let mut roots = rustls::RootCertStore::empty();
+    let cert_result = rustls_native_certs::load_native_certs();
+
+    if !cert_result.errors.is_empty() {
+        warn!(
+            errors = ?cert_result.errors,
+            "Errors occurred while loading native TLS certificates"
+        );
+    }
+
+    for cert in cert_result.certs {
+        roots.add(cert).map_err(|error| error.to_string())?;
+    }
+
+    if roots.is_empty() {
+        return Err("no TLS root certificates were loaded for PostgreSQL".to_string());
+    }
+
+    let config = ClientConfig::builder()
+        .with_root_certificates(roots)
+        .with_no_client_auth();
+
+    Ok(MakeRustlsConnect::new(config))
 }

@@ -119,6 +119,21 @@
   - `NOMINATIM_BASE_URL` (default: public OSM Nominatim)
   - `NOMINATIM_USER_AGENT` (default: `Repeater Atlas`)
 
+### Database
+
+- The app uses a `bb8` pool on top of `diesel-async` for PostgreSQL connections.
+- Pool connection setup is routed through a local wrapper so connection
+  lifecycle events can be logged and timed when diagnosing startup or test DB
+  failures.
+- The PostgreSQL pool uses a custom `diesel-async` setup callback so the app
+  establishes TLS connections instead of relying on the default non-TLS
+  `AsyncPgConnection::establish` path.
+- TLS trust roots are loaded from the platform/native certificate store once at
+  process startup/lazy initialization time and reused for later connections.
+- For environments that need a custom CA bundle, use `SSL_CERT_FILE` or
+  `SSL_CERT_DIR` in the process environment so `rustls-native-certs` picks them
+  up when building the PostgreSQL TLS client.
+
 ### Admin
 
 - Create/edit repeater entries with validation.
