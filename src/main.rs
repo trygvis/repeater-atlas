@@ -7,6 +7,7 @@ use repeater_atlas::web::AppState;
 use repeater_atlas::web::{
     auth, export, map, my_page, organization_list, repeater, repeater_list, search,
 };
+use std::env;
 use std::net::SocketAddr;
 use tower_http::services::ServeDir;
 use tracing::info;
@@ -22,9 +23,13 @@ async fn main() {
 
     let pool = repeater_atlas::init().await;
 
-    check_db(&pool)
-        .await
-        .expect("Bad database connection and/or schema");
+    let db_check = env::var("DB_CHECK").ok().unwrap_or("1".to_owned());
+
+    if db_check == "1" {
+        check_db(&pool)
+            .await
+            .expect("Bad database connection and/or schema");
+    }
 
     let jwt_secret =
         std::env::var("JWT_SECRET").unwrap_or_else(|_| uuid::Uuid::new_v4().to_string());
