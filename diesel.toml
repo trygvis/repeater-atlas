@@ -4,6 +4,11 @@
 [print_schema]
 file = "src/schema.rs"
 custom_type_derives = ["diesel::query_builder::QueryId", "Clone"]
+filter = {
+    except_tables = [
+        "spatial_ref_sys",
+    ]
+}
 
 [migrations_directory]
 dir = "migrations"

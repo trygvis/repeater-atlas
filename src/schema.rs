@@ -149,19 +149,6 @@ diesel::table! {
     }
 }
 
-diesel::table! {
-    spatial_ref_sys (srid) {
-        srid -> Int4,
-        #[max_length = 256]
-        auth_name -> Nullable<Varchar>,
-        auth_srid -> Nullable<Int4>,
-        #[max_length = 2048]
-        srtext -> Nullable<Varchar>,
-        #[max_length = 2048]
-        proj4text -> Nullable<Varchar>,
-    }
-}
-
 diesel::joinable!(contact -> call_sign (call_sign));
 diesel::joinable!(repeater_service -> repeater_system (repeater_id));
 diesel::joinable!(repeater_service_dmr_talkgroup -> repeater_service (service_id));
@@ -175,5 +162,4 @@ diesel::allow_tables_to_appear_in_same_query!(
     repeater_service,
     repeater_service_dmr_talkgroup,
     repeater_system,
-    spatial_ref_sys,
 );

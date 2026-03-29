@@ -10,6 +10,7 @@ args+=(-e "PGHOST")
 args+=(-e "PGDATABASE")
 args+=(-e "PGUSER")
 args+=(-e "PGPASSWORD")
+args+=(-e "PGSSLMODE")
 
 if ! test -t 0
 then
