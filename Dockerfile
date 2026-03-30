@@ -4,10 +4,10 @@ WORKDIR /app
 
 RUN apt-get update \
     && DEBIAN_FRONTEND="noninteractive" apt-get install --yes --no-install-recommends \
-        ca-certificates \
-        rustup \
         build-essential \
+        ca-certificates \
         libpq-dev \
+        rustup \
     && rm -rf /var/lib/apt/lists/*
 
 COPY rust-toolchain.toml .
@@ -31,6 +31,7 @@ COPY src src
 COPY templates templates
 
 # And build everything
+RUN just assets
 RUN cargo build --release --bins
 
 FROM debian:trixie AS runtime
@@ -38,8 +39,8 @@ FROM debian:trixie AS runtime
 RUN apt-get update \
     && DEBIAN_FRONTEND="noninteractive" apt-get install --yes --no-install-recommends \
         ca-certificates \
-        libssl3 \
         libpq5 \
+        libssl3 \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
