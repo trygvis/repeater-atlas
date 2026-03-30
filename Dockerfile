@@ -6,7 +6,9 @@ RUN apt-get update \
     && DEBIAN_FRONTEND="noninteractive" apt-get install --yes --no-install-recommends \
         build-essential \
         ca-certificates \
+        just \
         libpq-dev \
+        npm \
         rustup \
     && rm -rf /var/lib/apt/lists/*
 
@@ -29,6 +31,8 @@ RUN cargo chef cook --release --recipe-path recipe.json
 # Copy over the rest of the application
 COPY src src
 COPY templates templates
+COPY static static
+COPY package.json package-lock.json Justfile ./
 
 # And build everything
 RUN just assets
@@ -44,7 +48,9 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-COPY static static
-COPY --from=builder /app/target/release/repeater-atlas /app/bin/repeater-atlas
+COPY --from=builder /app/static static
+COPY --from=builder /app/target/release/repeater-atlas bin/repeater-atlas
+# Just to have an index over everything in the image
+RUN find
 
 ENTRYPOINT ["/app/bin/repeater-atlas"]
