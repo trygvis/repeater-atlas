@@ -12,6 +12,9 @@ pub async fn create_repeater_system(
     repeater: NewRepeaterSystem,
 ) -> Result<RepeaterSystemDao, RepeaterAtlasError> {
     let call_sign = repeater.call_sign.clone();
+
+    info!("Creating repeater system call sign {call_sign}");
+
     let new_call_sign = NewCallSign::new_repeater(call_sign.clone());
 
     dao::call_sign::insert(c, new_call_sign)
@@ -22,8 +25,6 @@ pub async fn create_repeater_system(
                 format!("call_sign kind=repeater value={call_sign}"),
             )
         })?;
-
-    info!("Creating repeater system call sign {call_sign}");
 
     let system = dao::repeater_system::insert(c, repeater)
         .await
