@@ -79,28 +79,27 @@
       font-weight: 600;
     }
 
-    .search-modal {
-      position: fixed;
-      inset: 0;
-      z-index: 20;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    #search-modal {
       padding: 24px;
-      background: rgba(11, 18, 28, 0.55);
-      backdrop-filter: blur(3px);
     }
 
-    .search-modal-content {
+    #search-modal article {
       width: min(720px, calc(100vw - 32px));
       height: calc(100vh - 48px);
       overflow: hidden;
-      border-radius: calc(3 * var(--pico-border-radius));
-      background: var(--pico-card-background-color);
-      border: 1px solid var(--pico-card-border-color);
-      box-shadow: var(--pico-card-box-shadow);
       display: flex;
       flex-direction: column;
+      padding: 0;
+    }
+
+    .search-modal-close {
+      height: 24px;
+      width: 24px;
+      padding: 0;
+      margin: 0;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      line-height: 1;
     }
 
     .search-modal-header {
@@ -199,11 +198,11 @@
     </div>
   </dl>
 </aside>
-<div class="search-modal" id="search-modal" hidden>
-  <div class="search-modal-content" role="dialog" aria-modal="true" aria-labelledby="search-modal-title">
+<dialog id="search-modal" aria-labelledby="search-modal-title">
+  <article>
     <div class="search-modal-header">
       <h2 id="search-modal-title">Search results</h2>
-      <button type="button" class="repeater-details-close" id="search-modal-close" aria-label="Close">X</button>
+      <button type="button" class="search-modal-close" id="search-modal-close" aria-label="Close">X</button>
     </div>
     <div class="search-modal-body">
       <label class="search-input-field">
@@ -213,8 +212,8 @@
       <p id="search-empty" hidden>No call signs match.</p>
       <ul class="search-results" id="search-results"></ul>
     </div>
-  </div>
-</div>
+  </article>
+</dialog>
 {% endblock %}
 
 {% block scripts %}
@@ -345,7 +344,9 @@
       }
 
       hasSearched = false;
-      searchModal.hidden = true;
+      if (searchModal.open) {
+        searchModal.close();
+      }
     }
 
     function renderSearchResults(results) {
@@ -385,7 +386,9 @@
         return;
       }
 
-      searchModal.hidden = false;
+      if (!searchModal.open) {
+        searchModal.showModal();
+      }
       if (searchInput) {
         searchInput.focus();
       }
