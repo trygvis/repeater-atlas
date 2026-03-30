@@ -10,6 +10,15 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  repeater-atlas:
+    image: repeater-atlas:latest
+    environment:
+      DATABASE_URL: postgres://repeater_atlas:repeater_atlas@postgres/repeater_atlas
+      RUST_LOG: debug
+    ports:
+      - "3001:3000"
+    restart: no
+
   agent:
     profiles:
       - agent

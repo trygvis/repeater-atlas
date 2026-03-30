@@ -9,6 +9,8 @@ use repeater_atlas::web::{
 };
 use std::env;
 use std::net::SocketAddr;
+use std::path::Path;
+use std::process::exit;
 use tower_http::services::ServeDir;
 use tracing::info;
 use tracing_subscriber::EnvFilter;
@@ -36,8 +38,15 @@ async fn main() {
 
     let state = AppState { pool, jwt_secret };
 
+    let path = "static";
+
+    if !Path::new(path).is_dir() {
+        eprintln!("Not a directory: {}", path);
+        exit(1);
+    }
+
     let app = Router::new()
-        .nest_service("/static", ServeDir::new("static"))
+        .nest_service("/static", ServeDir::new(path))
         .typed_get(map::home)
         .typed_get(repeater_list::repeaters)
         .typed_get(organization_list::organizations)

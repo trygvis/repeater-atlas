@@ -27,7 +27,8 @@ COPY --from=planner /app/recipe.json recipe.json
 RUN cargo chef cook --release --recipe-path recipe.json
 
 # Copy over the rest of the application
-COPY . .
+COPY src src
+COPY templates templates
 
 # And build everything
 RUN cargo build --release --bins
@@ -42,6 +43,7 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-COPY --from=builder /app/target/release/repeater-atlas /app/repeater-atlas
+COPY static static
+COPY --from=builder /app/target/release/repeater-atlas /app/bin/repeater-atlas
 
-ENTRYPOINT ["/app/repeater-atlas"]
+ENTRYPOINT ["/app/bin/repeater-atlas"]
