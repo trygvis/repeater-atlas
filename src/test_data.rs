@@ -747,22 +747,34 @@ pub async fn load_contacts(
         let web_url = row.get(web_url_idx);
         let email = row.get(email_idx);
 
-        let call_sign_row = dao::call_sign::insert(c, NewCallSign::new_contact(&call_sign)).await?;
+        let call_sign_row = if let Some(call_sign_row) =
+            dao::call_sign::find_by_call_sign(c, call_sign.clone()).await?
+        {
+            call_sign_row
+        } else {
+            dao::call_sign::insert(c, NewCallSign::new_contact(&call_sign)).await?
+        };
 
-        let contact = dao::contact::insert(
-            c,
-            NewContact {
-                call_sign: Some(call_sign_row.value),
-                kind: ContactKind::Organization,
-                display_name: name.unwrap_or_else(|| &call_sign).to_string(),
-                description: None,
-                web_url: web_url.cloned(),
-                email: email.cloned(),
-                phone: None,
-                address: None,
-            },
-        )
-        .await?;
+        let contact =
+            if let Some(contact) = dao::contact::find_by_call_sign(c, call_sign.clone()).await? {
+                // TODO: update the contact
+                contact
+            } else {
+                dao::contact::insert(
+                    c,
+                    NewContact {
+                        call_sign: Some(call_sign_row.value),
+                        kind: ContactKind::Organization,
+                        display_name: name.unwrap_or_else(|| &call_sign).to_string(),
+                        description: None,
+                        web_url: web_url.cloned(),
+                        email: email.cloned(),
+                        phone: None,
+                        address: None,
+                    },
+                )
+                .await?
+            };
 
         contacts.insert(call_sign, contact);
     }

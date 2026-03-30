@@ -34,7 +34,7 @@ pub enum RepeaterAtlasError {
     Io(#[from] std::io::Error),
 
     #[error("other error")]
-    Other(#[source] Box<dyn std::error::Error>, String),
+    Other(#[source] Box<dyn std::error::Error + Send + Sync>, String),
 
     #[error("other error")]
     OtherMsg(String),

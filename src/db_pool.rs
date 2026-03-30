@@ -144,7 +144,7 @@ impl ManageConnection for LoggingConnectionManager {
     }
 }
 
-async fn establish_tls(database_url: &str) -> ConnectionResult<AsyncPgConnection> {
+pub(crate) async fn establish_tls(database_url: &str) -> ConnectionResult<AsyncPgConnection> {
     let tls = tls_connector()?;
     let (client, connection) = tokio_postgres::connect(database_url, tls)
         .await
