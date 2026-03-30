@@ -58,3 +58,7 @@ db-load-data:
 db-setup:
   just db-init
   just db-load-data
+
+# Builds a Docker image of this repository into 'repeater-atlas:latest'
+docker-image:
+  docker build -t repeater-atlas:latest .
