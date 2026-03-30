@@ -15,6 +15,9 @@ function buildLeafletMap(host) {
   const style = document.createElement("style");
   style.textContent = `
     #repeater-map { height: 100%; width: 100%; }
+    .marker-cluster {
+      color: var(--pico-color)
+    }
     .ra-marker-label.leaflet-tooltip {
       border: 1px solid rgba(0, 0, 0, 0.25);
       border-radius: 6px;
