@@ -3,14 +3,13 @@
 export PGHOST=${PGHOST:-localhost}
 export PGDATABASE=${PGDATABASE:-repeater_atlas}
 export PGUSER=${PGUSER:-repeater_atlas}
-export PGPASSWORD=${PGUSER:-repeater_atlas}
+export PGPASSWORD=${PGPASSWORD:-repeater_atlas}
 
 args=(docker compose exec)
-args+=(-e "PGHOST")
-args+=(-e "PGDATABASE")
-args+=(-e "PGUSER")
-args+=(-e "PGPASSWORD")
-args+=(-e "PGSSLMODE")
+while read -r key
+do
+  args+=(-e "$key")
+done < <(env | sed -n "s,^\(PG.*\)=.*,\1,p")
 
 if ! test -t 0
 then
@@ -20,6 +19,6 @@ else
 fi
 
 args+=(postgres)
-args+=(psql "${@}")
+args+=("${0##*/}" "${@}")
 
 exec "${args[@]}"
