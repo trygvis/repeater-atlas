@@ -1,0 +1,35 @@
+#!/bin/sh
+
+v=3.12.2
+
+basedir="${0%/*}"
+self="${0##*/}"
+
+s="$(uname -s)"
+case "$s"
+in
+  Darwin) s=darwin ;;
+  Linux) s=linux ;;
+  *) echo "Unsupported system: $s" >/dev/stderr ;;
+esac
+
+m="$(uname -m)"
+case "$m"
+in
+  x86_64) m=amd64 ;;
+  arm64) ;;
+  *) echo "Unsupported machine: $m" >/dev/stderr ;;
+esac
+
+url="https://github.com/mozilla/sops/releases/download/v${v}/sops-v${v}.$s.$m"
+
+bin="$basedir/.$self/$self-$v"
+
+if [ ! -x "$bin" ]
+then
+  mkdir -p "${bin%/*}"
+  wget -O "$bin" "$url"
+  chmod +x "$bin"
+fi
+
+exec "$bin" "${@}"
