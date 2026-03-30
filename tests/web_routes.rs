@@ -9,14 +9,20 @@ use diesel::prelude::*;
 use diesel_async::RunQueryDsl;
 use http_body_util::BodyExt;
 use repeater_atlas::dao;
+use repeater_atlas::schema::app_user;
 use repeater_atlas::schema::call_sign;
-use repeater_atlas::web::{AppState, map, organization_list, repeater, repeater_list};
+use repeater_atlas::web::{AppState, auth, map, organization_list, repeater, repeater_list};
+use std::sync::LazyLock;
+use tokio::sync::Mutex;
 use tower::util::ServiceExt;
 use uuid::Uuid;
+
+static TEST_MUTEX: LazyLock<Mutex<()>> = LazyLock::new(|| Mutex::new(()));
 
 #[tokio::test]
 async fn call_sign_routes_resolve_repeater_and_contact()
 -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    let _guard = TEST_MUTEX.lock().await;
     let pool = utils::pool().await;
     let cleanup_pool = pool.clone();
     let mut c = pool.get().await?;
@@ -139,6 +145,86 @@ async fn call_sign_routes_resolve_repeater_and_contact()
         .get_result(&mut c)
         .await?;
     assert_eq!(repeater_exists, 0);
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn signup_creates_user_and_rejects_invalid_email()
+-> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    let _guard = TEST_MUTEX.lock().await;
+    let pool = utils::pool().await;
+    let cleanup_pool = pool.clone();
+    let suffix = Uuid::new_v4().simple().to_string().to_uppercase();
+    let call_sign = format!("LA{}", &suffix[..6]);
+    let email = format!("{}@example.org", suffix[..8].to_lowercase());
+
+    let state = AppState {
+        pool,
+        jwt_secret: "test-secret".to_string(),
+    };
+
+    let app = Router::new()
+        .typed_get(auth::login_form)
+        .typed_post(auth::login_submit)
+        .typed_post(auth::signup_submit)
+        .with_state(state);
+
+    let signup_response = app
+        .clone()
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/-/signup")
+                .header("content-type", "application/x-www-form-urlencoded")
+                .body(Body::from(format!(
+                    "call_sign={call_sign}&email={email}&password=password123"
+                )))?,
+        )
+        .await?;
+
+    assert_eq!(signup_response.status(), StatusCode::SEE_OTHER);
+    let set_cookie = signup_response
+        .headers()
+        .get("set-cookie")
+        .and_then(|value| value.to_str().ok())
+        .unwrap_or_default();
+    assert!(
+        set_cookie.contains("ra_auth="),
+        "expected signup to set the auth cookie"
+    );
+
+    let mut c = cleanup_pool.get().await?;
+    let created_user: i64 = app_user::table
+        .filter(app_user::call_sign.eq(&call_sign))
+        .count()
+        .get_result(&mut c)
+        .await?;
+    assert_eq!(created_user, 1);
+
+    let invalid_response = app
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/-/signup")
+                .header("content-type", "application/x-www-form-urlencoded")
+                .body(Body::from(
+                    "call_sign=LA1ABC&email=not-an-email&password=password123",
+                ))?,
+        )
+        .await?;
+
+    assert_eq!(invalid_response.status(), StatusCode::OK);
+    let invalid_body = invalid_response.into_body().collect().await?.to_bytes();
+    let invalid_html = String::from_utf8_lossy(&invalid_body);
+    assert!(
+        invalid_html.contains("Invalid email address"),
+        "expected signup validation message for invalid email"
+    );
+
+    diesel::delete(app_user::table.filter(app_user::call_sign.eq(&call_sign)))
+        .execute(&mut c)
+        .await?;
 
     Ok(())
 }

@@ -139,6 +139,13 @@
 - Create/edit repeater entries with validation.
 - Role-based access: club admins manage all club repeaters; editors can edit
   assigned entries.
+- The login page also exposes a signup flow that creates a user and immediately
+  issues the normal auth cookie on success.
+- User creation validation lives in the user service, not in the web handler, so
+  signup and any future user-creation entry points share the same call sign,
+  email, password, and duplicate-user rules.
+- The signup handler only maps those user-service results to page errors or a
+  successful login redirect.
 
 ### Club Views
 

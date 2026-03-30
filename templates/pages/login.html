@@ -5,9 +5,9 @@
 {% block content %}
 <main class="container">
   <h1>Log in</h1>
-  {% if error.is_some() %}
+  {% if login_error.is_some() %}
     <article class="pico-background-red-100">
-      <strong>{{ error.as_ref().unwrap() }}</strong>
+      <strong>{{ login_error.as_ref().unwrap() }}</strong>
     </article>
   {% endif %}
   <form method="post" action="/-/login">
@@ -17,12 +17,48 @@
       name="call_sign"
       type="text"
       autocomplete="username"
-      value="{{ call_sign }}"
+      value="{{ login_call_sign }}"
       required
     >
     <label for="password">Password</label>
     <input id="password" name="password" type="password" autocomplete="current-password" required>
     <button type="submit">Log in</button>
+  </form>
+
+  <h2>Sign up</h2>
+  {% if signup_error.is_some() %}
+    <article class="pico-background-red-100">
+      <strong>{{ signup_error.as_ref().unwrap() }}</strong>
+    </article>
+  {% endif %}
+  <form method="post" action="/-/signup">
+    <label for="signup_call_sign">Call sign</label>
+    <input
+      id="signup_call_sign"
+      name="call_sign"
+      type="text"
+      autocomplete="username"
+      value="{{ signup_call_sign }}"
+      required
+    >
+    <label for="signup_email">Email</label>
+    <input
+      id="signup_email"
+      name="email"
+      type="email"
+      autocomplete="email"
+      value="{{ signup_email }}"
+      required
+    >
+    <label for="signup_password">Password</label>
+    <input
+      id="signup_password"
+      name="password"
+      type="password"
+      autocomplete="new-password"
+      required
+    >
+    <button type="submit">Sign up</button>
   </form>
 </main>
 {% endblock %}

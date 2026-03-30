@@ -8,7 +8,6 @@ use crate::{Frequency, RepeaterAtlasError, dao};
 use crate::{MaidenheadLocator, service};
 use csv::StringRecord;
 use dao::repeater_service::{DstarMode, RepeaterServiceKind, SsbSideband, ToneKind};
-use diesel::QueryResult;
 use diesel_async::AsyncPgConnection;
 use regex::Regex;
 use serde::Serialize;
@@ -1162,8 +1161,24 @@ fn default_offset(tx_hz: Frequency) -> Option<i64> {
     }
 }
 
-pub async fn generate_users(c: &mut AsyncPgConnection) -> QueryResult<()> {
-    service::user::create_user(c, "LA8PV", "la8pv@example.org", "la8pv").await?;
+pub async fn generate_users(c: &mut AsyncPgConnection) -> Result<(), RepeaterAtlasError> {
+    service::user::create_user(c, "LA8PV", "la8pv@example.org", "la8pv123")
+        .await
+        .map(|result| match result {
+            service::user::CreateUserResult::Ok(_) => Ok(()),
+            service::user::CreateUserResult::InvalidCallSign => Err(RepeaterAtlasError::OtherMsg(
+                "Invalid call sign".to_string(),
+            )),
+            service::user::CreateUserResult::InvalidEmail => Err(RepeaterAtlasError::OtherMsg(
+                "Invalid email address".to_string(),
+            )),
+            service::user::CreateUserResult::InvalidPassword => Err(RepeaterAtlasError::OtherMsg(
+                "Password must be at least 8 characters".to_string(),
+            )),
+            service::user::CreateUserResult::DuplicateUser => Err(RepeaterAtlasError::OtherMsg(
+                "A user with that call sign or email already exists".to_string(),
+            )),
+        })??;
     Ok(())
 }
 

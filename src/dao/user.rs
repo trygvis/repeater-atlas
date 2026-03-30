@@ -9,7 +9,7 @@ pub struct NewUser {
     pub password_hash: String,
 }
 
-#[derive(Queryable, Selectable)]
+#[derive(Debug, Queryable, Selectable)]
 #[diesel(table_name = crate::schema::app_user)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct User {

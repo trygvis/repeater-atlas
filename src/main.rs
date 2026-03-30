@@ -54,6 +54,7 @@ async fn main() {
         .typed_get(search::call_sign_search)
         .typed_get(auth::login_form)
         .typed_post(auth::login_submit)
+        .typed_post(auth::signup_submit)
         .typed_get(auth::logout)
         .typed_get(my_page::my_page)
         .typed_get(export::chirp_export)

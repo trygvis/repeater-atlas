@@ -24,6 +24,11 @@ imply they are implemented in the codebase.
 - **JWT claims**: `sub = call_sign`, `iat`, `exp` (7 days).
 - **Authorization**: roles (if/when added) are looked up on each request.
 - **Logout**: expire cookie client-side; no server-side revocation list.
+- **Signup flow**: the login page can create a user and then issue the normal
+  auth cookie immediately on success.
+- **Validation split**: web handlers should render user-facing error messages,
+  while user creation rules stay in the user service so every entry point uses
+  the same validation and duplicate-user handling.
 
 ## Candidate Frameworks (Axum/Tower)
 

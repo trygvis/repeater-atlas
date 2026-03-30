@@ -5,17 +5,41 @@ use argon2::password_hash::SaltString;
 use argon2::password_hash::rand_core::OsRng;
 use argon2::{Argon2, PasswordHasher};
 use diesel::QueryResult;
-use diesel::result::Error;
+use diesel::result::{DatabaseErrorKind, Error};
 use diesel_async::AsyncPgConnection;
+use regex::Regex;
+use std::sync::LazyLock;
 use tracing::info;
+
+#[derive(Debug)]
+pub enum CreateUserResult {
+    Ok(User),
+    InvalidCallSign,
+    InvalidEmail,
+    InvalidPassword,
+    DuplicateUser,
+}
 
 pub async fn create_user(
     c: &mut AsyncPgConnection,
     call_sign: &str,
     email: &str,
     password: &str,
-) -> QueryResult<User> {
+) -> QueryResult<CreateUserResult> {
     let call_sign = auth::normalize_call_sign(call_sign);
+    let email = email.trim().to_lowercase();
+
+    if !is_valid_call_sign(&call_sign) {
+        return Ok(CreateUserResult::InvalidCallSign);
+    }
+
+    if !is_valid_email(&email) {
+        return Ok(CreateUserResult::InvalidEmail);
+    }
+
+    if !is_valid_password(password) {
+        return Ok(CreateUserResult::InvalidPassword);
+    }
 
     info!("Creating user: {call_sign}");
 
@@ -30,13 +54,41 @@ pub async fn create_user(
         })?
         .to_string();
 
-    dao::user::insert(
+    match dao::user::insert(
         c,
         NewUser {
             call_sign,
-            email: email.to_string(),
+            email,
             password_hash: hash,
         },
     )
     .await
+    {
+        Ok(user) => Ok(CreateUserResult::Ok(user)),
+        Err(Error::DatabaseError(DatabaseErrorKind::UniqueViolation, _)) => {
+            Ok(CreateUserResult::DuplicateUser)
+        }
+        Err(error) => Err(error),
+    }
+}
+
+fn is_valid_call_sign(call_sign: &str) -> bool {
+    static CALL_SIGN_RE: LazyLock<Regex> =
+        LazyLock::new(|| Regex::new(r"^[A-Z0-9]+(?:/[A-Z0-9]+)*$").expect("valid regex"));
+
+    (3..=10).contains(&call_sign.len())
+        && call_sign.chars().any(|c| c.is_ascii_alphabetic())
+        && call_sign.chars().any(|c| c.is_ascii_digit())
+        && CALL_SIGN_RE.is_match(call_sign)
+}
+
+fn is_valid_email(email: &str) -> bool {
+    static EMAIL_RE: LazyLock<Regex> =
+        LazyLock::new(|| Regex::new(r"^[^\s@]+@[^\s@]+\.[^\s@]+$").expect("valid regex"));
+
+    EMAIL_RE.is_match(email)
+}
+
+fn is_valid_password(password: &str) -> bool {
+    password.len() >= 8
 }
