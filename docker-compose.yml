@@ -10,6 +10,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  # This is normally not used, just for debugging the docker image built locally
   repeater-atlas:
     image: repeater-atlas:latest
     environment:
@@ -17,6 +18,16 @@ services:
       RUST_LOG: debug
     ports:
       - "3001:3000"
+    restart: no
+
+  # This is normally not used, just for debugging the docker image built by GitHub
+  repeater-atlas-gh:
+    image: ghcr.io/trygvis/repeater-atlas:main
+    environment:
+      DATABASE_URL: postgres://repeater_atlas:repeater_atlas@postgres/repeater_atlas
+      RUST_LOG: debug
+    ports:
+      - "3002:3000"
     restart: no
 
   agent:
