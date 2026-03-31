@@ -21,7 +21,7 @@
     .hero-overlay {
       right: 24px;
       top: 24px;
-      width: min(160px, calc(100vw - 32px));
+      width: min(240px, calc(100vw - 32px));
     }
 
     .hero-overlay h2 {
@@ -77,6 +77,11 @@
       gap: 6px;
       margin-top: 12px;
       font-weight: 600;
+    }
+
+    .map-link-disabled {
+      pointer-events: none;
+      opacity: 0.5;
     }
 
     #search-modal {
@@ -172,6 +177,7 @@
     <a href="/-/login">Log in</a>
     {% endif %}
   </p>
+  <a href="#" id="my-position-go">My position</a>
   <a href="#" class="search-trigger" id="search-open">Search call signs</a>
 </aside>
 <aside class="map-overlay repeater-details" id="repeater-details" hidden>
@@ -233,10 +239,48 @@
     const searchEmpty = document.getElementById("search-empty");
     const searchModalClose = document.getElementById("search-modal-close");
     const searchOpen = document.getElementById("search-open");
+    const myPositionGo = document.getElementById("my-position-go");
+    const myPositionStorageKey = "repeater-atlas.my-position";
 
     let searchTimer = null;
     let searchAbort = null;
     let hasSearched = false;
+    // Skip persisting map moves until the initial page positioning is finished.
+    let canPersistMyPosition = false;
+
+    function readMyPosition() {
+      try {
+        const raw = window.localStorage.getItem(myPositionStorageKey);
+        if (!raw) {
+          return null;
+        }
+
+        const parsed = JSON.parse(raw);
+        const latitude = Number(parsed.latitude);
+        const longitude = Number(parsed.longitude);
+        const zoom = Number(parsed.zoom);
+
+        if (!Number.isFinite(latitude) || !Number.isFinite(longitude) || !Number.isFinite(zoom)) {
+          return null;
+        }
+
+        return {latitude, longitude, zoom};
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function writeMyPosition(position) {
+      try {
+        window.localStorage.setItem(myPositionStorageKey, JSON.stringify(position));
+      } catch (error) {
+        // Ignore storage failures.
+      }
+    }
+
+    function focusMyPosition(position) {
+      map.setView([position.latitude, position.longitude], position.zoom);
+    }
 
     function clearRepeaterDetails() {
       if (!repeaterDetails) {
@@ -456,7 +500,32 @@
       });
     }
 
-    if (data.length === 0) {
+    if (myPositionGo) {
+      myPositionGo.addEventListener("click", (event) => {
+        event.preventDefault();
+
+        if (!navigator.geolocation) {
+          return;
+        }
+
+        navigator.geolocation.getCurrentPosition((position) => {
+          const viewport = {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            zoom: 11,
+          };
+
+          writeMyPosition(viewport);
+          focusMyPosition(viewport);
+        }, () => {});
+      });
+    }
+
+    const savedMyPosition = readMyPosition();
+
+    if (savedMyPosition) {
+      focusMyPosition(savedMyPosition);
+    } else if (data.length === 0) {
       map.setView([64.4, 11.7], 4);
     } else {
       const clusterGroup = L.markerClusterGroup({
@@ -475,6 +544,20 @@
       map.fitBounds(bounds, {padding: [20, 20]});
     }
 
+    map.on("moveend", () => {
+      if (!canPersistMyPosition) {
+        return;
+      }
+
+      const center = map.getCenter();
+      writeMyPosition({
+        latitude: center.lat,
+        longitude: center.lng,
+        zoom: map.getZoom(),
+      });
+    });
+
+    canPersistMyPosition = true;
     map.invalidateSize();
 </script>
 {% endblock %}
