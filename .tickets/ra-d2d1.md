@@ -1,6 +1,6 @@
 ---
 id: ra-d2d1
-status: open
+status: closed
 deps: []
 links: []
 created: 2026-03-31T07:36:36Z
@@ -56,3 +56,15 @@ The close button dismisses the details but does not close the side pane itself.
 - [ ] Close button on the detail section clears it to empty state without
       closing the pane
 - [ ] docs/pages/map.md is updated
+
+## Notes
+
+**2026-03-31T08:32:47Z**
+
+Implemented: replaced hero overlay and repeater details overlay with a single
+side pane (#map-side-pane). Toggle button (#pane-toggle) lives inside the pane
+at top-right when open (X), and collapses to a hamburger edge tab when closed.
+Pane is open by default. On mobile (<=600px) pane goes full-screen. Repeater
+details section inside the pane shows empty prompt, populates on marker click,
+replaces in place on subsequent clicks. Clicking a marker auto-opens the pane.
+docs/pages/map.md updated.

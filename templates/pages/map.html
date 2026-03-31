@@ -7,76 +7,108 @@
       inset: 0;
     }
 
-    .map-overlay {
+    /* Side pane */
+    #map-side-pane {
       position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 300px;
       z-index: 10;
-      padding: 16px;
-      border-radius: calc(3 * var(--pico-border-radius));
       background: var(--pico-card-background-color);
-      border: 1px solid var(--pico-card-border-color);
+      border-left: 1px solid var(--pico-card-border-color);
       box-shadow: var(--pico-card-box-shadow);
-      backdrop-filter: blur(6px);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      transition: transform 0.2s ease;
     }
 
-    .hero-overlay {
-      right: 24px;
-      top: 24px;
-      width: min(240px, calc(100vw - 32px));
+    #map-side-pane.pane-closed {
+      transform: translateX(100%);
     }
 
-    .hero-overlay h2 {
-      margin-bottom: 8px;
+    @media (max-width: 600px) {
+      #map-side-pane {
+        width: 100%;
+        border-left: none;
+      }
     }
 
-    .hero-overlay p {
+    .pane-nav {
+      padding: 16px;
+      border-bottom: 1px solid var(--pico-card-border-color);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .pane-nav p {
       margin: 0;
     }
 
-    .repeater-details {
+    .pane-nav a {
+      display: block;
+    }
+
+    /* Toggle button — edge tab when closed, top-right corner when open */
+    #pane-toggle {
       position: fixed;
-      right: 24px;
-      bottom: 24px;
-      width: min(320px, calc(100vw - 32px));
-    }
-
-    .repeater-details-header {
+      top: 50%;
+      right: 0;
+      transform: translateY(-50%);
+      z-index: 11;
+      width: 24px;
+      height: 48px;
+      padding: 0;
+      border-radius: var(--pico-border-radius) 0 0 var(--pico-border-radius);
+      border: 1px solid var(--pico-card-border-color);
+      border-right: none;
+      box-shadow: var(--pico-card-box-shadow);
+      font-size: 0.75rem;
+      line-height: 1;
+      cursor: pointer;
       display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 12px;
-      padding-right: 28px;
+      align-items: center;
+      justify-content: center;
+      transition: top 0.2s ease, right 0.2s ease, transform 0.2s ease,
+        width 0.2s ease, height 0.2s ease, border-radius 0.2s ease;
+      --pico-background-color: var(--pico-card-background-color);
+      --pico-color: var(--pico-contrast);
     }
 
-    .repeater-details-close {
-      position: absolute;
+    #pane-toggle.pane-open {
       top: 12px;
       right: 12px;
-      height: 24px;
+      transform: none;
       width: 24px;
-      padding: 0;
+      height: 24px;
       border-radius: 999px;
-      font-size: 0.8rem;
-      line-height: 1;
+      border: 1px solid var(--pico-card-border-color);
+      --pico-background-color: var(--pico-card-background-color);
+      --pico-color: var(--pico-contrast);
     }
 
-    .repeater-details h2 {
+    /* Repeater details */
+    .pane-repeater-details {
+      padding: 16px;
+      flex: 1;
+    }
+
+    .pane-repeater-details h2 {
+      margin-bottom: 12px;
+      font-size: 1rem;
+    }
+
+    .pane-details-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       margin-bottom: 12px;
     }
 
-    .repeater-details-header h2 {
+    .pane-details-header h2 {
       margin: 0;
-    }
-
-    .repeater-details a {
-      display: inline-block;
-    }
-
-    .search-trigger {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      margin-top: 12px;
-      font-weight: 600;
     }
 
     .map-link-disabled {
@@ -167,43 +199,47 @@
 
 {% block content %}
 <div id="repeater-map-host"></div>
-<aside class="map-overlay hero-overlay" id="hero-overlay">
-  <p>
+
+<button type="button" id="pane-toggle" class="pane-open" aria-label="Toggle side pane" aria-expanded="true">X</button>
+
+<aside id="map-side-pane" aria-label="Map controls">
+  <nav class="pane-nav">
     {% if auth.logged_in %}
-    {{ auth.call_sign }}<br>
-    <a href="/-/my">My page</a><br>
+    <p>{{ auth.call_sign }}</p>
+    <a href="/-/my">My page</a>
     <a href="/-/logout">Log out</a>
     {% else %}
     <a href="/-/login">Log in</a>
     {% endif %}
-  </p>
-  <a href="#" id="my-position-go">My position</a>
-  <a href="#" class="search-trigger" id="search-open">Search call signs</a>
+    <a href="#" id="my-position-go">My position</a>
+    <a href="#" id="search-open">Search call signs</a>
+  </nav>
+
+  <section class="pane-repeater-details">
+    <div class="pane-details-header">
+      <h2>Repeater</h2>
+    </div>
+    <p id="repeater-details-empty">Select a repeater on the map.</p>
+    <dl class="kv-list" id="repeater-details-fields" hidden>
+      <div>
+        <dt>Call sign</dt>
+        <dd>
+          <span data-field="call-sign">-</span>
+          <a data-field="details-link" href="#">Open</a>
+        </dd>
+      </div>
+      <div>
+        <dt>Status</dt>
+        <dd data-field="status">-</dd>
+      </div>
+      <div>
+        <dt>Services</dt>
+        <dd data-field="services">-</dd>
+      </div>
+    </dl>
+  </section>
 </aside>
-<aside class="map-overlay repeater-details" id="repeater-details" hidden>
-  <div class="repeater-details-header">
-    <h2>Repeater</h2>
-    <button type="button" class="repeater-details-close" id="repeater-details-close" aria-label="Close" hidden>X</button>
-  </div>
-  <p id="repeater-details-empty">Select a repeater.</p>
-  <dl class="kv-list" id="repeater-details-fields" hidden>
-    <div>
-      <dt>Call sign</dt>
-      <dd>
-        <span data-field="call-sign">-</span>
-        <a data-field="details-link" href="#">Open</a>
-      </dd>
-    </div>
-    <div>
-      <dt>Status</dt>
-      <dd data-field="status">-</dd>
-    </div>
-    <div>
-      <dt>Services</dt>
-      <dd data-field="services">-</dd>
-    </div>
-  </dl>
-</aside>
+
 <dialog id="search-modal" aria-labelledby="search-modal-title">
   <article>
     <div class="search-modal-header">
@@ -229,8 +265,8 @@
   </script>
   <script>
     const map = buildLeafletMap(document.getElementById("repeater-map-host"));
-    const repeaterDetails = document.getElementById("repeater-details");
-    const repeaterDetailsClose = document.getElementById("repeater-details-close");
+    const sidePane = document.getElementById("map-side-pane");
+    const paneToggle = document.getElementById("pane-toggle");
     const repeaterDetailsEmpty = document.getElementById("repeater-details-empty");
     const repeaterDetailsFields = document.getElementById("repeater-details-fields");
     const searchInput = document.getElementById("call-sign-search");
@@ -248,119 +284,70 @@
     // Skip persisting map moves until the initial page positioning is finished.
     let canPersistMyPosition = false;
 
-    function readMyPosition() {
-      try {
-        const raw = window.localStorage.getItem(myPositionStorageKey);
-        if (!raw) {
-          return null;
-        }
+    // --- Side pane toggle ---
 
-        const parsed = JSON.parse(raw);
-        const latitude = Number(parsed.latitude);
-        const longitude = Number(parsed.longitude);
-        const zoom = Number(parsed.zoom);
+    function openPane() {
+      sidePane.classList.remove("pane-closed");
+      paneToggle.classList.add("pane-open");
+      paneToggle.setAttribute("aria-expanded", "true");
+      paneToggle.textContent = "X";
+      map.invalidateSize();
+    }
 
-        if (!Number.isFinite(latitude) || !Number.isFinite(longitude) || !Number.isFinite(zoom)) {
-          return null;
-        }
+    function closePane() {
+      sidePane.classList.add("pane-closed");
+      paneToggle.classList.remove("pane-open");
+      paneToggle.setAttribute("aria-expanded", "false");
+      paneToggle.textContent = "\u2630";
+      map.invalidateSize();
+    }
 
-        return {latitude, longitude, zoom};
-      } catch (error) {
-        return null;
+    paneToggle.addEventListener("click", () => {
+      if (sidePane.classList.contains("pane-closed")) {
+        openPane();
+      } else {
+        closePane();
       }
-    }
+    });
 
-    function writeMyPosition(position) {
-      try {
-        window.localStorage.setItem(myPositionStorageKey, JSON.stringify(position));
-      } catch (error) {
-        // Ignore storage failures.
-      }
-    }
-
-    function focusMyPosition(position) {
-      map.setView([position.latitude, position.longitude], position.zoom);
-    }
+    // --- Repeater details ---
 
     function clearRepeaterDetails() {
-      if (!repeaterDetails) {
-        return;
-      }
+      const callSign = sidePane.querySelector('[data-field="call-sign"]');
+      const detailsLink = sidePane.querySelector('[data-field="details-link"]');
+      const status = sidePane.querySelector('[data-field="status"]');
+      const services = sidePane.querySelector('[data-field="services"]');
 
-      repeaterDetails.hidden = true;
+      if (callSign) callSign.textContent = "-";
+      if (detailsLink) detailsLink.href = "#";
+      if (status) status.textContent = "-";
+      if (services) services.textContent = "-";
 
-      const callSign = repeaterDetails.querySelector('[data-field="call-sign"]');
-      const detailsLink = repeaterDetails.querySelector('[data-field="details-link"]');
-      const status = repeaterDetails.querySelector('[data-field="status"]');
-      const services = repeaterDetails.querySelector('[data-field="services"]');
-
-      if (callSign) {
-        callSign.textContent = "-";
-      }
-      if (detailsLink) {
-        detailsLink.href = "#";
-      }
-      if (status) {
-        status.textContent = "Select a repeater";
-      }
-      if (services) {
-        services.textContent = "-";
-      }
-
-      if (repeaterDetailsFields) {
-        repeaterDetailsFields.hidden = true;
-      }
-      if (repeaterDetailsEmpty) {
-        repeaterDetailsEmpty.hidden = false;
-      }
-      if (repeaterDetailsClose) {
-        repeaterDetailsClose.hidden = true;
-      }
+      if (repeaterDetailsFields) repeaterDetailsFields.hidden = true;
+      if (repeaterDetailsEmpty) repeaterDetailsEmpty.hidden = false;
     }
 
     function updateRepeaterDetails(item) {
-      if (!repeaterDetails) {
-        return;
-      }
+      const callSign = sidePane.querySelector('[data-field="call-sign"]');
+      const detailsLink = sidePane.querySelector('[data-field="details-link"]');
+      const status = sidePane.querySelector('[data-field="status"]');
+      const services = sidePane.querySelector('[data-field="services"]');
 
-      repeaterDetails.hidden = false;
-
-      const callSign = repeaterDetails.querySelector('[data-field="call-sign"]');
-      const detailsLink = repeaterDetails.querySelector('[data-field="details-link"]');
-      const status = repeaterDetails.querySelector('[data-field="status"]');
-      const services = repeaterDetails.querySelector('[data-field="services"]');
-
-      if (callSign) {
-        callSign.textContent = item.call_sign;
-      }
-      if (detailsLink) {
-        detailsLink.href = `/${encodeURIComponent(item.call_sign)}`;
-      }
-      if (status) {
-        status.textContent = item.status || "-";
-      }
+      if (callSign) callSign.textContent = item.call_sign;
+      if (detailsLink) detailsLink.href = `/${encodeURIComponent(item.call_sign)}`;
+      if (status) status.textContent = item.status || "-";
       if (services) {
-        if (Array.isArray(item.services) && item.services.length > 0) {
-          services.textContent = item.services.join(", ");
-        } else {
-          services.textContent = "No services";
-        }
+        services.textContent = (Array.isArray(item.services) && item.services.length > 0)
+          ? item.services.join(", ")
+          : "No services";
       }
 
-      if (repeaterDetailsFields) {
-        repeaterDetailsFields.hidden = false;
-      }
-      if (repeaterDetailsEmpty) {
-        repeaterDetailsEmpty.hidden = true;
-      }
-      if (repeaterDetailsClose) {
-        repeaterDetailsClose.hidden = false;
-      }
+      if (repeaterDetailsFields) repeaterDetailsFields.hidden = false;
+      if (repeaterDetailsEmpty) repeaterDetailsEmpty.hidden = true;
+
+      openPane();
     }
 
-    if (repeaterDetailsClose) {
-      repeaterDetailsClose.addEventListener("click", clearRepeaterDetails);
-    }
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape") {
         clearRepeaterDetails();
@@ -370,33 +357,19 @@
 
     clearRepeaterDetails();
 
+    // --- Search modal ---
+
     function closeSearchModal() {
-      if (!searchModal) {
-        return;
-      }
-
-      if (searchInput) {
-        searchInput.value = "";
-      }
-
-      if (searchResults) {
-        searchResults.innerHTML = "";
-      }
-
-      if (searchEmpty) {
-        searchEmpty.hidden = true;
-      }
-
+      if (!searchModal) return;
+      if (searchInput) searchInput.value = "";
+      if (searchResults) searchResults.innerHTML = "";
+      if (searchEmpty) searchEmpty.hidden = true;
       hasSearched = false;
-      if (searchModal.open) {
-        searchModal.close();
-      }
+      if (searchModal.open) searchModal.close();
     }
 
     function renderSearchResults(results) {
-      if (!searchResults || !searchEmpty) {
-        return;
-      }
+      if (!searchResults || !searchEmpty) return;
 
       searchResults.innerHTML = "";
 
@@ -426,22 +399,13 @@
     }
 
     function openSearchModal() {
-      if (!searchModal) {
-        return;
-      }
-
-      if (!searchModal.open) {
-        searchModal.showModal();
-      }
-      if (searchInput) {
-        searchInput.focus();
-      }
+      if (!searchModal) return;
+      if (!searchModal.open) searchModal.showModal();
+      if (searchInput) searchInput.focus();
     }
 
     async function runSearch(query) {
-      if (!searchInput || !searchModal) {
-        return;
-      }
+      if (!searchInput || !searchModal) return;
 
       if (!query) {
         hasSearched = false;
@@ -449,10 +413,7 @@
         return;
       }
 
-      if (searchAbort) {
-        searchAbort.abort();
-      }
-
+      if (searchAbort) searchAbort.abort();
       searchAbort = new AbortController();
       openSearchModal();
       hasSearched = true;
@@ -468,29 +429,19 @@
         const payload = await response.json();
         renderSearchResults(payload.results || []);
       } catch (error) {
-        if (error.name !== "AbortError") {
-          renderSearchResults([]);
-        }
+        if (error.name !== "AbortError") renderSearchResults([]);
       }
     }
 
     if (searchInput) {
       searchInput.addEventListener("input", (event) => {
         const query = event.target.value.trim();
-
-        if (searchTimer) {
-          window.clearTimeout(searchTimer);
-        }
-
-        searchTimer = window.setTimeout(() => {
-          runSearch(query);
-        }, 250);
+        if (searchTimer) window.clearTimeout(searchTimer);
+        searchTimer = window.setTimeout(() => runSearch(query), 250);
       });
     }
 
-    if (searchModalClose) {
-      searchModalClose.addEventListener("click", closeSearchModal);
-    }
+    if (searchModalClose) searchModalClose.addEventListener("click", closeSearchModal);
 
     if (searchOpen) {
       searchOpen.addEventListener("click", (event) => {
@@ -500,13 +451,44 @@
       });
     }
 
+    // --- My position ---
+
+    function readMyPosition() {
+      try {
+        const raw = window.localStorage.getItem(myPositionStorageKey);
+        if (!raw) return null;
+
+        const parsed = JSON.parse(raw);
+        const latitude = Number(parsed.latitude);
+        const longitude = Number(parsed.longitude);
+        const zoom = Number(parsed.zoom);
+
+        if (!Number.isFinite(latitude) || !Number.isFinite(longitude) || !Number.isFinite(zoom)) {
+          return null;
+        }
+
+        return {latitude, longitude, zoom};
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function writeMyPosition(position) {
+      try {
+        window.localStorage.setItem(myPositionStorageKey, JSON.stringify(position));
+      } catch (error) {
+        // Ignore storage failures.
+      }
+    }
+
+    function focusMyPosition(position) {
+      map.setView([position.latitude, position.longitude], position.zoom);
+    }
+
     if (myPositionGo) {
       myPositionGo.addEventListener("click", (event) => {
         event.preventDefault();
-
-        if (!navigator.geolocation) {
-          return;
-        }
+        if (!navigator.geolocation) return;
 
         navigator.geolocation.getCurrentPosition((position) => {
           const viewport = {
@@ -514,12 +496,13 @@
             longitude: position.coords.longitude,
             zoom: 11,
           };
-
           writeMyPosition(viewport);
           focusMyPosition(viewport);
         }, () => {});
       });
     }
+
+    // --- Map initialisation ---
 
     const savedMyPosition = readMyPosition();
 
@@ -544,10 +527,7 @@
     }
 
     map.on("moveend", () => {
-      if (!canPersistMyPosition) {
-        return;
-      }
-
+      if (!canPersistMyPosition) return;
       const center = map.getCenter();
       writeMyPosition({
         latitude: center.lat,
