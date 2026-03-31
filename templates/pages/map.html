@@ -523,24 +523,23 @@
 
     const savedMyPosition = readMyPosition();
 
+    const clusterGroup = L.markerClusterGroup({
+      showCoverageOnHover: false,
+      maxClusterRadius: 10,
+    });
+    const bounds = [];
+    data.forEach((item) => {
+      const marker = L.marker([item.point.latitude, item.point.longitude]);
+      addCallSignLabel(marker, item.call_sign);
+      marker.on("click", () => updateRepeaterDetails(item));
+      bounds.push([item.point.latitude, item.point.longitude]);
+      clusterGroup.addLayer(marker);
+    });
+    clusterGroup.addTo(map);
+
     if (savedMyPosition) {
       focusMyPosition(savedMyPosition);
-    } else if (data.length === 0) {
-      map.setView([64.4, 11.7], 4);
     } else {
-      const clusterGroup = L.markerClusterGroup({
-        showCoverageOnHover: false,
-        maxClusterRadius: 10,
-      });
-      const bounds = [];
-      data.forEach((item) => {
-        const marker = L.marker([item.point.latitude, item.point.longitude]);
-        addCallSignLabel(marker, item.call_sign);
-        marker.on("click", () => updateRepeaterDetails(item));
-        bounds.push([item.point.latitude, item.point.longitude]);
-        clusterGroup.addLayer(marker);
-      });
-      clusterGroup.addTo(map);
       map.fitBounds(bounds, {padding: [20, 20]});
     }
 
