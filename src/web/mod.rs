@@ -1,5 +1,7 @@
 use crate::db_pool::AppPool;
 use askama::Template;
+use axum::Router;
+use axum_extra::routing::RouterExt;
 
 pub mod auth;
 pub mod export;
@@ -65,4 +67,20 @@ pub fn render_404() -> String {
     }
     .render()
     .unwrap_or_else(|_| "<h1>Not Found</h1>".to_string())
+}
+
+pub fn create_router(state: AppState) -> Router {
+    Router::new()
+        .typed_get(map::home)
+        .typed_get(repeater_list::repeaters)
+        .typed_get(organization_list::organizations)
+        .typed_get(repeater::call_sign)
+        .typed_get(search::call_sign_search)
+        .typed_get(auth::login_form)
+        .typed_post(auth::login_submit)
+        .typed_post(auth::signup_submit)
+        .typed_get(auth::logout)
+        .typed_get(my_page::my_page)
+        .typed_get(export::chirp_export)
+        .with_state(state)
 }

@@ -1,12 +1,8 @@
 use axum::Router;
-use axum_extra::routing::RouterExt;
 use repeater_atlas::RepeaterAtlasError;
 use repeater_atlas::dao;
 use repeater_atlas::db_pool::AppPool;
-use repeater_atlas::web::AppState;
-use repeater_atlas::web::{
-    auth, export, map, my_page, organization_list, repeater, repeater_list, search,
-};
+use repeater_atlas::web::{AppState, create_router};
 use std::env;
 use std::net::SocketAddr;
 use std::path::Path;
@@ -47,18 +43,7 @@ async fn main() {
 
     let app = Router::new()
         .nest_service("/static", ServeDir::new(path))
-        .typed_get(map::home)
-        .typed_get(repeater_list::repeaters)
-        .typed_get(organization_list::organizations)
-        .typed_get(repeater::call_sign)
-        .typed_get(search::call_sign_search)
-        .typed_get(auth::login_form)
-        .typed_post(auth::login_submit)
-        .typed_post(auth::signup_submit)
-        .typed_get(auth::logout)
-        .typed_get(my_page::my_page)
-        .typed_get(export::chirp_export)
-        .with_state(state);
+        .merge(create_router(state));
 
     let addr: SocketAddr = std::env::var("BIND_ADDR")
         .unwrap_or_else(|_| "0.0.0.0:3000".to_string())

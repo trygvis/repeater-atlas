@@ -1,9 +1,7 @@
 mod utils;
 
-use axum::Router;
 use axum::body::Body;
 use axum::http::{Request, StatusCode};
-use axum_extra::routing::RouterExt;
 use dao::call_sign::NewCallSign;
 use diesel::prelude::*;
 use diesel_async::RunQueryDsl;
@@ -11,7 +9,7 @@ use http_body_util::BodyExt;
 use repeater_atlas::dao;
 use repeater_atlas::schema::app_user;
 use repeater_atlas::schema::call_sign;
-use repeater_atlas::web::{AppState, auth, map, organization_list, repeater, repeater_list};
+use repeater_atlas::web::{AppState, create_router};
 use std::sync::LazyLock;
 use tokio::sync::Mutex;
 use tower::util::ServiceExt;
@@ -67,12 +65,7 @@ async fn call_sign_routes_resolve_repeater_and_contact()
         jwt_secret: "test-secret".to_string(),
     };
 
-    let app = Router::new()
-        .typed_get(map::home)
-        .typed_get(repeater_list::repeaters)
-        .typed_get(organization_list::organizations)
-        .typed_get(repeater::call_sign)
-        .with_state(state);
+    let app = create_router(state);
 
     let repeater_response = app
         .clone()
@@ -164,11 +157,7 @@ async fn signup_creates_user_and_rejects_invalid_email()
         jwt_secret: "test-secret".to_string(),
     };
 
-    let app = Router::new()
-        .typed_get(auth::login_form)
-        .typed_post(auth::login_submit)
-        .typed_post(auth::signup_submit)
-        .with_state(state);
+    let app = create_router(state);
 
     let signup_response = app
         .clone()
