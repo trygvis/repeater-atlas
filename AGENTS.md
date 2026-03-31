@@ -69,6 +69,8 @@ These must be read before doing any work.
 - `docs/DESIGN.md`
 - `docs/IMPLEMENTATION.md`
 - `docs/TESTING.md`
+- `docs/pages/README.md` — index of page-level specs; read the relevant page
+  spec(s) before working on any page.
 
 ## CLI tools and commands
 

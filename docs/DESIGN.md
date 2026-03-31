@@ -78,6 +78,11 @@ Describe the components and their interactions. Initial strawman:
   concepts.
 - `docs/DESIGN_SEARCH.md`: Call sign search UX, constraints, and result model.
 
+## Page-level specs
+
+Detailed layout, data sources, and behavior for individual pages live under
+`docs/pages/`. See `docs/pages/README.md` for the index.
+
 ## Interfaces
 
 - External APIs: Not in MVP; consider public read endpoints later.
