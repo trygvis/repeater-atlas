@@ -20,46 +20,52 @@
 ## Layout
 
 - Full-screen Leaflet map.
-- A toggle button anchored to the right edge of the screen opens/closes the side
-  pane.
-- Side pane on the right containing nav/auth and repeater details.
+- Narrow right icon bar always visible on the right edge.
+- Collapsible left pane to the left of the icon bar.
 - Large modal for search results.
 
 ## Page sections
 
-- Map:
-  - Marker cluster for repeaters with coordinates.
-  - Marker labels show call sign.
-- Side pane (`#map-side-pane`):
+- Map: marker cluster for repeaters with coordinates; marker labels show call
+  sign.
+- Right icon bar (`#map-right-bar`): fixed 60 px strip on the right edge.
+  Contains icon buttons only. Currently holds the pane toggle button.
+- Left pane (`#map-left-pane`): pico `article` element. Contains:
+  - Header with the site name.
   - Nav section: login state, "My position" action, search link.
   - Repeater details section (see below).
-- Toggle button (`#pane-toggle`): opens and closes the side pane. Moves left by
-  the pane width when the pane is open so it stays visible.
-- Search results modal:
-  - Call sign search field and results list.
-  - List of call sign matches (repeaters and organizations).
-  - Each result links to `/{call_sign}`.
+- Search results modal: call sign search field and results list; each result
+  links to `/{call_sign}`.
 
-## Side pane
+## Right icon bar
 
-On desktop the pane is 300 px wide and slides in from the right edge. On mobile
-(≤ 600 px) it is full-screen. The pane starts closed on page load.
+Always visible. Uses `background: var(--pico-card-background-color)` and a left
+border. Buttons use the `.icon-button` utility class (zeroes pico form spacing)
+with `class="outline secondary"` for coloring.
 
-The toggle button shows `❯` when closed and `❮` when open.
+Icons are rendered via Lucide. Only the icons in use are imported from
+`/static/vendor/lucide/icons/` — not the full icon set.
+
+## Left pane
+
+On desktop the pane is 300 px wide. On mobile (≤ 576 px, matching pico's `sm`
+breakpoint) it spans the full width minus the 60 px icon bar. Toggled via
+`display: none` — no animation. Starts open on page load.
+
+The toggle button shows a `chevron-right` icon (Lucide) when the pane is open
+and `chevron-left` when closed.
 
 ## Repeater details section
 
-Lives inside the side pane below the nav. Three states:
+Lives inside the left pane below the nav. Three states:
 
-- **Empty:** "Select a repeater on the map." prompt; no close button.
+- **Empty:** "Select a repeater on the map." prompt.
 - **Populated:** Call sign (linked to detail page), status, and service summary.
-  A close button is shown.
-- **Replaced:** Clicking a new marker while details are shown replaces the
-  content in place with no intermediate empty state.
+- **Replaced:** Clicking a new marker replaces the content in place with no
+  intermediate empty state.
 
-Closing the details section (close button or Escape) returns to empty state
-without closing the pane. Clicking a marker also opens the pane if it is
-currently closed.
+Escape clears the details back to empty state. Clicking a marker also opens the
+pane if it is currently closed.
 
 ## Behavior
 
