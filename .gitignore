@@ -11,6 +11,7 @@
 .env.*
 
 static/vendor
+node_modules
 
 !.beads
 !.editorconfig

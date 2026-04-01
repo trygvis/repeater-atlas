@@ -20,7 +20,7 @@ all:
 test:
   cargo test
 
-# Copy assets from node packages into static/vendor.
+# Build /static/vendor, keeps packages under node_modules for tools to index
 assets:
   npm ci
   rm -rf static/vendor
@@ -38,6 +38,9 @@ assets:
     static/vendor/leaflet.markercluster/MarkerCluster.css
   cp node_modules/leaflet.markercluster/dist/MarkerCluster.Default.css \
     static/vendor/leaflet.markercluster/MarkerCluster.Default.css
+
+# Build assets, but remove anything we don't need
+assets-ci: assets
   rm -rf node_modules
 
 # Drop and initialize the database, then export the schema. Requires non-sandbox access.

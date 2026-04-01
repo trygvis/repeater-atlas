@@ -35,7 +35,7 @@ COPY static static
 COPY package.json package-lock.json Justfile ./
 
 # And build everything
-RUN just assets
+RUN just assets-ci
 RUN cargo build --release --bins
 
 FROM debian:trixie AS runtime
