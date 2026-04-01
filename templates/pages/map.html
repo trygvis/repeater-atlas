@@ -7,108 +7,52 @@
       inset: 0;
     }
 
-    /* Side pane */
-    #map-side-pane {
+    /* Icon button — zero pico's form spacing so the button wraps its content */
+    .icon-button {
+      --pico-form-element-spacing-vertical: 0;
+      --pico-form-element-spacing-horizontal: 0;
+      width: 2rem;
+      height: 2rem;
+    }
+
+    /* Right icon bar — always visible */
+    #map-right-bar {
       position: fixed;
       top: 0;
       right: 0;
       bottom: 0;
-      width: 300px;
+      width: 60px;
       z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 8px;
+      gap: 8px;
       background: var(--pico-card-background-color);
       border-left: 1px solid var(--pico-card-border-color);
-      box-shadow: var(--pico-card-box-shadow);
-      display: flex;
-      flex-direction: column;
-      overflow-y: auto;
-      transition: transform 0.2s ease;
     }
 
-    #map-side-pane.pane-closed {
-      transform: translateX(100%);
-    }
-
-    @media (max-width: 600px) {
-      #map-side-pane {
-        width: 100%;
-        border-left: none;
-      }
-    }
-
-    .pane-nav {
-      padding: 16px;
-      border-bottom: 1px solid var(--pico-card-border-color);
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .pane-nav p {
-      margin: 0;
-    }
-
-    .pane-nav a {
-      display: block;
-    }
-
-    /* Toggle button — edge tab when closed, top-right corner when open */
-    #pane-toggle {
+    /* Left pane — hidden when collapsed */
+    #map-left-pane {
       position: fixed;
-      top: 50%;
-      right: 0;
-      transform: translateY(-50%);
-      z-index: 11;
-      width: 24px;
-      height: 48px;
-      padding: 0;
-      border-radius: var(--pico-border-radius) 0 0 var(--pico-border-radius);
-      border: 1px solid var(--pico-card-border-color);
-      border-right: none;
-      box-shadow: var(--pico-card-box-shadow);
-      font-size: 0.75rem;
-      line-height: 1;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: top 0.2s ease, right 0.2s ease, transform 0.2s ease,
-        width 0.2s ease, height 0.2s ease, border-radius 0.2s ease;
-      --pico-background-color: var(--pico-card-background-color);
-      --pico-color: var(--pico-contrast);
-    }
-
-    #pane-toggle.pane-open {
-      top: 12px;
-      right: 12px;
-      transform: none;
-      width: 24px;
-      height: 24px;
-      border-radius: 999px;
-      border: 1px solid var(--pico-card-border-color);
-      --pico-background-color: var(--pico-card-background-color);
-      --pico-color: var(--pico-contrast);
-    }
-
-    /* Repeater details */
-    .pane-repeater-details {
-      padding: 16px;
-      flex: 1;
-    }
-
-    .pane-repeater-details h2 {
-      margin-bottom: 12px;
-      font-size: 1rem;
-    }
-
-    .pane-details-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 12px;
-    }
-
-    .pane-details-header h2 {
+      top: 0;
+      right: 60px;
+      bottom: 0;
+      width: 300px;
+      z-index: 10;
+      overflow-y: auto;
+      border-radius: 0;
       margin: 0;
+    }
+
+    #map-left-pane.pane-collapsed {
+      display: none;
+    }
+
+    @media (max-width: 576px) { /* matches pico sm breakpoint */
+      #map-left-pane {
+        width: calc(100% - 60px);
+      }
     }
 
     .map-link-disabled {
@@ -198,10 +142,19 @@
 {% block content %}
 <div id="repeater-map-host"></div>
 
-<button type="button" id="pane-toggle" class="pane-open" aria-label="Toggle side pane" aria-expanded="true">X</button>
+<nav id="map-right-bar">
+  <button type="button"
+          id="pane-toggle"
+          class="outline secondary icon-button"
+          aria-label="Toggle side pane"
+          aria-expanded="true">&#x276E;</button>
+</nav>
 
-<aside id="map-side-pane" aria-label="Map controls">
-  <nav class="pane-nav">
+<article id="map-left-pane" aria-label="Map controls">
+  <header>
+    <strong>Repeater Atlas</strong>
+  </header>
+  <nav>
     {% if auth.logged_in %}
     <p>{{ auth.call_sign }}</p>
     <a href="/-/my">My page</a>
@@ -213,10 +166,8 @@
     <a href="#" id="search-open">Search call signs</a>
   </nav>
 
-  <section class="pane-repeater-details">
-    <div class="pane-details-header">
-      <h2>Repeater</h2>
-    </div>
+  <section>
+    <h2>Repeater</h2>
     <p id="repeater-details-empty">Select a repeater on the map.</p>
     <dl class="kv-list" id="repeater-details-fields" hidden>
       <div>
@@ -236,7 +187,7 @@
       </div>
     </dl>
   </section>
-</aside>
+</article>
 
 <dialog id="search-modal" aria-labelledby="search-modal-title">
   <article>
@@ -263,7 +214,7 @@
   </script>
   <script>
     const map = buildLeafletMap(document.getElementById("repeater-map-host"));
-    const sidePane = document.getElementById("map-side-pane");
+    const leftPane = document.getElementById("map-left-pane");
     const paneToggle = document.getElementById("pane-toggle");
     const repeaterDetailsEmpty = document.getElementById("repeater-details-empty");
     const repeaterDetailsFields = document.getElementById("repeater-details-fields");
@@ -285,23 +236,21 @@
     // --- Side pane toggle ---
 
     function openPane() {
-      sidePane.classList.remove("pane-closed");
-      paneToggle.classList.add("pane-open");
+      leftPane.classList.remove("pane-collapsed");
       paneToggle.setAttribute("aria-expanded", "true");
-      paneToggle.textContent = "X";
+      paneToggle.textContent = "\u276E";
       map.invalidateSize();
     }
 
     function closePane() {
-      sidePane.classList.add("pane-closed");
-      paneToggle.classList.remove("pane-open");
+      leftPane.classList.add("pane-collapsed");
       paneToggle.setAttribute("aria-expanded", "false");
-      paneToggle.textContent = "\u2630";
+      paneToggle.textContent = "\u276F";
       map.invalidateSize();
     }
 
     paneToggle.addEventListener("click", () => {
-      if (sidePane.classList.contains("pane-closed")) {
+      if (leftPane.classList.contains("pane-collapsed")) {
         openPane();
       } else {
         closePane();
@@ -311,10 +260,10 @@
     // --- Repeater details ---
 
     function clearRepeaterDetails() {
-      const callSign = sidePane.querySelector('[data-field="call-sign"]');
-      const detailsLink = sidePane.querySelector('[data-field="details-link"]');
-      const status = sidePane.querySelector('[data-field="status"]');
-      const services = sidePane.querySelector('[data-field="services"]');
+      const callSign = leftPane.querySelector('[data-field="call-sign"]');
+      const detailsLink = leftPane.querySelector('[data-field="details-link"]');
+      const status = leftPane.querySelector('[data-field="status"]');
+      const services = leftPane.querySelector('[data-field="services"]');
 
       if (callSign) callSign.textContent = "-";
       if (detailsLink) detailsLink.href = "#";
@@ -326,18 +275,19 @@
     }
 
     function updateRepeaterDetails(item) {
-      const callSign = sidePane.querySelector('[data-field="call-sign"]');
-      const detailsLink = sidePane.querySelector('[data-field="details-link"]');
-      const status = sidePane.querySelector('[data-field="status"]');
-      const services = sidePane.querySelector('[data-field="services"]');
+      const callSign = leftPane.querySelector('[data-field="call-sign"]');
+      const detailsLink = leftPane.querySelector('[data-field="details-link"]');
+      const status = leftPane.querySelector('[data-field="status"]');
+      const services = leftPane.querySelector('[data-field="services"]');
 
       if (callSign) callSign.textContent = item.call_sign;
       if (detailsLink) detailsLink.href = `/${encodeURIComponent(item.call_sign)}`;
       if (status) status.textContent = item.status || "-";
       if (services) {
-        services.textContent = (Array.isArray(item.services) && item.services.length > 0)
-          ? item.services.join(", ")
-          : "No services";
+        services.textContent =
+          Array.isArray(item.services) && item.services.length > 0
+            ? item.services.join(", ")
+            : "No services";
       }
 
       if (repeaterDetailsFields) repeaterDetailsFields.hidden = false;
@@ -461,7 +411,11 @@
         const longitude = Number(parsed.longitude);
         const zoom = Number(parsed.zoom);
 
-        if (!Number.isFinite(latitude) || !Number.isFinite(longitude) || !Number.isFinite(zoom)) {
+        if (
+          !Number.isFinite(latitude) ||
+          !Number.isFinite(longitude) ||
+          !Number.isFinite(zoom)
+        ) {
           return null;
         }
 
