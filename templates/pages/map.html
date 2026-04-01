@@ -13,6 +13,13 @@
       --pico-form-element-spacing-horizontal: 0;
       width: 2rem;
       height: 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .icon-button svg {
+      display: block;
     }
 
     /* Right icon bar — always visible */
@@ -25,6 +32,7 @@
       z-index: 10;
       display: flex;
       flex-direction: column;
+      justify-content: flex-start;
       align-items: center;
       padding-top: 8px;
       gap: 8px;
@@ -148,6 +156,10 @@
           class="outline secondary icon-button"
           aria-label="Toggle side pane"
           aria-expanded="true"></button>
+  <button type="button"
+          id="my-position-go"
+          class="outline secondary icon-button"
+          aria-label="Go to my position"><i data-lucide="crosshair"></i></button>
 </nav>
 
 <article id="map-left-pane" aria-label="Map controls">
@@ -162,7 +174,6 @@
     {% else %}
     <a href="/-/login">Log in</a>
     {% endif %}
-    <a href="#" id="my-position-go">My position</a>
     <a href="#" id="search-open">Search call signs</a>
   </nav>
 
@@ -215,19 +226,29 @@
   <script type="module">
     import ChevronLeft from '/static/vendor/lucide/icons/chevron-left.js';
     import ChevronRight from '/static/vendor/lucide/icons/chevron-right.js';
+    import Crosshair from '/static/vendor/lucide/icons/crosshair.js';
     import replaceElement from '/static/vendor/lucide/replaceElement.js';
 
-    function setToggleIcon(iconName, icon) {
+    const allIcons = {ChevronLeft, ChevronRight, Crosshair};
+
+    function renderIcons(root) {
+      root.querySelectorAll("[data-lucide]").forEach((el) => {
+        replaceElement(el, {nameAttr: "data-lucide", icons: allIcons, attrs: {}});
+      });
+    }
+
+    function setToggleIcon(iconName) {
       const el = document.createElement("i");
       el.setAttribute("data-lucide", iconName);
       paneToggle.replaceChildren(el);
-      replaceElement(el, {nameAttr: "data-lucide", icons: {ChevronLeft, ChevronRight}, attrs: {}});
+      replaceElement(el, {nameAttr: "data-lucide", icons: allIcons, attrs: {}});
     }
 
     const map = buildLeafletMap(document.getElementById("repeater-map-host"));
     const leftPane = document.getElementById("map-left-pane");
     const paneToggle = document.getElementById("pane-toggle");
-    setToggleIcon("chevron-right", ChevronRight);
+    setToggleIcon("chevron-right");
+    renderIcons(document.getElementById("map-right-bar"));
     const repeaterDetailsEmpty = document.getElementById("repeater-details-empty");
     const repeaterDetailsFields = document.getElementById("repeater-details-fields");
     const searchInput = document.getElementById("call-sign-search");
@@ -250,14 +271,14 @@
     function openPane() {
       leftPane.classList.remove("pane-collapsed");
       paneToggle.setAttribute("aria-expanded", "true");
-      setToggleIcon("chevron-right", ChevronRight);
+      setToggleIcon("chevron-right");
       map.invalidateSize();
     }
 
     function closePane() {
       leftPane.classList.add("pane-collapsed");
       paneToggle.setAttribute("aria-expanded", "false");
-      setToggleIcon("chevron-left", ChevronLeft);
+      setToggleIcon("chevron-left");
       map.invalidateSize();
     }
 
