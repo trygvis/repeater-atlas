@@ -6,6 +6,7 @@
     "@picocss/pico": "2.1.1",
     "htmx.org": "1.9.12",
     "leaflet": "1.9.4",
-    "leaflet.markercluster": "1.5.3"
+    "leaflet.markercluster": "1.5.3",
+    "lucide": "1.7.0"
   }
 }

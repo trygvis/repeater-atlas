@@ -38,6 +38,18 @@ assets:
     static/vendor/leaflet.markercluster/MarkerCluster.css
   cp node_modules/leaflet.markercluster/dist/MarkerCluster.Default.css \
     static/vendor/leaflet.markercluster/MarkerCluster.Default.css
+  mkdir -p static/vendor/lucide/icons
+  mkdir -p static/vendor/lucide/shared/src/utils
+  cp node_modules/lucide/dist/esm/createElement.js static/vendor/lucide/
+  cp node_modules/lucide/dist/esm/defaultAttributes.js static/vendor/lucide/
+  cp node_modules/lucide/dist/esm/replaceElement.js static/vendor/lucide/
+  cp node_modules/lucide/dist/esm/iconsAndAliases.js static/vendor/lucide/
+  cp node_modules/lucide/dist/esm/icons/chevron-left.js static/vendor/lucide/icons/
+  cp node_modules/lucide/dist/esm/icons/chevron-right.js static/vendor/lucide/icons/
+  cp node_modules/lucide/dist/esm/shared/src/utils/hasA11yProp.js static/vendor/lucide/shared/src/utils/
+  cp node_modules/lucide/dist/esm/shared/src/utils/mergeClasses.js static/vendor/lucide/shared/src/utils/
+  cp node_modules/lucide/dist/esm/shared/src/utils/toCamelCase.js static/vendor/lucide/shared/src/utils/
+  cp node_modules/lucide/dist/esm/shared/src/utils/toPascalCase.js static/vendor/lucide/shared/src/utils/
 
 # Build assets, but remove anything we don't need
 assets-ci: assets

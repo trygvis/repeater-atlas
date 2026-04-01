@@ -147,7 +147,7 @@
           id="pane-toggle"
           class="outline secondary icon-button"
           aria-label="Toggle side pane"
-          aria-expanded="true">&#x276E;</button>
+          aria-expanded="true"></button>
 </nav>
 
 <article id="map-left-pane" aria-label="Map controls">
@@ -212,10 +212,22 @@
   <script>
     const data = {{ repeater_data | json | safe }};
   </script>
-  <script>
+  <script type="module">
+    import ChevronLeft from '/static/vendor/lucide/icons/chevron-left.js';
+    import ChevronRight from '/static/vendor/lucide/icons/chevron-right.js';
+    import replaceElement from '/static/vendor/lucide/replaceElement.js';
+
+    function setToggleIcon(iconName, icon) {
+      const el = document.createElement("i");
+      el.setAttribute("data-lucide", iconName);
+      paneToggle.replaceChildren(el);
+      replaceElement(el, {nameAttr: "data-lucide", icons: {ChevronLeft, ChevronRight}, attrs: {}});
+    }
+
     const map = buildLeafletMap(document.getElementById("repeater-map-host"));
     const leftPane = document.getElementById("map-left-pane");
     const paneToggle = document.getElementById("pane-toggle");
+    setToggleIcon("chevron-right", ChevronRight);
     const repeaterDetailsEmpty = document.getElementById("repeater-details-empty");
     const repeaterDetailsFields = document.getElementById("repeater-details-fields");
     const searchInput = document.getElementById("call-sign-search");
@@ -238,14 +250,14 @@
     function openPane() {
       leftPane.classList.remove("pane-collapsed");
       paneToggle.setAttribute("aria-expanded", "true");
-      paneToggle.textContent = "\u276E";
+      setToggleIcon("chevron-right", ChevronRight);
       map.invalidateSize();
     }
 
     function closePane() {
       leftPane.classList.add("pane-collapsed");
       paneToggle.setAttribute("aria-expanded", "false");
-      paneToggle.textContent = "\u276F";
+      setToggleIcon("chevron-left", ChevronLeft);
       map.invalidateSize();
     }
 
