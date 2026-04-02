@@ -1,7 +1,7 @@
 use axum::Router;
+use repeater_atlas::AppPool;
 use repeater_atlas::RepeaterAtlasError;
 use repeater_atlas::dao;
-use repeater_atlas::db_pool::AppPool;
 use repeater_atlas::web::{AppState, create_router};
 use std::env;
 use std::net::SocketAddr;

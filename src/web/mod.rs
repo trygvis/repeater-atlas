@@ -1,4 +1,4 @@
-use crate::db_pool::AppPool;
+use crate::AppPool;
 use askama::Template;
 use axum::Router;
 use axum_extra::routing::RouterExt;
