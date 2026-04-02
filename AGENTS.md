@@ -78,6 +78,7 @@ These must be read before doing any work.
 - This project uses a CLI ticket system for task management. Run `tk help` when
   you need to use it. Files under `.tickets/` MUST NOT be edited by hand, always
   use `add-node`, `close` and `show` to work with tickets.
+  - When using `tk add-note` always pass the note as input to stdin.
 - Generate migrations via `diesel migration generate`, not by hand.
   - Requires `diesel_cli` installed
     (`cargo install diesel_cli --no-default-features --features postgres`).
