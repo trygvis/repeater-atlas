@@ -11,24 +11,36 @@ assignee: Trygve Laugstøl
 
 # New feature: Favorite repeaters
 
-User story: As a user I want to be able to mark a repeater as a "favorite".
+Allow logged-in users to mark repeaters as favorites.
 
-Details:
+## Star button on repeater detail page
 
-- A start should always be visible on a repeater page, next to the repeater name
-  in the heading.
-- The star has two "modes", filled and outlined. The filled mode is used to
-  indicate that this is personal favorite repeater, the outlined if it is not a
-  favorite repeater (or the user is not logged in).
-- When I click the star:
-  - if logged in, the repeaters favorite state is toggled (not favorite to
-    favorite, or favorite to not favorite)
-  - If not logged in, show the login screen.
+- A star icon is always visible next to the repeater name in the heading.
+- Filled star: repeater is a favorite. Outlined star: not a favorite (or user is
+  not logged in).
+- Clicking the star:
+  - If logged in: toggles the favorite state via HTMX — no full page reload,
+    only the star updates.
+  - If not logged in: redirects to the login page, then returns to the repeater
+    page after login.
 
-Tasks:
+## Favorites list on "my page"
 
-- Ensure that the issue is clear, coherent and complete. As questions until all
-  questions are resolved.
-- The schema needs a new table: `favorite_repeater` with a reference to a User
-  (`app_user` table) and a Repeater (`repeater_system`).
-- Update relevant design documents, including page-specific design documents.
+- A section on "my page" lists all favorited repeaters.
+- Each entry links to the repeater detail page.
+
+## Schema
+
+New table `favorite_repeater`:
+
+- Reference to `app_user`
+- Reference to `repeater_system`
+- Unique constraint on (user, repeater)
+
+## Implementation tasks
+
+- Add `favorite_repeater` migration.
+- DAO: insert, delete, list by user, check existence.
+- Repeater detail page: star button with HTMX toggle endpoint.
+- "My page": favorites list section.
+- Update relevant design documents and page specs.

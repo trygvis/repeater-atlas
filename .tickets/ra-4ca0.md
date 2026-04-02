@@ -11,18 +11,44 @@ assignee: Trygve Laugstøl
 
 # New feature: Locations ("QTHs")
 
-Allow the user to have a list of "locations". A location is an object that has:
+Allow logged-in users to maintain a personal list of named locations (QTHs).
 
-- Point (stored as lat/long)
-- Maidenhead
-- Address (a full street address)
-- An owner (an app_user)
+## Data model
 
-When stored/updated the system should resolve an address to a lat/long and a
-maidenhead to a lat/long. Only an address, a maidenhead or a lat/long can be
-specified.
+A `user_location` record has:
 
-Requirements:
+- Owner (`app_user` reference)
+- Address (full street address)
+- Lat/long (stored as separate columns)
+- Maidenhead locator
 
-- Show the list of locations on "my page"
-- Allow navigating from the location on "my page" to the map
+The user provides at least one of: address, maidenhead, or lat/long. The system
+resolves and fills in all three fields before storing:
+
+- Address → geocode to lat/long, derive maidenhead from lat/long.
+- Maidenhead → derive lat/long from center of the square, no address resolution.
+- Lat/long → derive maidenhead, no address resolution.
+
+All three fields should always be populated in the database for easy access.
+
+## "My page" section
+
+- A dedicated section lists all the user's locations.
+- Each location can be edited in place (update any field; re-resolution is
+  triggered on save) or deleted.
+- A form in the section allows adding a new location by providing address,
+  maidenhead, or lat/long.
+- Each location has a "show on map" link that opens the main map centered on
+  that location.
+
+## Implementation tasks
+
+- Migration: `user_location` table.
+- DAO: insert, update, delete, list by user.
+- Resolution logic: reuse existing geocoder and maidenhead utilities.
+- "My page": locations section with add/edit/delete and map link.
+- Update relevant design documents and page specs.
+
+## Linked
+
+- ra-7c74 [closed] Add a way to go to "my position"
