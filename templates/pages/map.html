@@ -186,17 +186,12 @@
     <strong>Repeater Atlas</strong>
   </header>
 
-  <section>
-    <h2>Repeater</h2>
-    <p id="repeater-details-empty">Select a repeater on the map.</p>
-    <dl class="kv-list" id="repeater-details-fields" hidden>
-      <div>
-        <dt>Call sign</dt>
-        <dd>
-          <span data-field="call-sign">-</span>
-          <a data-field="details-link" href="#">Open</a>
-        </dd>
-      </div>
+  <section id="repeater-details-empty">
+    <p>Select a repeater on the map.</p>
+  </section>
+  <section id="repeater-details-fields" hidden>
+    <h2 data-field="call-sign"></h2>
+    <dl class="kv-list">
       <div>
         <dt>Status</dt>
         <dd data-field="status">-</dd>
@@ -204,6 +199,9 @@
       <div>
         <dt>Services</dt>
         <dd data-field="services">-</dd>
+      </div>
+      <div>
+        <a data-field="details-link" href="#">Show details</a>
       </div>
     </dl>
   </section>
