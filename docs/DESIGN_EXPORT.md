@@ -60,9 +60,15 @@ Fields not used by the current data model are written as empty strings.
 
 - **Name:** `<CALLSIGN> <SERVICE_LABEL>`, trimmed.
 - **Frequency:** TX frequency, formatted as MHz with six decimals.
-- **Duplex/Offset:** Derived from RX-TX offset:
-  - `Duplex` is `"+"`/`"-"` when RX differs from TX, otherwise empty.
-  - `Offset` is the absolute offset in MHz with six decimals.
+- **Frequency:** The radio's transmit frequency, i.e. the repeater's RX
+  frequency (`rx_hz` in the data model), formatted as MHz with six decimals.
+- **Duplex/Offset:** Derived from the repeater's TX-RX difference:
+  - `Duplex` is `"+"` when repeater TX > repeater RX, `"-"` when TX < RX,
+    otherwise empty.
+  - `Offset` is `abs(tx_hz - rx_hz)` in MHz with six decimals.
+  - Note: `tx_hz` and `rx_hz` are from the repeater's perspective. The CHIRP
+    `Frequency` field is the radio operator's transmit frequency (= repeater
+    RX), not the repeater's TX.
 - **Mode:** `"FM"` for wide and `"NFM"` for narrow.
 - **TStep:** `"5.00"` (no per-service step information yet).
 - **Comment:** From service note.
@@ -85,7 +91,14 @@ Observed behavior (from `chirp-example-tones.csv` row names):
 
 Exporter rules (derived from the examples):
 
-- For tone-related fields not used by a rule below, write an empty string.
+- CHIRP requires non-empty values for `rToneFreq`, `cToneFreq`, `DtcsCode`,
+  `RxDtcsCode`, `CrossMode`, and `Power` in every row, even when those fields
+  are not in use. Use `88.5` for tone frequency fields, `023` for DTCS code
+  fields, `"Tone->Tone"` for `CrossMode`, and `"50W"` for `Power`. Writing empty
+  strings causes CHIRP to reject the row with a parse error.
+
+- For tone-related fields not used by a rule below, write the default value
+  (`88.5` or `023` as appropriate).
 
 - **CTCSS only**
   - TX only → `Tone="Tone"`, `rToneFreq` set, `cToneFreq` empty.

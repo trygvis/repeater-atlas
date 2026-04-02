@@ -109,7 +109,7 @@ fn build_fm_row(
         },
         t_step: "5.00".to_string(),
         skip: String::new(),
-        power: String::new(),
+        power: "50W".to_string(),
         comment: service.note.clone(),
         urcall: String::new(),
         rpt1call: String::new(),
@@ -119,15 +119,21 @@ fn build_fm_row(
 }
 
 fn frequency_fields(tx_hz: Frequency, rx_hz: Frequency) -> (Frequency, String, i64) {
-    let offset_hz = rx_hz.hz() - tx_hz.hz();
+    // CHIRP's Frequency field is what the radio transmits on (= repeater RX).
+    // CHIRP's Offset is how to reach the repeater TX from there: tx_hz - rx_hz.
+    let offset_hz = tx_hz.hz() - rx_hz.hz();
     if offset_hz == 0 {
-        (tx_hz, "".to_string(), 0)
+        (rx_hz, "".to_string(), 0)
     } else if offset_hz > 0 {
-        (tx_hz, "+".to_string(), offset_hz)
+        (rx_hz, "+".to_string(), offset_hz)
     } else {
-        (tx_hz, "-".to_string(), -offset_hz)
+        (rx_hz, "-".to_string(), -offset_hz)
     }
 }
+
+const DEFAULT_TONE_FREQ: &str = "88.5";
+const DEFAULT_DTCS_CODE: &str = "023";
+const DEFAULT_CROSS_MODE: &str = "Tone->Tone";
 
 fn tone_fields(
     service: &FmServiceItem,
@@ -144,91 +150,91 @@ fn tone_fields(
         match (service.tx_tone.clone(), rx_tone) {
             (Tone::None, Tone::None) => (
                 String::new(),
-                String::new(),
-                String::new(),
-                String::new(),
-                String::new(),
-                String::new(),
+                DEFAULT_CROSS_MODE.to_string(),
+                DEFAULT_TONE_FREQ.to_string(),
+                DEFAULT_TONE_FREQ.to_string(),
+                DEFAULT_DTCS_CODE.to_string(),
+                DEFAULT_DTCS_CODE.to_string(),
             ),
             (Tone::CTCSS(tx_hz), Tone::None) => (
                 "Tone".to_string(),
-                String::new(),
+                DEFAULT_CROSS_MODE.to_string(),
                 format!("{tx_hz:.1}"),
-                String::new(),
-                String::new(),
-                String::new(),
+                DEFAULT_TONE_FREQ.to_string(),
+                DEFAULT_DTCS_CODE.to_string(),
+                DEFAULT_DTCS_CODE.to_string(),
             ),
             (Tone::None, Tone::CTCSS(rx_hz)) => (
                 "TSQL".to_string(),
-                String::new(),
-                String::new(),
+                DEFAULT_CROSS_MODE.to_string(),
+                DEFAULT_TONE_FREQ.to_string(),
                 format!("{rx_hz:.1}"),
-                String::new(),
-                String::new(),
+                DEFAULT_DTCS_CODE.to_string(),
+                DEFAULT_DTCS_CODE.to_string(),
             ),
             (Tone::CTCSS(tx_hz), Tone::CTCSS(rx_hz)) if tx_hz == rx_hz => (
                 "TSQL".to_string(),
-                String::new(),
+                DEFAULT_CROSS_MODE.to_string(),
                 format!("{tx_hz:.1}"),
                 format!("{rx_hz:.1}"),
-                String::new(),
-                String::new(),
+                DEFAULT_DTCS_CODE.to_string(),
+                DEFAULT_DTCS_CODE.to_string(),
             ),
             (Tone::CTCSS(tx_hz), Tone::CTCSS(rx_hz)) => (
                 "Cross".to_string(),
                 "Tone->Tone".to_string(),
                 format!("{tx_hz:.1}"),
                 format!("{rx_hz:.1}"),
-                String::new(),
-                String::new(),
+                DEFAULT_DTCS_CODE.to_string(),
+                DEFAULT_DTCS_CODE.to_string(),
             ),
             (Tone::DCS(tx_code), Tone::None) => (
                 "Cross".to_string(),
                 "DTCS->".to_string(),
-                String::new(),
-                String::new(),
-                format_dtcs(Some(tx_code)),
-                String::new(),
+                DEFAULT_TONE_FREQ.to_string(),
+                DEFAULT_TONE_FREQ.to_string(),
+                format_dtcs(tx_code),
+                DEFAULT_DTCS_CODE.to_string(),
             ),
             (Tone::None, Tone::DCS(rx_code)) => (
                 "Cross".to_string(),
                 "->DTCS".to_string(),
-                String::new(),
-                String::new(),
-                String::new(),
-                format_dtcs(Some(rx_code)),
+                DEFAULT_TONE_FREQ.to_string(),
+                DEFAULT_TONE_FREQ.to_string(),
+                DEFAULT_DTCS_CODE.to_string(),
+                format_dtcs(rx_code),
             ),
             (Tone::DCS(tx_code), Tone::DCS(rx_code)) if tx_code == rx_code => (
                 "DTCS".to_string(),
-                String::new(),
-                String::new(),
-                String::new(),
-                format_dtcs(Some(tx_code)),
-                String::new(),
+                DEFAULT_CROSS_MODE.to_string(),
+                DEFAULT_TONE_FREQ.to_string(),
+                DEFAULT_TONE_FREQ.to_string(),
+                format_dtcs(tx_code),
+                DEFAULT_DTCS_CODE.to_string(),
             ),
             (Tone::DCS(tx_code), Tone::DCS(rx_code)) => (
                 "Cross".to_string(),
                 "DTCS->DTCS".to_string(),
-                String::new(),
-                String::new(),
-                format_dtcs(Some(tx_code)),
-                format_dtcs(Some(rx_code)),
+                DEFAULT_TONE_FREQ.to_string(),
+                DEFAULT_TONE_FREQ.to_string(),
+                format_dtcs(tx_code),
+                format_dtcs(rx_code),
             ),
             (Tone::CTCSS(tx_hz), Tone::DCS(rx_code)) => (
                 "Cross".to_string(),
                 "Tone->DTCS".to_string(),
                 format!("{tx_hz:.1}"),
-                String::new(),
-                String::new(),
-                format_dtcs(Some(rx_code)),
+                DEFAULT_TONE_FREQ.to_string(),
+                DEFAULT_DTCS_CODE.to_string(),
+                format_dtcs(rx_code),
             ),
             (Tone::DCS(tx_code), Tone::CTCSS(rx_hz)) => (
                 "Cross".to_string(),
                 "DTCS->Tone".to_string(),
-                String::new(),
+                DEFAULT_TONE_FREQ.to_string(),
                 format!("{rx_hz:.1}"),
-                format_dtcs(Some(tx_code)),
-                String::new(),
+                format_dtcs(tx_code),
+                DEFAULT_DTCS_CODE.to_string(),
             ),
         };
 
@@ -243,6 +249,6 @@ fn tone_fields(
     )
 }
 
-fn format_dtcs(code: Option<i32>) -> String {
-    code.map(|value| format!("{value:03}")).unwrap_or_default()
+fn format_dtcs(code: i32) -> String {
+    format!("{code:03}")
 }
