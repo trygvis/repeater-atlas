@@ -16,6 +16,11 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      margin-bottom: 0.6rem;
+    }
+
+    a.icon-button {
+      display: flex;
     }
 
     .icon-button svg {
@@ -35,7 +40,6 @@
       justify-content: flex-start;
       align-items: center;
       padding-top: 8px;
-      gap: 8px;
       background: var(--pico-card-background-color);
       border-left: 1px solid var(--pico-card-border-color);
     }
@@ -156,26 +160,31 @@
           class="outline secondary icon-button"
           aria-label="Toggle side pane"
           aria-expanded="true"></button>
+  {% if auth.logged_in %}
+  <a href="/-/my"
+     class="outline secondary icon-button"
+     role="button"
+     aria-label="My page"><i data-lucide="user"></i></a>
+  {% else %}
+  <a href="/-/login"
+     class="outline secondary icon-button"
+     role="button"
+     aria-label="Log in"><i data-lucide="user"></i></a>
+  {% endif %}
   <button type="button"
           id="my-position-go"
           class="outline secondary icon-button"
           aria-label="Go to my position"><i data-lucide="crosshair"></i></button>
+  <button type="button"
+          id="search-open"
+          class="outline secondary icon-button"
+          aria-label="Search call signs"><i data-lucide="search"></i></button>
 </nav>
 
 <article id="map-left-pane" aria-label="Map controls">
   <header>
     <strong>Repeater Atlas</strong>
   </header>
-  <nav>
-    {% if auth.logged_in %}
-    <p>{{ auth.call_sign }}</p>
-    <a href="/-/my">My page</a>
-    <a href="/-/logout">Log out</a>
-    {% else %}
-    <a href="/-/login">Log in</a>
-    {% endif %}
-    <a href="#" id="search-open">Search call signs</a>
-  </nav>
 
   <section>
     <h2>Repeater</h2>
@@ -227,9 +236,11 @@
     import ChevronLeft from '/static/vendor/lucide/icons/chevron-left.js';
     import ChevronRight from '/static/vendor/lucide/icons/chevron-right.js';
     import Crosshair from '/static/vendor/lucide/icons/crosshair.js';
+    import Search from '/static/vendor/lucide/icons/search.js';
+    import User from '/static/vendor/lucide/icons/user.js';
     import replaceElement from '/static/vendor/lucide/replaceElement.js';
 
-    const allIcons = {ChevronLeft, ChevronRight, Crosshair};
+    const allIcons = {ChevronLeft, ChevronRight, Crosshair, Search, User};
 
     function renderIcons(root) {
       root.querySelectorAll("[data-lucide]").forEach((el) => {
@@ -425,8 +436,7 @@
     if (searchModalClose) searchModalClose.addEventListener("click", closeSearchModal);
 
     if (searchOpen) {
-      searchOpen.addEventListener("click", (event) => {
-        event.preventDefault();
+      searchOpen.addEventListener("click", () => {
         openSearchModal();
         renderSearchResults([]);
       });

@@ -47,6 +47,8 @@ assets:
   cp node_modules/lucide/dist/esm/icons/chevron-left.js static/vendor/lucide/icons/
   cp node_modules/lucide/dist/esm/icons/chevron-right.js static/vendor/lucide/icons/
   cp node_modules/lucide/dist/esm/icons/crosshair.js static/vendor/lucide/icons/
+  cp node_modules/lucide/dist/esm/icons/search.js static/vendor/lucide/icons/
+  cp node_modules/lucide/dist/esm/icons/user.js static/vendor/lucide/icons/
   cp node_modules/lucide/dist/esm/shared/src/utils/hasA11yProp.js static/vendor/lucide/shared/src/utils/
   cp node_modules/lucide/dist/esm/shared/src/utils/mergeClasses.js static/vendor/lucide/shared/src/utils/
   cp node_modules/lucide/dist/esm/shared/src/utils/toCamelCase.js static/vendor/lucide/shared/src/utils/
