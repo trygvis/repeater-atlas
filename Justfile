@@ -77,6 +77,10 @@ db-setup:
   just db-init
   just db-load-data
 
+# Runs the repeater-atlas application in the foreground.
+run: assets
+  cargo run --bin repeater-atlas
+
 # Builds a Docker image of this repository into 'repeater-atlas:latest'
 docker-image:
   docker build -t repeater-atlas:latest .
