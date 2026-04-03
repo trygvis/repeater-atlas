@@ -10,5 +10,5 @@ assignee: Trygve Laugstøl
 parent: ra-09f3
 tags: [rust, axum, ui]
 ---
-# Add /organizations list page (contacts kind=organization)
 
+# Add /organizations list page (contacts kind=organization)

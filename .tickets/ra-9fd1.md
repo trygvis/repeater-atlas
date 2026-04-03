@@ -10,5 +10,5 @@ assignee: Trygve Laugstøl
 parent: ra-c845
 tags: [db, migrations]
 ---
-# Rename ham_club_baseline -> entity_baseline and implement entity/contact tables
 
+# Rename ham_club_baseline -> entity_baseline and implement entity/contact tables

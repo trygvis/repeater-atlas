@@ -8,6 +8,7 @@ type: task
 priority: 2
 assignee: Trygve Laugstøl
 ---
+
 # Range calculations on repeater details page should use PostgreSQL and not rust code
 
 Design/review of implementation is needed here.

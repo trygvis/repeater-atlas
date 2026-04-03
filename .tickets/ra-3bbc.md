@@ -8,6 +8,7 @@ type: task
 priority: 2
 assignee: Trygve Laugstøl
 ---
+
 # Optional fixes on repeater_system
 
 - Make enabled NOT NULL, no default value
@@ -21,8 +22,11 @@ field should not be Option<>.
 
 **2026-01-27T21:46:10Z**
 
-Adjusted baseline repeater_service schema to make repeater_id/enabled/label/note NOT NULL (no new migration). Updated Diesel DAO structs + queries accordingly; regenerated schema.rs.
+Adjusted baseline repeater_service schema to make repeater_id/enabled/label/note
+NOT NULL (no new migration). Updated Diesel DAO structs + queries accordingly;
+regenerated schema.rs.
 
 **2026-01-27T21:55:47Z**
 
-Follow-up: rx_hz and tx_hz are also required; updated baseline schema + Diesel types accordingly.
+Follow-up: rx_hz and tx_hz are also required; updated baseline schema + Diesel
+types accordingly.

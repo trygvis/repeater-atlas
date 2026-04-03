@@ -20,4 +20,7 @@ Something is wrong.
 
 **2026-02-05T21:05:51Z**
 
-Derived lat/lon from Maidenhead when geocoding is skipped during import; enriched location now returns optional address/maidenhead/coords and normalizes/derives coordinates from Maidenhead when present. Reloaded DB and verified LA4ARR radius query via psql. Tests: direnv exec . make test.
+Derived lat/lon from Maidenhead when geocoding is skipped during import;
+enriched location now returns optional address/maidenhead/coords and
+normalizes/derives coordinates from Maidenhead when present. Reloaded DB and
+verified LA4ARR radius query via psql. Tests: direnv exec . make test.

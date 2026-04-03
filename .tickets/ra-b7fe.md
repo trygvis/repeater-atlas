@@ -10,5 +10,5 @@ assignee: Trygve Laugstøl
 parent: ra-09f3
 tags: [rust, axum, ui]
 ---
-# Add /repeaters route (alias/redirect from /repeater)
 
+# Add /repeaters route (alias/redirect from /repeater)

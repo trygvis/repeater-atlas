@@ -10,5 +10,5 @@ assignee: Trygve Laugstøl
 parent: ra-09f3
 tags: [rust, axum, ui]
 ---
-# Add organization detail page for /call-sign/{CALLSIGN} when entity=contact
 
+# Add organization detail page for /call-sign/{CALLSIGN} when entity=contact

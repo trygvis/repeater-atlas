@@ -10,5 +10,5 @@ assignee: Trygve Laugstøl
 parent: ra-09f3
 tags: [ui, routing]
 ---
-# Audit current routes/templates and map links for call-sign navigation
 
+# Audit current routes/templates and map links for call-sign navigation
