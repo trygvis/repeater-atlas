@@ -9,6 +9,9 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - backend
+      - default
 
   # This is normally not used, just for debugging the docker image built locally
   repeater-atlas:
@@ -63,11 +66,46 @@ services:
 
         COPY bin/agent-shell /usr/bin/agent-shell
         CMD /usr/bin/agent-shell
+    environment:
+      http_proxy: mitmproxy
     volumes:
       - home:/home
       - ./workspaces:/workspaces
       - ./.git:/git:ro
 
+  claude:
+    profiles:
+      - claude
+    build:
+      context: ./
+      dockerfile: support/Dockerfile.claude
+      args:
+        CLAUDE_VERSION: 2.1.91
+    volumes:
+      - home:/home
+      - ./workspaces:/workspaces
+      - ./.git:/git:ro
+      - ./.claude.tmp:/.claude.tmp
+    environment:
+      http_proxy: mitmproxy:8080
+      https_proxy: mitmproxy:8080
+    networks:
+      backend:
+
+  mitmproxy:
+    image: "mitmproxy/mitmproxy:12.2.1"
+    command: mitmweb --web-host 0.0.0.0 --set web_password=secret
+    ports:
+      - "8081:8081"
+    networks:
+      - default
+      - backend
+
 volumes:
   postgres_data:
   home:
+  claude-work:
+
+networks:
+  backend:
+   internal: true

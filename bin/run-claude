@@ -1,0 +1,25 @@
+#!/bin/bash
+
+uid="$(id -u)"
+gid="$(id -g)"
+
+if [ ! -f .claude.tmp/mitmproxy-ca-cert.cer ]
+then
+  docker compose cp mitmproxy:/home/mitmproxy/.mitmproxy/mitmproxy-ca-cert.cer |\
+  docker compose cp - claude:junk
+fi
+
+set -x
+if [ "${#}" == 0 ]
+then
+  args=(/usr/bin/agent-shell "$uid" "$gid")
+else
+  args=("${@}")
+fi
+
+docker compose run \
+  --build \
+  --quiet-build \
+  --rm \
+  -it \
+  claude "${args[@]}"

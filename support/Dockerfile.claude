@@ -1,0 +1,45 @@
+FROM debian:trixie AS claude-install
+ARG CLAUDE_VERSION
+
+RUN apt-get update
+RUN apt-get install --no-install-recommends --yes curl ca-certificates
+RUN curl -fsSL https://claude.ai/install.sh | bash -s "$CLAUDE_VERSION"
+RUN find /root/.local
+RUN ls -lah /root/.local/bin/claude
+RUN /root/.local/bin/claude --version
+RUN tar cf /claude.tar -C /root/.local .
+# RUN tar ft /claude.tar
+
+FROM debian:trixie
+
+RUN apt-get update && apt-get install --no-install-recommends --yes \
+  bash-completion \
+  ca-certificates \
+  curl \
+  direnv \
+  git \
+  less \
+  man \
+  postgresql-client \
+  ripgrep \
+  rustup \
+  sudo \
+  vim \
+  wget \
+  zstd \
+  ;
+
+# Install Claude, symlink into PATH and make sure that it runs
+COPY --from=claude-install /claude.tar /
+RUN mkdir /claude && \
+    tar xfv /claude.tar -C /claude && \
+    rm /claude.tar && \
+    ln -s /claude/share/claude/versions/* /bin/claude && \
+    claude --version
+
+#RUN echo ". <(claude completion)" > /etc/bash_completion.d/claude
+RUN echo ". <(direnv hook bash)" > /etc/profile.d/direnv.sh
+# RUN echo "echo DIRENV!!" > /etc/profile.d/direnv
+
+COPY ../bin/agent-shell /usr/bin/agent-shell
+CMD ["/usr/bin/agent-shell"]
