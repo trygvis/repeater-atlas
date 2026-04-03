@@ -72,6 +72,13 @@
 - Content: change note text.
 - Metadata: timestamp (can be backdated), public by default.
 
+### User Location
+
+- Owner: user reference.
+- Address: optional street address.
+- Maidenhead: grid locator (always populated).
+- Lat/lon: coordinates (always populated).
+
 ## Pages and Routes
 
 ### Public
@@ -85,6 +92,15 @@
 - `/-/embed/club/:id` embeddable club-scoped list/detail (minimal layout).
 - `/-/search` call sign search endpoint.
 
+### Authenticated User
+
+- `/-/my` user account page (exports, saved locations).
+- `/-/my/location` POST: add a location.
+- `/-/my/location/{id}/edit` GET: edit form fragment (loaded into modal).
+- `/-/my/location/{id}` PUT: update a location.
+- `/-/my/location/{id}` DELETE: remove a location.
+- `/-/export/chirp.csv` CHIRP radio export.
+
 ### Admin
 
 - `/-/login` login form.
@@ -94,6 +110,13 @@
 - `/-/admin/repeaters/:id/edit` edit form.
 
 ## Behaviors
+
+### Map URL Parameters
+
+- The map page (`/`) accepts optional `lat`, `lon`, and `zoom` query parameters
+  to center the map on a specific location. These take priority over the
+  persisted viewport. Example: `/?lat=63.43&lon=10.40&zoom=12`. Used by "Show on
+  map" links from the user locations section.
 
 ### Search and Filters
 

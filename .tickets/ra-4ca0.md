@@ -1,6 +1,6 @@
 ---
 id: ra-4ca0
-status: open
+status: closed
 deps: []
 links: [ra-7c74]
 created: 2026-03-02T18:51:40Z
@@ -52,3 +52,25 @@ All three fields should always be populated in the database for easy access.
 ## Linked
 
 - ra-7c74 [closed] Add a way to go to "my position"
+
+## Notes
+
+**2026-04-03T21:21:51Z**
+
+Implemented. Changes:
+
+- Migration: `user_location` table (`user_id`, `address`, `maidenhead`,
+  `latitude`, `longitude`, timestamps). Cascade-deletes on user removal.
+- DAO: `src/dao/user_location.rs` — `list_by_user`, `insert`, `update`,
+  `delete`, all scoped to `user_id` to prevent cross-user access.
+- Resolution logic in `src/web/my_page.rs`: three input modes handled — lat/lon
+  derives maidenhead; maidenhead derives lat/lon; address geocodes via Nominatim
+  then derives maidenhead. Reuses existing `enrich_location` service.
+- "My page" locations section: add form, table with inline HTMX edit/delete per
+  row, "Show on map" link per entry.
+- Routes: `POST /-/my/location`, `GET/PUT/DELETE /-/my/location/{id}`,
+  `GET /-/my/location/{id}/edit`.
+- Map page: `/?lat=X&lon=Y&zoom=Z` URL params now center the map on load, taking
+  priority over the persisted viewport.
+- Docs updated: `DATA_MODEL.md` (User Location entity, relationship),
+  `IMPLEMENTATION.md` (data model, routes, map URL params behavior).

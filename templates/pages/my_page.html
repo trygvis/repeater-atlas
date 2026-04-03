@@ -7,6 +7,59 @@
     <p>Account tools and exports.</p>
   </hgroup>
   <section>
+    <h2>Locations</h2>
+    <p>Your saved QTH locations. Provide at least one of: address, Maidenhead locator, or lat/lon coordinates.</p>
+    {% include "partials/location_list.html" %}
+    <button type="button" onclick="document.getElementById('add-location-modal').showModal()">Add location</button>
+  </section>
+
+  <dialog id="add-location-modal" aria-labelledby="add-location-modal-title">
+    <article>
+      <header>
+        <h3 id="add-location-modal-title">Add location</h3>
+      </header>
+      <p>Provide at least one of: address, Maidenhead locator, or lat/lon coordinates.</p>
+      <form
+        hx-post="/-/my/location"
+        hx-target="#location-list"
+        hx-swap="outerHTML"
+        hx-on::after-request="if(event.detail.successful) { this.reset(); document.getElementById('add-location-modal').close(); }"
+      >
+        <div class="grid">
+          <label>
+            Address
+            <input type="text" name="address" placeholder="Trondheim, Norway">
+          </label>
+          <label>
+            Maidenhead
+            <input type="text" name="maidenhead" placeholder="JP53fi">
+          </label>
+          <label>
+            Latitude
+            <input type="text" name="latitude" placeholder="63.43">
+          </label>
+          <label>
+            Longitude
+            <input type="text" name="longitude" placeholder="10.40">
+          </label>
+        </div>
+        <footer>
+          <button type="submit">Add location</button>
+          <button type="button" class="secondary" onclick="document.getElementById('add-location-modal').close()">Cancel</button>
+        </footer>
+      </form>
+    </article>
+  </dialog>
+
+  <dialog id="edit-location-modal" aria-labelledby="edit-location-modal-title">
+    <article>
+      <header>
+        <h3 id="edit-location-modal-title">Edit location</h3>
+      </header>
+      <div id="edit-location-modal-body"></div>
+    </article>
+  </dialog>
+  <section>
     <h2>Exports</h2>
     <article>
       <header>
@@ -17,4 +70,24 @@
     </article>
   </section>
 </main>
+{% endblock %}
+
+{% block scripts %}
+<script type="module">
+  import Map from '/static/vendor/lucide/icons/map.js';
+  import Pencil from '/static/vendor/lucide/icons/pencil.js';
+  import Trash2 from '/static/vendor/lucide/icons/trash-2.js';
+  import replaceElement from '/static/vendor/lucide/replaceElement.js';
+
+  const allIcons = {Map, Pencil, Trash2};
+
+  function renderIcons(root) {
+    root.querySelectorAll("[data-lucide]").forEach((el) => {
+      replaceElement(el, {nameAttr: "data-lucide", icons: allIcons, attrs: {}});
+    });
+  }
+
+  renderIcons(document);
+  document.body.addEventListener("htmx:afterSettle", () => renderIcons(document));
+</script>
 {% endblock %}

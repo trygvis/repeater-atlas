@@ -11,6 +11,7 @@ pub mod organization_list;
 pub mod repeater;
 pub mod repeater_list;
 pub mod search;
+pub mod user_location;
 pub mod utils;
 
 #[derive(Clone)]
@@ -81,6 +82,10 @@ pub fn create_router(state: AppState) -> Router {
         .typed_post(auth::signup_submit)
         .typed_get(auth::logout)
         .typed_get(my_page::my_page)
+        .typed_post(user_location::add_location)
+        .typed_get(user_location::edit_location_form)
+        .typed_put(user_location::update_location)
+        .typed_delete(user_location::delete_location)
         .typed_get(export::chirp_export)
         .with_state(state)
 }

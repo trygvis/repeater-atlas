@@ -1,0 +1,42 @@
+<article id="location-row-{{ location.id }}">
+  <dl>
+    {% if let Some(a) = location.address.as_ref() %}
+      <dt>Address</dt>
+      <dd>{{ a }}</dd>
+    {% endif %}
+    {% if let Some(m) = location.maidenhead.as_ref() %}
+      <dt>Maidenhead</dt>
+      <dd>{{ m }}</dd>
+    {% endif %}
+    {% if let Some(lat) = location.latitude %}
+      {% if let Some(lon) = location.longitude %}
+        <dt>Lat / Lon</dt>
+        <dd>{{ lat }}, {{ lon }}</dd>
+      {% endif %}
+    {% endif %}
+  </dl>
+  <footer>
+    <div role="group">
+      {% if let Some(lat) = location.latitude %}
+        {% if let Some(lon) = location.longitude %}
+          <a href="/?lat={{ lat }}&lon={{ lon }}&zoom=12" role="button" class="outline" aria-label="Show on map"><i data-lucide="map"></i></a>
+        {% endif %}
+      {% endif %}
+      <button
+        hx-get="/-/my/location/{{ location.id }}/edit"
+        hx-target="#edit-location-modal-body"
+        hx-swap="innerHTML"
+        hx-on::after-request="if(event.detail.successful) document.getElementById('edit-location-modal').showModal()"
+        class="outline"
+        aria-label="Edit"
+      ><i data-lucide="pencil"></i></button>
+      <button
+        hx-delete="/-/my/location/{{ location.id }}"
+        hx-target="#location-list"
+        hx-swap="outerHTML"
+        class="outline secondary"
+        aria-label="Delete"
+      ><i data-lucide="trash-2"></i></button>
+    </div>
+  </footer>
+</article>

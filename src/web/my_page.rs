@@ -1,6 +1,7 @@
 use super::auth::auth_header;
 use super::{AppState, AuthHeader};
-use crate::RepeaterAtlasError;
+use crate::dao::user_location::UserLocation;
+use crate::{RepeaterAtlasError, dao};
 use askama::Template;
 use axum::{
     extract::State,
@@ -17,6 +18,7 @@ pub struct MyPagePath;
 #[template(path = "pages/my_page.html")]
 struct MyPageTemplate {
     auth: AuthHeader,
+    locations: Vec<UserLocation>,
 }
 
 pub async fn my_page(
@@ -29,6 +31,12 @@ pub async fn my_page(
         return Ok(Redirect::to("/-/login").into_response());
     }
 
-    let template = MyPageTemplate { auth };
+    let mut c = state.pool.get().await?;
+    let user = dao::user::find_by_call_sign(&mut c, auth.call_sign.clone())
+        .await?
+        .ok_or(RepeaterAtlasError::NotFound)?;
+    let locations = dao::user_location::list_by_user(&mut c, user.id).await?;
+
+    let template = MyPageTemplate { auth, locations };
     Ok(Html(template.render()?).into_response())
 }

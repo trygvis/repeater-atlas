@@ -1,0 +1,29 @@
+<form
+  hx-put="/-/my/location/{{ location.id }}"
+  hx-target="#location-list"
+  hx-swap="outerHTML"
+  hx-on::after-request="if(event.detail.successful) document.getElementById('edit-location-modal').close()"
+>
+  <div class="grid">
+    <label>
+      Address
+      <input type="text" name="address" value="{% if let Some(a) = location.address.as_ref() %}{{ a }}{% endif %}">
+    </label>
+    <label>
+      Maidenhead
+      <input type="text" name="maidenhead" value="{% if let Some(m) = location.maidenhead.as_ref() %}{{ m }}{% endif %}" placeholder="JP53fi">
+    </label>
+    <label>
+      Latitude
+      <input type="text" name="latitude" value="{% if let Some(lat) = location.latitude %}{{ lat }}{% endif %}">
+    </label>
+    <label>
+      Longitude
+      <input type="text" name="longitude" value="{% if let Some(lon) = location.longitude %}{{ lon }}{% endif %}">
+    </label>
+  </div>
+  <footer>
+    <button type="submit">Save</button>
+    <button type="button" class="secondary" onclick="document.getElementById('edit-location-modal').close()">Cancel</button>
+  </footer>
+</form>

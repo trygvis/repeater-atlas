@@ -28,6 +28,7 @@ in the database schema.
 - Admin members can edit all repeaters owned by their contact.
 - A repeater has many change log entries.
 - A change log entry belongs to one repeater and one user (author).
+- A user can have many saved locations (QTHs).
 
 ## Repeater
 
@@ -71,6 +72,18 @@ in the database schema.
 - Identity: email, callsign, display name.
 - Auth: password hash, last login.
 - Memberships: contact roles.
+
+## User Location
+
+A saved QTH (location) belonging to a user. All three coordinate representations
+are always stored for easy access.
+
+### Field Categories (non-exhaustive)
+
+- Owner: reference to `app_user`.
+- Address: full street address (optional input; populated via geocoding).
+- Maidenhead: grid locator (derived from lat/lon if not provided).
+- Lat/lon: geographic coordinates (derived from maidenhead or geocoding).
 
 ## Contact
 

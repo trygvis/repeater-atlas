@@ -149,10 +149,24 @@ diesel::table! {
     }
 }
 
+diesel::table! {
+    user_location (id) {
+        id -> Int8,
+        user_id -> Int8,
+        address -> Nullable<Text>,
+        maidenhead -> Nullable<Text>,
+        latitude -> Nullable<Float8>,
+        longitude -> Nullable<Float8>,
+        created_at -> Timestamptz,
+        updated_at -> Timestamptz,
+    }
+}
+
 diesel::joinable!(contact -> call_sign (call_sign));
 diesel::joinable!(repeater_service -> repeater_system (repeater_id));
 diesel::joinable!(repeater_service_dmr_talkgroup -> repeater_service (service_id));
 diesel::joinable!(repeater_system -> call_sign (call_sign));
+diesel::joinable!(user_location -> app_user (user_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
     app_user,
@@ -162,4 +176,5 @@ diesel::allow_tables_to_appear_in_same_query!(
     repeater_service,
     repeater_service_dmr_talkgroup,
     repeater_system,
+    user_location,
 );

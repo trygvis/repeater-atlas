@@ -497,7 +497,20 @@
 
     // --- Map initialisation ---
 
-    const savedMyPosition = readMyPosition();
+    function readUrlPosition() {
+      const params = new URLSearchParams(window.location.search);
+      if (!params.has("lat") || !params.has("lon")) return null;
+      const lat = Number(params.get("lat"));
+      const lon = Number(params.get("lon"));
+      const zoom = Number(params.get("zoom") || "12");
+      if (Number.isFinite(lat) && Number.isFinite(lon) && Number.isFinite(zoom)) {
+        return {latitude: lat, longitude: lon, zoom};
+      }
+      return null;
+    }
+
+    const urlPosition = readUrlPosition();
+    const savedMyPosition = urlPosition || readMyPosition();
 
     const clusterGroup = L.markerClusterGroup({
       showCoverageOnHover: false,
