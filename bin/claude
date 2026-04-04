@@ -1,0 +1,19 @@
+#!/bin/bash
+
+set -euo pipefail
+
+v=2.1.92
+
+# Claude is funny and insists on having its own installer. Instead of
+# duplicating it, just check if in the binary is present and assume that it
+# is installed.
+#
+# It will still use the correct version.
+
+if [[ ! -x $HOME/.local/share/claude/versions/$v ]]
+then
+  echo "Installing claude v$v"
+  curl -fsSL https://claude.ai/install.sh | bash -s "$v"
+fi
+
+exec "$HOME/.local/share/claude/versions/$v" "${@}"
