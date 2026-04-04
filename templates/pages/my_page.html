@@ -4,7 +4,7 @@
 <main class="container">
   <hgroup>
     <h1>My page</h1>
-    <p>Account tools and exports.</p>
+    <p>Account tools, exports, and portable logbook.</p>
   </hgroup>
   <section>
     <h2>Locations</h2>
@@ -67,6 +67,51 @@
       </header>
       <p>Download a CSV file for CHIRP and compatible radios.</p>
       <a href="/-/export/chirp.csv" role="button">Download CHIRP CSV</a>
+    </article>
+  </section>
+  <section>
+    <h2>Portable Logbook</h2>
+    <article>
+      <header>
+      <p>Generate a printable portable logbook PDF. Nothing is saved — fill in the options and download.</p>
+      <form method="post" action="/-/my/logbook.pdf">
+        <div class="grid">
+          <label>
+            Page size
+            <select name="page_size">
+              <option value="a4">A4</option>
+              <option value="a5">A5</option>
+            </select>
+          </label>
+          <label>
+            Log pages
+            <input type="number" name="log_pages" value="10" min="1" max="100">
+          </label>
+        </div>
+        <fieldset>
+          <legend>Optional pages</legend>
+          <label>
+            <input type="checkbox" name="title_page" value="1" checked>
+            Title page ("Portable Logbook for {{ auth.call_sign }}")
+          </label>
+          <label>
+            <input type="checkbox" name="locations_page" value="1" checked>
+            Locations page (your saved QTHs)
+          </label>
+          <label>
+            <input type="checkbox" name="phonetic_alphabet_page" value="1" checked>
+            Phonetic alphabet
+          </label>
+          <label>
+            <input type="checkbox" name="frequency_bands_page" value="1" checked>
+            Frequency bands (IARU Region 1 / Europe)
+          </label>
+        </fieldset>
+        <div role="group">
+          <button type="submit">Download PDF</button>
+          <button type="submit" formaction="/-/my/logbook.typ">Download Typst source</button>
+        </div>
+      </form>
     </article>
   </section>
 </main>

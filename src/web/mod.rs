@@ -5,6 +5,7 @@ use axum_extra::routing::RouterExt;
 
 pub mod auth;
 pub mod export;
+pub mod logbook;
 pub mod map;
 pub mod my_page;
 pub mod organization_list;
@@ -87,5 +88,7 @@ pub fn create_router(state: AppState) -> Router {
         .typed_put(user_location::update_location)
         .typed_delete(user_location::delete_location)
         .typed_get(export::chirp_export)
+        .typed_post(logbook::logbook_pdf)
+        .typed_post(logbook::logbook_typ)
         .with_state(state)
 }

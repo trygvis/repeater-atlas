@@ -8,7 +8,7 @@ use std::net::SocketAddr;
 use std::path::Path;
 use std::process::exit;
 use tower_http::services::ServeDir;
-use tracing::info;
+use tracing::{info, warn};
 use tracing_subscriber::EnvFilter;
 
 #[tokio::main]
@@ -28,6 +28,8 @@ async fn main() {
             .await
             .expect("Bad database connection and/or schema");
     }
+
+    check_typst();
 
     let jwt_secret =
         std::env::var("JWT_SECRET").unwrap_or_else(|_| uuid::Uuid::new_v4().to_string());
@@ -57,6 +59,27 @@ async fn main() {
     info!("Listening on {}", addr);
 
     axum::serve(listener, app).await.expect("server error");
+}
+
+fn check_typst() {
+    match std::process::Command::new("typst")
+        .arg("--version")
+        .output()
+    {
+        Ok(output) => {
+            let stdout = String::from_utf8_lossy(&output.stdout);
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            let combined = format!("{}{}", stdout, stderr).trim().to_string();
+            if output.status.success() {
+                info!("typst ok: {}", combined);
+            } else {
+                warn!("typst --version failed: {}", combined);
+            }
+        }
+        Err(e) => {
+            warn!("typst not found: {}", e);
+        }
+    }
 }
 
 async fn check_db(pool: &AppPool) -> Result<(), RepeaterAtlasError> {

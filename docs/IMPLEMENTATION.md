@@ -94,12 +94,14 @@
 
 ### Authenticated User
 
-- `/-/my` user account page (exports, saved locations).
+- `/-/my` user account page (exports, saved locations, logbook).
 - `/-/my/location` POST: add a location.
 - `/-/my/location/{id}/edit` GET: edit form fragment (loaded into modal).
 - `/-/my/location/{id}` PUT: update a location.
 - `/-/my/location/{id}` DELETE: remove a location.
 - `/-/export/chirp.csv` CHIRP radio export.
+- `/-/my/logbook.pdf` POST: generate and download a logbook PDF.
+- `/-/my/logbook.typ` POST: download the rendered Typst source.
 
 ### Admin
 

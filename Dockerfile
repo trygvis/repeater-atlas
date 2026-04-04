@@ -1,9 +1,24 @@
-FROM debian:trixie AS chef
+FROM debian:trixie AS deb
+
+RUN apt-get update
+
+FROM deb AS typst-vendor
+
+RUN DEBIAN_FRONTEND="noninteractive" apt-get install --yes --no-install-recommends \
+        ca-certificates \
+        wget \
+        tar \
+        xz-utils \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY bin/typst /usr/local/bin/typst
+RUN typst --version
+
+FROM deb AS chef
 
 WORKDIR /app
 
-RUN apt-get update \
-    && DEBIAN_FRONTEND="noninteractive" apt-get install --yes --no-install-recommends \
+RUN DEBIAN_FRONTEND="noninteractive" apt-get install --yes --no-install-recommends \
         build-essential \
         ca-certificates \
         just \
@@ -29,6 +44,7 @@ COPY --from=planner /app/recipe.json recipe.json
 RUN cargo chef cook --release --recipe-path recipe.json
 
 # Copy over the rest of the application
+COPY askama.toml ./
 COPY src src
 COPY templates templates
 COPY static static
@@ -38,10 +54,9 @@ COPY package.json package-lock.json Justfile ./
 RUN just assets-ci
 RUN cargo build --release --bins
 
-FROM debian:trixie AS runtime
+FROM deb AS runtime
 
-RUN apt-get update \
-    && DEBIAN_FRONTEND="noninteractive" apt-get install --yes --no-install-recommends \
+RUN DEBIAN_FRONTEND="noninteractive" apt-get install --yes --no-install-recommends \
         ca-certificates \
         libpq5 \
         libssl3 \
@@ -50,6 +65,7 @@ RUN apt-get update \
 WORKDIR /app
 COPY --from=builder /app/static static
 COPY --from=builder /app/target/release/repeater-atlas bin/repeater-atlas
+COPY --from=typst-vendor /usr/local/bin/typst /usr/local/bin/typst
 # Just to have an index over everything in the image
 RUN find
 
