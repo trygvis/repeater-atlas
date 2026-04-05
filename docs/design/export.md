@@ -45,7 +45,7 @@ Implementation lives at `src/service/export/chirp.rs`.
 
 ### Output Columns
 
-The CSV header mirrors CHIRP’s stock CSV format and includes a superset of
+The CSV header mirrors CHIRP's stock CSV format and includes a superset of
 fields:
 
 ```
@@ -80,10 +80,10 @@ The tone-related columns are populated based on the observed CHIRP exports in
 
 Observed behavior (from `chirp-example-tones.csv` row names):
 
-- CHIRP uses `Tone="Tone"` for “Tx CTCSS only”.
-- CHIRP uses `Tone="TSQL"` for “Rx CTCSS only”.
+- CHIRP uses `Tone="Tone"` for "Tx CTCSS only".
+- CHIRP uses `Tone="TSQL"` for "Rx CTCSS only".
 - CHIRP uses `Tone="DTCS"` for DCS-only rows (`DCS 074, NN/NR/RN/RR`).
-- CHIRP uses `Tone="Cross"` for all “cross” rows, including:
+- CHIRP uses `Tone="Cross"` for all "cross" rows, including:
   - CTCSS with mismatched TX/RX frequencies (`CTCSS, 67.0 -> 88.5`).
   - DCS-only TX or RX (`DCS, tx only` / `DCS, rx only`).
   - Mixed CTCSS ↔ DCS (`CTCSS -> DCS`, `DCS -> CTCSS`).

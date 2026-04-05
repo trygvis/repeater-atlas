@@ -5,7 +5,7 @@ of 2026-01-26.
 
 This document describes a flexible repeater data model beyond a single
 `modulation` field on a repeater row. The goal is to model a _physical repeater
-system_ (what people identify as “the repeater”) that can expose multiple RF
+system_ (what people identify as "the repeater") that can expose multiple RF
 ports (e.g., different bands / D-STAR modules) and multiple services/features
 (FM, DMR, D-STAR, C4FM, APRS, etc.), including combinations like FM+DMR on the
 same frequencies.
@@ -16,34 +16,34 @@ migration outline).
 
 ## Problem Statement
 
-In practice, “a repeater” often supports multiple communication modes:
+In practice, "a repeater" often supports multiple communication modes:
 
 - Analog voice: FM (narrow/wide), AM, SSB (LSB/USB)
 - Digital voice/data: DMR, D-STAR, C4FM (System Fusion)
-- Packet/APRS services (igate/digipeater), sometimes as a standalone “service”
+- Packet/APRS services (igate/digipeater), sometimes as a standalone "service"
   and sometimes associated with a frequency plan
 
 Modes can be combined:
 
 - FM + DMR on the same RF pair
 - FM + D-STAR on the same RF pair (less common, but seen)
-- FM + C4FM (common in “auto mode select” / mixed-mode deployments)
+- FM + C4FM (common in "auto mode select" / mixed-mode deployments)
 
-And frequencies are not always shared across modes; a “system” may expose
+And frequencies are not always shared across modes; a "system" may expose
 multiple RF ports (different bands, cross-band links, simplex nodes, etc.).
 
 ## Design Goals
 
-- **Identity = physical system:** One “repeater” record represents what users
-  call “LA1ABC”, not per-module listings.
+- **Identity = physical system:** One "repeater" record represents what users
+  call "LA1ABC", not per-module listings.
 - **Multiple RF ports:** Represent D-STAR modules (A/B/C), VHF/UHF ports,
   cross-band ports, etc.
 - **Multiple services per port:** Attach FM + DMR (etc.) to the same RF port
   without duplicating the port row.
 - **Mode-specific fields live with the mode:** Keep DMR fields (color code,
   repeater ID) out of FM-only rows, and vice versa.
-- **Query-friendly:** Support “find all repeaters that have DMR”, “list all RF
-  ports”, “show access requirements”.
+- **Query-friendly:** Support "find all repeaters that have DMR", "list all RF
+  ports", "show access requirements".
 - **Incremental implementation:** Allow implementing a minimal subset first
   (e.g., FM + DMR) without blocking later features.
 
@@ -106,8 +106,8 @@ Two services with the same label + rx/tx pair:
   - label `B` with 70cm frequencies, kind `dstar`
   - label `A` with 23cm frequencies (optional), kind `dstar`
 
-This aligns with how people talk about “LD1OT” as one system, while
-radios/directory listings often refer to “LD1OT B/C” as distinct RF modules.
+This aligns with how people talk about "LD1OT" as one system, while
+radios/directory listings often refer to "LD1OT B/C" as distinct RF modules.
 
 ### 4) APRS igate/digipeater
 

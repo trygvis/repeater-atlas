@@ -29,6 +29,9 @@ imply they are implemented in the codebase.
 - **Validation split**: web handlers should render user-facing error messages,
   while user creation rules stay in the user service so every entry point uses
   the same validation and duplicate-user handling.
+- `create_user` accepts a `validate_password` flag. Set to `true` in web
+  handlers (enforces the minimum-length rule); set to `false` in tests and data
+  generation scripts to allow short convenience passwords.
 
 ## Candidate Frameworks (Axum/Tower)
 

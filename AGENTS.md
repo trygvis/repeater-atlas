@@ -64,13 +64,12 @@
 
 These must be read before doing any work.
 
-- `docs/CODE.md`
-- `docs/DATA_MODEL.md`
-- `docs/DESIGN.md`
-- `docs/IMPLEMENTATION.md`
-- `docs/TESTING.md`
-- `docs/pages/README.md` — index of page-level specs; read the relevant page
-  spec(s) before working on any page.
+- `docs/code.md`
+- `docs/data-model.md`
+- `docs/design/README.md`
+- `docs/testing.md`
+- `docs/design/pages/README.md` — index of page-level specs; read the relevant
+  page spec(s) before working on any page.
 
 ## CLI tools and commands
 
