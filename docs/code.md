@@ -10,9 +10,3 @@ These files are examples of code structures to follow:
 - `src/dao/repeater_system.rs` - data access module
   - Notice naming pattern, get_XXX returns the entity, find_XXX returns the
     optional entity
-
-# Markdown
-
-- Always have a blank line after section of all levels.
-- Indent lists with two spaces.
-- Always leave a blank line at the end of the file
