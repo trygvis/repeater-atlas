@@ -25,6 +25,7 @@ pub async fn create_user(
     call_sign: &str,
     email: &str,
     password: &str,
+    validate_password: bool,
 ) -> QueryResult<CreateUserResult> {
     let call_sign = auth::normalize_call_sign(call_sign);
     let email = email.trim().to_lowercase();
@@ -37,7 +38,7 @@ pub async fn create_user(
         return Ok(CreateUserResult::InvalidEmail);
     }
 
-    if !is_valid_password(password) {
+    if validate_password && !is_valid_password(password) {
         return Ok(CreateUserResult::InvalidPassword);
     }
 

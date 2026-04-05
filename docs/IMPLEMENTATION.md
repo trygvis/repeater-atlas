@@ -171,6 +171,9 @@
   email, password, and duplicate-user rules.
 - The signup handler only maps those user-service results to page errors or a
   successful login redirect.
+- `create_user` accepts a `validate_password` flag. Set to `true` in web
+  handlers (enforces the minimum-length rule); set to `false` in tests and data
+  generation scripts to allow short convenience passwords.
 
 ### Club Views
 

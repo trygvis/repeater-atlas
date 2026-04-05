@@ -104,7 +104,7 @@ pub async fn signup_submit(
     let password = form.password;
 
     let mut c = state.pool.get().await?;
-    match service::user::create_user(&mut c, &call_sign, &email, &password).await {
+    match service::user::create_user(&mut c, &call_sign, &email, &password, true).await {
         Ok(service::user::CreateUserResult::Ok(user)) => {
             let token = auth::encode_token(&user.call_sign, &state.jwt_secret)?;
             let jar = jar.add(auth::build_auth_cookie(token));

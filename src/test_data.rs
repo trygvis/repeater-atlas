@@ -1162,7 +1162,7 @@ fn default_offset(tx_hz: Frequency) -> Option<i64> {
 }
 
 pub async fn generate_users(c: &mut AsyncPgConnection) -> Result<(), RepeaterAtlasError> {
-    service::user::create_user(c, "LA8PV", "la8pv@example.org", "la8pv123")
+    service::user::create_user(c, "LA8PV", "la8pv@example.org", "la8pv", false)
         .await
         .map(|result| match result {
             service::user::CreateUserResult::Ok(_) => Ok(()),
