@@ -28,8 +28,8 @@ Each location is rendered as a Pico CSS `<article>` card containing:
   - **Delete icon** (`trash-2`): deletes the location; updates the list in place
     via HTMX.
 
-The list (`#location-list`) is the HTMX swap target for add, edit, and delete
-responses — all three replace the full list.
+The list (`#location-list`) is the HTMX swap target for "add", "edit", and
+"delete" responses — all three replace the full list.
 
 #### Add location modal
 
@@ -47,11 +47,11 @@ modal closes with no change.
 
 #### Resolution logic
 
-When a location is saved or updated the system resolves all three coordinate
+When a location is saved or updated, the system resolves all three coordinate
 representations from whichever inputs were provided:
 
 - Lat/lon given → derive Maidenhead; store as-is.
-- Maidenhead given → derive lat/lon from grid center.
+- Maidenhead given → derive lat/lon from the grid center.
 - Address given → geocode via Nominatim → derive Maidenhead.
 
 ## Exports
@@ -64,7 +64,7 @@ Download link for `/-/export/chirp.csv`.
 
 A form that generates a printable portable logbook PDF on demand via
 `POST /-/my/logbook.pdf`. Nothing is persisted — the user configures options
-each time and the PDF is streamed directly as a download.
+each time, and the PDF is streamed directly as a download.
 
 **Form fields:**
 

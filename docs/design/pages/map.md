@@ -3,7 +3,7 @@
 ## Purpose
 
 - Provide the primary public map view of repeaters.
-- Offer quick access to login, browser-based "my position", and search.
+- Offer quick access to log in, browser-based "my position", and search.
 - Let visitors inspect repeaters without leaving the map.
 
 ## Routes
@@ -20,7 +20,7 @@
 ## Layout
 
 - Full-screen Leaflet map.
-- Narrow right icon bar always visible on the right edge.
+- A narrow right icon bar is always visible on the right edge.
 - Collapsible left pane to the left of the icon bar.
 - Large modal for search results.
 
@@ -29,12 +29,13 @@
 - Map: marker cluster for repeaters with coordinates; marker labels show call
   sign.
 - Right icon bar (`#map-right-bar`): fixed 60 px strip on the right edge.
-  Contains icon buttons only. Currently holds the pane toggle button.
+  Contains icon buttons only. Currently holds the pane toggle button. TODO: it
+  currently holds more than this
 - Left pane (`#map-left-pane`): pico `article` element. Contains:
   - Header with the site name.
   - Nav section: login state, "My position" action, search link.
   - Repeater details section (see below).
-- Search results modal: call sign search field and results list; each result
+- Search results modal: call sign search field and the result list; each result
   links to `/{call_sign}`.
 
 ## Right icon bar
@@ -64,13 +65,13 @@ Lives inside the left pane below the nav. Three states:
 - **Replaced:** Clicking a new marker replaces the content in place with no
   intermediate empty state.
 
-Escape clears the details back to empty state. Clicking a marker also opens the
-pane if it is currently closed.
+Escape clears the details back to the empty state. Clicking a marker also opens
+the pane if it is currently closed.
 
 ## Behavior
 
 - Repeaters without coordinates are excluded from markers.
-- Markers are clustered; the map fits to bounds on first visit.
+- Markers are clustered; the map fits to bounds on the first visit.
 - After the map is moved or zoomed, the current viewport is stored client-side
   in browser local storage.
 - When a saved viewport exists, the page restores that center/zoom instead of

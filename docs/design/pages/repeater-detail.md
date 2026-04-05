@@ -24,7 +24,8 @@
 
 ## Layout
 
-- Two-column layout on wide screens (content + map); single column below 900px.
+- Two-column layout on wide screens (content and map); single column below 900
+  px.
 - A detail sidebar map is only shown when the repeater has coordinates.
 
 ## Page sections

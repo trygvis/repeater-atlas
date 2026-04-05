@@ -17,12 +17,12 @@
 ### Template Rendering Tests
 
 - Render Askama templates with sample data.
-- Assert presence of critical fields (callsign, frequencies, status).
+- Assert the presence of critical fields (callsign, frequencies, status).
 - Verify SEO tags for public pages.
 
 ### HTTP Integration Tests
 
-- Spin up Axum app in test mode.
+- Spin up the Axum app in test mode.
 - Test public routes (`/`, `/$CALL_SIGN`, `/-/repeater`, `/-/organization`).
 - Test admin auth flow and permissions.
 - Verify HTMX partial responses for filters.
@@ -48,6 +48,6 @@
 - After refactoring, always build the entire codebase and fix any problems
   before continuing.
 - All tests pass on a clean checkout.
-- Migrations succeed on empty database.
+- Migrations succeed on an empty database.
 - Local database requires PostGIS enabled (extension or image).
-- Public pages render without login.
+- Public pages render without being logged in.

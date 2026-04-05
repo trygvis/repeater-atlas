@@ -21,7 +21,8 @@ in the database schema.
 
 - A repeater stores its call sign on the repeater record and references the call
   sign registry.
-- A repeater can have an owner contact and a technical contact (both optional).
+- A repeater can have an owner contact and a technical contact (both are
+  optional).
 - A repeater always has a location (modeled on the repeater record).
 - A user can be a member of multiple contacts.
 - A contact can have many members and many repeaters.
@@ -54,7 +55,7 @@ in the database schema.
 ### Technical (optional details)
 
 - Power/ERP: transmitter power, antenna gain/height.
-- Access control: access tone vs transmit tone, carrier access.
+- Access control: access tone vs. transmit tone, carrier access.
 - System identifiers: color code, NAC, RAN, talkgroup/network IDs
   (mode-specific).
 - Linking: network linkage, reflector/room, local link name/ID.
