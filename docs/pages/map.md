@@ -32,7 +32,7 @@
   Contains icon buttons only. Currently holds the pane toggle button.
 - Left pane (`#map-left-pane`): pico `article` element. Contains:
   - Header with the site name.
-  - Nav section: login state, "My position" action, search link.
+  - Nearest repeaters list (see below).
   - Repeater details section (see below).
 - Search results modal: call sign search field and results list; each result
   links to `/{call_sign}`.
@@ -55,17 +55,43 @@ breakpoint) it spans the full width minus the 60 px icon bar. Toggled via
 The toggle button shows a `chevron-right` icon (Lucide) when the pane is open
 and `chevron-left` when closed.
 
+## Nearest repeaters list
+
+Lives inside the left pane below the header. Driven by the current zoom level
+and map center. Two states:
+
+- **Zoom hint** (`#nearest-zoom-hint`): shown when zoom < 10. Text: "Zoom in to
+  see nearby repeaters." (exact wording subject to change).
+- **List** (`#nearest-list`): shown when zoom >= 10. Up to 20 repeaters visible
+  in the current viewport, sorted ascending by distance from the map center.
+  Each entry shows the call sign and distance in metres or kilometres. Clicking
+  an entry opens the repeater details section (same as clicking a map marker).
+  Recomputed on every `moveend` event (pan or zoom).
+
+The zoom threshold is a JS constant (`NEAREST_ZOOM_THRESHOLD = 10`).
+
+Visible repeaters are determined using `map.getBounds().contains()`. Distance is
+computed using `map.distance()` (Haversine). Both operate client-side against
+the already loaded `data` array. No backend request is made.
+
 ## Repeater details section
 
-Lives inside the left pane below the nav. Three states:
+Lives inside the left pane, overlaid on top of the nearest-repeaters list when
+active. Three states:
 
-- **Empty:** "Select a repeater on the map." prompt.
-- **Populated:** Call sign (linked to detail page), status, and service summary.
-- **Replaced:** Clicking a new marker replaces the content in place with no
+- **Hidden:** nearest-repeaters list is shown instead.
+- **Populated:** shown on marker click or nearest-list item click. Displays call
+  sign, status, and service summary. A "Show details" link navigates to the
+  repeater detail page. A close button (X icon) dismisses the section.
+- **Replaced:** clicking a new marker replaces the content in place with no
   intermediate empty state.
 
-Escape clears the details back to empty state. Clicking a marker also opens the
-pane if it is currently closed.
+Escape dismisses the details and returns to the nearest-repeaters list (or zoom
+hint). Clicking a marker also opens the pane if it is currently closed.
+
+Panning or zooming while details are visible does not dismiss them; the
+nearest-repeaters list updates in the background and becomes visible again once
+details are cleared.
 
 ## Behavior
 
