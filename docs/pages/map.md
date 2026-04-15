@@ -19,38 +19,38 @@
 
 ## Layout
 
-- Full-screen Leaflet map.
-- Narrow right icon bar always visible on the right edge.
-- Collapsible left pane to the left of the icon bar.
+- `body` is a full-viewport flex row (`height: 100vh`).
+- Leaflet map (`#repeater-map-host`) fills the remaining width (`flex: 1`).
+- Side pane sits beside the map (not over it), so Leaflet's viewport and
+  `getBounds()` reflect only the visible map area.
 - Large modal for search results.
 
 ## Page sections
 
 - Map: marker cluster for repeaters with coordinates; marker labels show call
   sign.
-- Right icon bar (`#map-right-bar`): fixed 60 px strip on the right edge.
-  Contains icon buttons only. Currently holds the pane toggle button.
-- Left pane (`#map-left-pane`): pico `article` element. Contains:
-  - Header with the site name.
-  - Nearest repeaters list (see below).
-  - Repeater details section (see below).
+- Side pane (`#side-pane`): fixed flex container on the right edge. Contains:
+  - Pane body (`#pane-body`): collapsible content area. Contains a Pico
+    `article` with the site header, nearest repeaters list, and repeater details
+    section (see below).
+  - Icon column (`#icon-column`): fixed 60 px strip. Contains icon buttons only.
 - Search results modal: call sign search field and results list; each result
   links to `/{call_sign}`.
 
-## Right icon bar
+## Icon column
 
-Always visible. Uses `background: var(--pico-card-background-color)` and a left
-border. Buttons use the `.icon-button` utility class (zeroes pico form spacing)
-with `class="outline secondary"` for coloring.
+Always visible. 60 px wide. Uses `background: var(--pico-card-background-color)`
+and a left border. Buttons use the `.icon-button` utility class (zeroes pico
+form spacing) with `class="outline secondary"` for coloring.
 
 Icons are rendered via Lucide. Only the icons in use are imported from
 `/static/vendor/lucide/icons/` — not the full icon set.
 
-## Left pane
+## Pane body
 
-On desktop the pane is 300 px wide. On mobile (≤ 576 px, matching pico's `sm`
-breakpoint) it spans the full width minus the 60 px icon bar. Toggled via
-`display: none` — no animation. Starts open on page load.
+On desktop the pane body is 300 px wide. On mobile (≤ 576 px, matching pico's
+`sm` breakpoint) it spans the full width minus the 60 px icon column. Toggled
+via `display: none` — no animation. Starts open on page load.
 
 The toggle button shows a `chevron-right` icon (Lucide) when the pane is open
 and `chevron-left` when closed.
