@@ -61,4 +61,5 @@ clicked.
 
 **2026-04-15T10:11:15Z**
 
-Implemented in 74ca3ad. All acceptance criteria met. Design doc updated in docs/pages/map.md.
+Implemented in 74ca3ad. All acceptance criteria met. Design doc updated in
+docs/pages/map.md.
