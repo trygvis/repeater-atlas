@@ -19,54 +19,79 @@
 
 ## Layout
 
-- Full-screen Leaflet map.
-- A narrow right icon bar is always visible on the right edge.
-- Collapsible left pane to the left of the icon bar.
+- `body` is a full-viewport flex row (`height: 100vh`).
+- Leaflet map (`#repeater-map-host`) fills the remaining width (`flex: 1`).
+- Side pane sits beside the map (not over it), so Leaflet's viewport and
+  `getBounds()` reflect only the visible map area.
 - Large modal for search results.
 
 ## Page sections
 
 - Map: marker cluster for repeaters with coordinates; marker labels show call
   sign.
-- Right icon bar (`#map-right-bar`): fixed 60 px strip on the right edge.
-  Contains icon buttons only. Currently holds the pane toggle button. TODO: it
-  currently holds more than this
-- Left pane (`#map-left-pane`): pico `article` element. Contains:
-  - Header with the site name.
-  - Nav section: login state, "My position" action, search link.
-  - Repeater details section (see below).
-- Search results modal: call sign search field and the result list; each result
+- Side pane (`#side-pane`): fixed flex container on the right edge. Contains:
+  - Pane body (`#pane-body`): collapsible content area. Contains a Pico
+    `article` with the site header, nearest repeaters list, and repeater details
+    section (see below).
+  - Icon column (`#icon-column`): fixed 60 px strip. Contains icon buttons only.
+- Search results modal: call sign search field and results list; each result
   links to `/{call_sign}`.
 
-## Right icon bar
+## Icon column
 
-Always visible. Uses `background: var(--pico-card-background-color)` and a left
-border. Buttons use the `.icon-button` utility class (zeroes pico form spacing)
-with `class="outline secondary"` for coloring.
+Always visible. 60 px wide. Uses `background: var(--pico-card-background-color)`
+and a left border. Buttons use the `.icon-button` utility class (zeroes pico
+form spacing) with `class="outline secondary"` for coloring.
 
 Icons are rendered via Lucide. Only the icons in use are imported from
 `/static/vendor/lucide/icons/` — not the full icon set.
 
-## Left pane
+## Pane body
 
-On desktop the pane is 300 px wide. On mobile (≤ 576 px, matching pico's `sm`
-breakpoint) it spans the full width minus the 60 px icon bar. Toggled via
-`display: none` — no animation. Starts open on page load.
+On desktop the pane body is 300 px wide. On mobile (≤ 576 px, matching pico's
+`sm` breakpoint) it spans the full width minus the 60 px icon column. Toggled
+via `display: none` — no animation. Starts open on page load.
 
 The toggle button shows a `chevron-right` icon (Lucide) when the pane is open
 and `chevron-left` when closed.
 
+## Nearest repeaters list
+
+Lives inside the left pane below the header. Driven by the current zoom level
+and map center. Two states:
+
+- **Zoom hint** (`#nearest-zoom-hint`): shown when zoom < 10. Text: "Zoom in to
+  see nearby repeaters." (exact wording subject to change).
+- **List** (`#nearest-list`): shown when zoom >= 10. Up to 20 repeaters visible
+  in the current viewport, sorted ascending by distance from the map center.
+  Each entry shows the call sign and distance in metres or kilometres. Clicking
+  an entry opens the repeater details section (same as clicking a map marker).
+  Recomputed on every `moveend` event (pan or zoom).
+
+The zoom threshold is a JS constant (`NEAREST_ZOOM_THRESHOLD = 10`).
+
+Visible repeaters are determined using `map.getBounds().contains()`. Distance is
+computed using `map.distance()` (Haversine). Both operate client-side against
+the already loaded `data` array. No backend request is made.
+
 ## Repeater details section
 
-Lives inside the left pane below the nav. Three states:
+Lives inside the left pane, overlaid on top of the nearest-repeaters list when
+active. Three states:
 
-- **Empty:** "Select a repeater on the map." prompt.
-- **Populated:** Call sign (linked to detail page), status, and service summary.
-- **Replaced:** Clicking a new marker replaces the content in place with no
+- **Hidden:** nearest-repeaters list is shown instead.
+- **Populated:** shown on marker click or nearest-list item click. Displays call
+  sign, status, and service summary. A "Show details" link navigates to the
+  repeater detail page. A close button (X icon) dismisses the section.
+- **Replaced:** clicking a new marker replaces the content in place with no
   intermediate empty state.
 
-Escape clears the details back to the empty state. Clicking a marker also opens
-the pane if it is currently closed.
+Escape dismisses the details and returns to the nearest-repeaters list (or zoom
+hint). Clicking a marker also opens the pane if it is currently closed.
+
+Panning or zooming while details are visible does not dismiss them; the
+nearest-repeaters list updates in the background and becomes visible again once
+details are cleared.
 
 ## Behavior
 

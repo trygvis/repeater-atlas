@@ -75,8 +75,11 @@ These must be read before doing any work.
 
 - Run `just` to get the overview of available recipes and agent notes.
 - This project uses a CLI ticket system for task management. Run `tk help` when
-  you need to use it. Files under `.tickets/` MUST NOT be edited by hand, always
-  use `add-node`, `close` and `show` to work with tickets.
+  you need to use it. Use `tk` commands to manage tickets. The ticket body
+  (description, design, acceptance criteria) may be edited directly with the
+  Edit tool on `.tickets/<id>.md` when updating the body content; use
+  `tk add-note` (via stdin) for timestamped notes, and `tk close`/`tk reopen`
+  for status changes.
   - When using `tk add-note` always pass the note as input to stdin.
 - Generate migrations via `diesel migration generate`, not by hand.
   - Requires `diesel_cli` installed

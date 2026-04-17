@@ -2,9 +2,17 @@
 
 {% block head %}
   <style>
+    body {
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+      margin: 0;
+      padding: 0;
+    }
+
     #repeater-map-host {
-      position: fixed;
-      inset: 0;
+      flex: 1;
+      min-width: 0;
     }
 
     /* Icon button — zero pico's form spacing so the button wraps its content */
@@ -27,14 +35,37 @@
       display: block;
     }
 
-    /* Right icon bar — always visible */
-    #map-right-bar {
-      position: fixed;
-      top: 0;
-      right: 0;
-      bottom: 0;
+    /* Side pane — pane body + icon column */
+    #side-pane {
+      display: flex;
+      flex-direction: row;
+      flex-shrink: 0;
+    }
+
+    #pane-body {
+      width: 300px;
+      overflow-y: auto;
+      background: var(--pico-card-background-color);
+    }
+
+    #pane-body > article {
+      border: none;
+      border-radius: 0;
+      margin: 0;
+    }
+
+    #pane-body.pane-collapsed {
+      display: none;
+    }
+
+    @media (max-width: 576px) { /* matches pico sm breakpoint */
+      #pane-body {
+        width: calc(100% - 60px);
+      }
+    }
+
+    #icon-column {
       width: 60px;
-      z-index: 10;
       display: flex;
       flex-direction: column;
       justify-content: flex-start;
@@ -44,27 +75,38 @@
       border-left: 1px solid var(--pico-card-border-color);
     }
 
-    /* Left pane — hidden when collapsed */
-    #map-left-pane {
-      position: fixed;
-      top: 0;
-      right: 60px;
-      bottom: 0;
-      width: 300px;
-      z-index: 10;
-      overflow-y: auto;
-      border-radius: 0;
+    #nearest-list-items {
+      list-style: none;
+      padding: 0;
       margin: 0;
     }
 
-    #map-left-pane.pane-collapsed {
-      display: none;
+    #nearest-list-items li {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 6px 0;
+      border-bottom: 1px solid var(--pico-card-border-color);
     }
 
-    @media (max-width: 576px) { /* matches pico sm breakpoint */
-      #map-left-pane {
-        width: calc(100% - 60px);
-      }
+    #nearest-list-items li:last-child {
+      border-bottom: none;
+    }
+
+    .nearest-dist {
+      color: var(--pico-muted-color);
+    }
+
+    .repeater-details-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .repeater-details-header h2 {
+      margin: 0;
+      font-size: 1rem;
     }
 
     .map-link-disabled {
@@ -154,58 +196,66 @@
 {% block content %}
 <div id="repeater-map-host" data-theme="light"></div>
 
-<nav id="map-right-bar">
-  <button type="button"
-          id="pane-toggle"
-          class="outline secondary icon-button"
-          aria-label="Toggle side pane"
-          aria-expanded="true"></button>
-  {% if auth.logged_in %}
-  <a href="/-/my"
-     class="outline secondary icon-button"
-     role="button"
-     aria-label="My page"><i data-lucide="user"></i></a>
-  {% else %}
-  <a href="/-/login"
-     class="outline secondary icon-button"
-     role="button"
-     aria-label="Log in"><i data-lucide="user"></i></a>
-  {% endif %}
-  <button type="button"
-          id="my-position-go"
-          class="outline secondary icon-button"
-          aria-label="Go to my position"><i data-lucide="crosshair"></i></button>
-  <button type="button"
-          id="search-open"
-          class="outline secondary icon-button"
-          aria-label="Search call signs"><i data-lucide="search"></i></button>
-</nav>
+<div id="side-pane">
+  <div id="pane-body">
+    <article aria-label="Map controls">
+      <header>
+        <strong>Repeater Atlas</strong>
+      </header>
 
-<article id="map-left-pane" aria-label="Map controls">
-  <header>
-    <strong>Repeater Atlas</strong>
-  </header>
-
-  <section id="repeater-details-empty">
-    <p>Select a repeater on the map.</p>
-  </section>
-  <section id="repeater-details-fields" hidden>
-    <h2 data-field="call-sign"></h2>
-    <dl class="kv-list">
-      <div>
-        <dt>Status</dt>
-        <dd data-field="status">-</dd>
-      </div>
-      <div>
-        <dt>Services</dt>
-        <dd data-field="services">-</dd>
-      </div>
-      <div>
+      <section id="nearest-zoom-hint">
+        <p>Zoom in to see nearby repeaters.</p>
+      </section>
+      <section id="nearest-list" hidden>
+        <ul id="nearest-list-items"></ul>
+      </section>
+      <section id="repeater-details-fields" hidden>
+        <hr>
+        <div class="repeater-details-header">
+          <h2 data-field="call-sign"></h2>
+          <button type="button" id="repeater-details-close" class="outline secondary icon-button" aria-label="Close"><i data-lucide="x"></i></button>
+        </div>
+        <dl class="kv-list">
+          <div>
+            <dt>Status</dt>
+            <dd data-field="status">-</dd>
+          </div>
+          <div>
+            <dt>Services</dt>
+            <dd data-field="services">-</dd>
+          </div>
+        </dl>
         <a data-field="details-link" href="#">Show details</a>
-      </div>
-    </dl>
-  </section>
-</article>
+      </section>
+    </article>
+  </div>
+  <nav id="icon-column">
+    <button type="button"
+            id="pane-toggle"
+            class="outline secondary icon-button"
+            aria-label="Toggle side pane"
+            aria-expanded="true"></button>
+    {% if auth.logged_in %}
+    <a href="/-/my"
+       class="outline secondary icon-button"
+       role="button"
+       aria-label="My page"><i data-lucide="user"></i></a>
+    {% else %}
+    <a href="/-/login"
+       class="outline secondary icon-button"
+       role="button"
+       aria-label="Log in"><i data-lucide="user"></i></a>
+    {% endif %}
+    <button type="button"
+            id="my-position-go"
+            class="outline secondary icon-button"
+            aria-label="Go to my position"><i data-lucide="crosshair"></i></button>
+    <button type="button"
+            id="search-open"
+            class="outline secondary icon-button"
+            aria-label="Search call signs"><i data-lucide="search"></i></button>
+  </nav>
+</div>
 
 <dialog id="search-modal" aria-labelledby="search-modal-title">
   <article>
@@ -236,9 +286,10 @@
     import Crosshair from '/static/vendor/lucide/icons/crosshair.js';
     import Search from '/static/vendor/lucide/icons/search.js';
     import User from '/static/vendor/lucide/icons/user.js';
+    import X from '/static/vendor/lucide/icons/x.js';
     import replaceElement from '/static/vendor/lucide/replaceElement.js';
 
-    const allIcons = {ChevronLeft, ChevronRight, Crosshair, Search, User};
+    const allIcons = {ChevronLeft, ChevronRight, Crosshair, Search, User, X};
 
     function renderIcons(root) {
       root.querySelectorAll("[data-lucide]").forEach((el) => {
@@ -253,18 +304,25 @@
       replaceElement(el, {nameAttr: "data-lucide", icons: allIcons, attrs: {}});
     }
 
+    const NEAREST_ZOOM_THRESHOLD = 10;
+    const NEAREST_MAX = 20;
+
     const map = buildLeafletMap(document.getElementById("repeater-map-host"));
-    const leftPane = document.getElementById("map-left-pane");
+    const leftPane = document.getElementById("pane-body");
     const paneToggle = document.getElementById("pane-toggle");
     setToggleIcon("chevron-right");
-    renderIcons(document.getElementById("map-right-bar"));
-    const repeaterDetailsEmpty = document.getElementById("repeater-details-empty");
+    renderIcons(document.getElementById("icon-column"));
+    renderIcons(document.getElementById("pane-body"));
+    const nearestZoomHint = document.getElementById("nearest-zoom-hint");
+    const nearestListSection = document.getElementById("nearest-list");
+    const nearestListItems = document.getElementById("nearest-list-items");
     const repeaterDetailsFields = document.getElementById("repeater-details-fields");
     const searchInput = document.getElementById("call-sign-search");
     const searchModal = document.getElementById("search-modal");
     const searchResults = document.getElementById("search-results");
     const searchEmpty = document.getElementById("search-empty");
     const searchModalClose = document.getElementById("search-modal-close");
+    const repeaterDetailsClose = document.getElementById("repeater-details-close");
     const searchOpen = document.getElementById("search-open");
     const myPositionGo = document.getElementById("my-position-go");
     const myPositionStorageKey = "repeater-atlas.my-position";
@@ -299,6 +357,54 @@
       }
     });
 
+    // --- Nearest repeaters list ---
+
+    function updateNearestList() {
+      if (repeaterDetailsFields && !repeaterDetailsFields.hidden) return;
+
+      let zoom, center;
+      try {
+        zoom = map.getZoom();
+        center = map.getCenter();
+      } catch (_) {
+        return;
+      }
+      if (zoom < NEAREST_ZOOM_THRESHOLD) {
+        nearestZoomHint.hidden = false;
+        nearestListSection.hidden = true;
+        return;
+      }
+      const bounds = map.getBounds();
+      const sorted = data
+        .filter((item) => item.point && bounds.contains([item.point.latitude, item.point.longitude]))
+        .map((item) => ({
+          item,
+          dist: map.distance(center, [item.point.latitude, item.point.longitude]),
+        }))
+        .sort((a, b) => a.dist - b.dist)
+        .slice(0, NEAREST_MAX);
+
+      nearestListItems.innerHTML = "";
+      sorted.forEach(({item, dist}) => {
+        const li = document.createElement("li");
+        li.style.cursor = "pointer";
+        li.addEventListener("click", () => updateRepeaterDetails(item));
+        const name = document.createElement("span");
+        name.textContent = item.call_sign;
+        const distSpan = document.createElement("small");
+        distSpan.className = "nearest-dist";
+        distSpan.textContent = dist >= 1000
+          ? `${(dist / 1000).toFixed(1)} km`
+          : `${Math.round(dist)} m`;
+        li.appendChild(name);
+        li.appendChild(distSpan);
+        nearestListItems.appendChild(li);
+      });
+
+      nearestZoomHint.hidden = true;
+      nearestListSection.hidden = false;
+    }
+
     // --- Repeater details ---
 
     function clearRepeaterDetails() {
@@ -313,7 +419,7 @@
       if (services) services.textContent = "-";
 
       if (repeaterDetailsFields) repeaterDetailsFields.hidden = true;
-      if (repeaterDetailsEmpty) repeaterDetailsEmpty.hidden = false;
+      updateNearestList();
     }
 
     function updateRepeaterDetails(item) {
@@ -333,7 +439,6 @@
       }
 
       if (repeaterDetailsFields) repeaterDetailsFields.hidden = false;
-      if (repeaterDetailsEmpty) repeaterDetailsEmpty.hidden = true;
 
       openPane();
     }
@@ -432,6 +537,7 @@
     }
 
     if (searchModalClose) searchModalClose.addEventListener("click", closeSearchModal);
+    if (repeaterDetailsClose) repeaterDetailsClose.addEventListener("click", clearRepeaterDetails);
 
     if (searchOpen) {
       searchOpen.addEventListener("click", () => {
@@ -533,6 +639,7 @@
     }
 
     map.on("moveend", () => {
+      updateNearestList();
       if (!canPersistMyPosition) return;
       const center = map.getCenter();
       writeMyPosition({
@@ -544,5 +651,6 @@
 
     canPersistMyPosition = true;
     map.invalidateSize();
+    updateNearestList();
 </script>
 {% endblock %}
