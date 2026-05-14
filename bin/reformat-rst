@@ -1,0 +1,8 @@
+#!/bin/bash
+
+set -euo pipefail
+
+file=$1; shift
+
+pandoc "$file" -t rst > "$file.tmp"
+mv "$file.tmp" "$file"

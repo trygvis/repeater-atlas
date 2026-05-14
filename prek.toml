@@ -29,5 +29,12 @@ hooks = [
     language = "system",
     entry = "bin/prettier --write",
     files = '\.md$'
+  },
+  {
+    id = "pandoc",
+    name = "Reformat with pandoc",
+    language = "system",
+    entry = "bin/reformat-rst",
+    files = '\.rst$'
   }
 ]
