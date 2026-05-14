@@ -88,3 +88,20 @@ run: assets
 # Builds a Docker image of this repository into 'repeater-atlas:latest'
 docker-image:
   docker build -t repeater-atlas:latest .
+
+#    --lua-filter docs/lua/check-anchors.lua \
+docs:
+  pandoc docs/requirements/pages/map/README.rst \
+    -t native \
+    -o /dev/null
+
+  #  @rm -rf wiki; mkdir wiki/
+  pandoc \
+    docs/requirements.rst \
+    -o wiki/all.rst
+
+#    --lua-filter docs/check-links.lua \
+#    --lua-filter docs/export-req-index.lua \
+
+#    docs/requirements-index.rst \
+#    --lua-filter docs/lua/rewrite-links.lua \
