@@ -1,0 +1,25 @@
+.. container:: requirement
+
+RA-1020: Authoritative Repeater Coordinates
+===========================================
+
+Repeater latitude and longitude shall be stored as the authoritative
+coordinates for rendering and spatial queries.
+
+Rationale
+---------
+
+Coordinates should not be repeatedly derived from grid locator data at
+render time.
+
+Acceptance Criteria
+-------------------
+
+- Repeater records store latitude and longitude.
+- Spatial queries use stored coordinates.
+- Rendered latitude and longitude come from stored fields.
+
+Links
+-----
+
+- Refines: ``docs/design/repeater.md``

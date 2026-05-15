@@ -1,0 +1,27 @@
+.. requirement::
+   :id: RA-1039
+   :type: Functional
+   :status: Implemented
+   :verification: UI test
+
+RA-1039: Map Login Access
+-------------------------
+
+The map page shall provide quick access to the login flow.
+
+Rationale
+~~~~~~~~~
+
+Editors and administrators may start from the public map page before logging in.
+
+Acceptance Criteria
+~~~~~~~~~~~~~~~~~~~
+
+* The map page contains a login action.
+* The login action is available without leaving the map page first.
+* The login action navigates to the login flow.
+
+Links
+~~~~~
+
+* Refines: ``docs/design/pages/map.md``

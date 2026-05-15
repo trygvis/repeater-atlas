@@ -1,0 +1,27 @@
+.. requirement::
+   :id: RA-1040
+   :type: Functional
+   :status: Implemented
+   :verification: HTTP integration test
+
+RA-1040: Authenticated User Account Page
+----------------------------------------
+
+The application shall provide a personal account page at ``/-/my`` for logged-in
+users and redirect unauthenticated users to login.
+
+Rationale
+~~~~~~~~~
+
+Saved locations and personal exports belong to authenticated users.
+
+Acceptance Criteria
+~~~~~~~~~~~~~~~~~~~
+
+* Authenticated users can access ``/-/my``.
+* Unauthenticated users are redirected to ``/-/login``.
+
+Links
+~~~~~
+
+* Refines: ``docs/design/pages/my-page.md``

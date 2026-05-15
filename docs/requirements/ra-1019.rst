@@ -1,0 +1,29 @@
+.. requirement::
+   :id: RA-1019
+   :type: Data
+   :status: Implemented
+   :verification: Database model review
+
+RA-1019: Repeater System Identity
+---------------------------------
+
+One repeater record shall represent the physical repeater system identified by a
+call sign.
+
+Rationale
+~~~~~~~~~
+
+Users identify a repeater as one physical system even when it exposes multiple
+services or RF ports.
+
+Acceptance Criteria
+~~~~~~~~~~~~~~~~~~~
+
+* A repeater system has one identity record.
+* Multiple services can belong to the same repeater system.
+* Service-specific capabilities do not require duplicate repeater systems.
+
+Links
+~~~~~
+
+* Refines: ``docs/design/repeater.md``

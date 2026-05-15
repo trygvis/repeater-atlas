@@ -1,0 +1,27 @@
+.. requirement::
+   :id: RA-1022
+   :type: Data
+   :status: Implemented
+   :verification: Database model review
+
+RA-1022: Mode-Specific Service Fields
+-------------------------------------
+
+Mode-specific data shall live with the relevant service instead of on the
+general repeater system identity.
+
+Rationale
+~~~~~~~~~
+
+Fields such as DMR color code or FM tone do not apply to every service kind.
+
+Acceptance Criteria
+~~~~~~~~~~~~~~~~~~~
+
+* General repeater identity fields are not used for mode-specific settings.
+* Service records can carry fields relevant to their own kind.
+
+Links
+~~~~~
+
+* Refines: ``docs/design/repeater.md``

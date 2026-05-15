@@ -1,0 +1,28 @@
+.. requirement::
+   :id: RA-1012
+   :type: Functional
+   :status: Implemented
+   :verification: Service and HTTP integration test
+
+RA-1012: Signup Issues Auth Cookie
+----------------------------------
+
+The login page shall be able to create a user and immediately issue the normal
+authentication cookie on success.
+
+Rationale
+~~~~~~~~~
+
+Signup and first login should be one continuous flow for the user.
+
+Acceptance Criteria
+~~~~~~~~~~~~~~~~~~~
+
+* A valid signup creates a user account.
+* A successful signup returns an authentication cookie.
+* The created user is authenticated after signup.
+
+Links
+~~~~~
+
+* Refines: ``docs/design/authentication.md``

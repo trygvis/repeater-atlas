@@ -66,9 +66,9 @@ These must be read before doing any work.
 
 - `docs/code.md`
 - `docs/data-model.md`
-- `docs/design/README.md`
+- `docs/design/README.rst`
 - `docs/testing.md`
-- `docs/design/pages/README.md` — index of page-level specs; read the relevant
+- `docs/design/pages/README.rst` — index of page-level specs; read the relevant
   page spec(s) before working on any page.
 
 ## CLI tools and commands

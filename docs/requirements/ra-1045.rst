@@ -1,0 +1,28 @@
+.. requirement::
+   :id: RA-1045
+   :type: Functional
+   :status: Implemented
+   :verification: HTTP integration test
+
+RA-1045: Repeater Detail Route
+------------------------------
+
+The application shall render a public repeater detail page for a repeater call
+sign at ``/{call_sign}``.
+
+Rationale
+~~~~~~~~~
+
+Each repeater needs a stable public page with complete details.
+
+Acceptance Criteria
+~~~~~~~~~~~~~~~~~~~
+
+* A repeater call sign resolves to the repeater detail page.
+* Call signs are uppercased before lookup.
+* The page is readable without authentication.
+
+Links
+~~~~~
+
+* Refines: ``docs/design/pages/repeater-detail.md``

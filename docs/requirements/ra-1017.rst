@@ -1,0 +1,29 @@
+.. requirement::
+   :id: RA-1017
+   :type: Functional
+   :status: Implemented
+   :verification: HTTP integration test
+
+RA-1017: Search Result Content
+------------------------------
+
+Call sign search results shall show the call sign value and whether the result
+is a repeater or organization.
+
+Rationale
+~~~~~~~~~
+
+Users need to distinguish between repeater systems and organizations that share
+the same call sign namespace.
+
+Acceptance Criteria
+~~~~~~~~~~~~~~~~~~~
+
+* Each result row shows a call sign.
+* Each result row shows a type badge.
+* Selecting a result navigates to ``/{call_sign}``.
+
+Links
+~~~~~
+
+* Refines: ``docs/design/search.md``

@@ -1,0 +1,29 @@
+.. requirement::
+   :id: RA-1007
+   :type: Data
+   :status: Implemented
+   :verification: Service test
+
+RA-1007: Optional Address Geocoding
+-----------------------------------
+
+The application shall be able to derive latitude, longitude, and Maidenhead
+locator from an address when geocoding is enabled.
+
+Rationale
+~~~~~~~~~
+
+Repeater and user-location data may be entered with an address instead of
+coordinates.
+
+Acceptance Criteria
+~~~~~~~~~~~~~~~~~~~
+
+* Address lookup can be disabled by configuration.
+* Successful address lookup stores latitude, longitude, and Maidenhead data.
+* Geocoding uses a local CSV cache before calling the external service.
+
+Links
+~~~~~
+
+* Refines: ``docs/design/README.rst``

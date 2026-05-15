@@ -1,0 +1,24 @@
+.. container:: requirement
+
+RA-1005: Club Read-Only Views
+=============================
+
+The application shall support club-scoped read-only views through custom
+host names.
+
+Rationale
+---------
+
+Clubs need branded public views without exposing editing capabilities on
+those domains.
+
+Acceptance Criteria
+-------------------
+
+- A club host resolves to a club-scoped public view.
+- Editing features are not available on club-scoped read-only views.
+
+Links
+-----
+
+- Refines: ``docs/design/README.rst``

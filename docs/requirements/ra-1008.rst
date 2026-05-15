@@ -1,0 +1,28 @@
+.. requirement::
+   :id: RA-1008
+   :type: Data
+   :status: Implemented
+   :verification: Database and service test
+
+RA-1008: User Account Identity
+------------------------------
+
+The application shall store user call sign, email address, and password hash for
+authenticated accounts.
+
+Rationale
+~~~~~~~~~
+
+Authenticated editing requires persistent user identity and password-based login.
+
+Acceptance Criteria
+~~~~~~~~~~~~~~~~~~~
+
+* A user account has a call sign.
+* A user account has an email address.
+* A user account stores a password hash instead of a plaintext password.
+
+Links
+~~~~~
+
+* Refines: ``docs/design/authentication.md``

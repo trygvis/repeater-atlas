@@ -9,5 +9,5 @@
 
 ## Design
 
-- [design/](design/README.md) — Architecture, tech stack, routes, behaviors,
+- [design/](design/README.rst) — Architecture, tech stack, routes, behaviors,
   detailed design documents, and page-level specs

@@ -1,0 +1,28 @@
+.. requirement::
+   :id: RA-1038
+   :type: Functional
+   :status: Implemented
+   :verification: Manual browser test
+
+RA-1038: Browser Position Action
+--------------------------------
+
+The map page shall provide an action that asks the browser for the user's
+current location and centers the map there when permitted.
+
+Rationale
+~~~~~~~~~
+
+Location-based centering helps users find repeaters near their current position.
+
+Acceptance Criteria
+~~~~~~~~~~~~~~~~~~~
+
+* The action requests browser geolocation.
+* When geolocation succeeds, the map recenters to that position.
+* When geolocation is denied, the action does not break the map page.
+
+Links
+~~~~~
+
+* Refines: ``docs/design/pages/map.md``

@@ -1,0 +1,29 @@
+.. requirement::
+   :id: RA-1023
+   :type: Data
+   :status: Implemented
+   :verification: Database constraint test
+
+RA-1023: Undirected Repeater Links
+----------------------------------
+
+Repeater links shall be stored as unique undirected relationships between two
+different repeater systems.
+
+Rationale
+~~~~~~~~~
+
+An RF or network link has the same meaning regardless of which repeater is
+viewed first.
+
+Acceptance Criteria
+~~~~~~~~~~~~~~~~~~~
+
+* A repeater cannot link to itself.
+* A pair of repeaters can only be linked once.
+* Query logic treats the relationship symmetrically.
+
+Links
+~~~~~
+
+* Refines: ``docs/design/repeater.md``

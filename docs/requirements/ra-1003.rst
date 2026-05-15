@@ -1,0 +1,27 @@
+.. requirement::
+   :id: RA-1003
+   :type: Constraint
+   :status: Implemented
+   :verification: Deployment review
+
+RA-1003: Single-Instance Deployment
+-----------------------------------
+
+The application shall be designed for a single running service instance in the
+initial release.
+
+Rationale
+~~~~~~~~~
+
+The MVP does not require horizontal scaling or multi-region operation.
+
+Acceptance Criteria
+~~~~~~~~~~~~~~~~~~~
+
+* The deployment model does not require multiple application instances.
+* State management assumes one service instance for the MVP.
+
+Links
+~~~~~
+
+* Refines: ``docs/design/README.rst``

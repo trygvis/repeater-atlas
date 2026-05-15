@@ -1,0 +1,27 @@
+.. requirement::
+   :id: RA-1014
+   :type: Functional
+   :status: Implemented
+   :verification: HTTP integration test
+
+RA-1014: Role Lookup for Protected Requests
+-------------------------------------------
+
+The application shall look up authorization roles when handling protected
+requests.
+
+Rationale
+~~~~~~~~~
+
+Roles may change independently of a user's authentication cookie.
+
+Acceptance Criteria
+~~~~~~~~~~~~~~~~~~~
+
+* Protected handlers can identify the authenticated user.
+* Authorization decisions use stored role or membership data.
+
+Links
+~~~~~
+
+* Refines: ``docs/design/authentication.md``

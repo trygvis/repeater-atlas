@@ -1,0 +1,26 @@
+.. requirement::
+   :id: RA-1030
+   :type: Functional
+   :status: Implemented
+   :verification: HTTP integration test
+
+RA-1030: Map Page Route
+-----------------------
+
+The application shall render the primary public map page at ``/``.
+
+Rationale
+~~~~~~~~~
+
+The map is the primary public entry point for browsing repeaters.
+
+Acceptance Criteria
+~~~~~~~~~~~~~~~~~~~
+
+* A public user can request ``/`` without authentication.
+* The response renders the map page.
+
+Links
+~~~~~
+
+* Refines: ``docs/design/pages/map.md``

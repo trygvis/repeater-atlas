@@ -1,0 +1,23 @@
+.. container:: requirement
+
+RA-1043: CHIRP Export Download
+==============================
+
+The user account page shall provide a download link for the CHIRP CSV
+export.
+
+Rationale
+---------
+
+Authenticated users need a convenient path to radio programming exports.
+
+Acceptance Criteria
+-------------------
+
+- The account page links to ``/-/export/chirp.csv``.
+- The link downloads CHIRP-compatible CSV output.
+
+Links
+-----
+
+- Refines: ``docs/design/pages/my-page.md``

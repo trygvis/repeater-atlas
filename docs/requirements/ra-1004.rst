@@ -1,0 +1,26 @@
+.. requirement::
+   :id: RA-1004
+   :type: Data
+   :status: Implemented
+   :verification: Database migration test
+
+RA-1004: Spatial Data Support
+-----------------------------
+
+The application shall use PostgreSQL with PostGIS for spatial repeater queries.
+
+Rationale
+~~~~~~~~~
+
+Map and nearby-repeater features need reliable geographic range queries.
+
+Acceptance Criteria
+~~~~~~~~~~~~~~~~~~~
+
+* Database migrations enable the required spatial support.
+* Repeater location queries can filter by distance or radius.
+
+Links
+~~~~~
+
+* Refines: ``docs/design/README.rst``

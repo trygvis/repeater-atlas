@@ -1,0 +1,28 @@
+.. requirement::
+   :id: RA-1037
+   :type: Functional
+   :status: Implemented
+   :verification: UI test
+
+RA-1037: Map Viewport Persistence
+---------------------------------
+
+The map page shall store the current viewport after movement and restore it on a
+later visit.
+
+Rationale
+~~~~~~~~~
+
+Users should return to the same map area they were viewing previously.
+
+Acceptance Criteria
+~~~~~~~~~~~~~~~~~~~
+
+* Map movement stores center and zoom client-side.
+* A saved viewport is restored on page load.
+* Query parameters for ``lat``, ``lon``, and ``zoom`` take priority when present.
+
+Links
+~~~~~
+
+* Refines: ``docs/design/pages/map.md``

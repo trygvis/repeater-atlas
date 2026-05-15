@@ -1,0 +1,25 @@
+.. container:: requirement
+
+RA-1025: Shared Export Data Loading
+===================================
+
+Export features shall use shared loading logic that returns fully
+populated repeater domain models.
+
+Rationale
+---------
+
+Shared loading keeps export formats focused on format-specific mapping.
+
+Acceptance Criteria
+-------------------
+
+- Export code loads repeater systems through shared export service
+  logic.
+- Format-specific exporters receive fully populated repeater models.
+- HTTP or CLI layers do not duplicate export data loading rules.
+
+Links
+-----
+
+- Refines: ``docs/design/export.md``

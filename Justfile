@@ -91,14 +91,14 @@ docker-image:
 
 #    --lua-filter docs/lua/check-anchors.lua \
 docs:
-  pandoc docs/requirements/pages/map/README.rst \
+  pandoc docs/requirements/README.rst \
     -t native \
     -o /dev/null
 
   #  @rm -rf wiki; mkdir wiki/
   pandoc \
-    docs/requirements.rst \
-    -o wiki/all.rst
+    docs/requirements/README.rst \
+    -o wiki/Home.rst
 
 #    --lua-filter docs/check-links.lua \
 #    --lua-filter docs/export-req-index.lua \

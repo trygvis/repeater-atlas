@@ -1,0 +1,26 @@
+.. requirement::
+   :id: RA-1015
+   :type: Functional
+   :status: Implemented
+   :verification: UI test
+
+RA-1015: Map Search Entry Point
+-------------------------------
+
+The map page shall provide a search action near the login action.
+
+Rationale
+~~~~~~~~~
+
+Call sign lookup is a primary navigation tool from the public map page.
+
+Acceptance Criteria
+~~~~~~~~~~~~~~~~~~~
+
+* The map page displays a search action.
+* The search action is placed with the other primary overlay actions.
+
+Links
+~~~~~
+
+* Refines: ``docs/design/search.md``

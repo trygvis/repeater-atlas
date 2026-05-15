@@ -25,6 +25,11 @@ named after their requirement ID in lowercase. Requirement IDs are a
 plain sequence starting at ``RA-1000``. Always use the next available
 number when creating new requirements.
 
+The assembled requirements document lives at
+``docs/requirements/README.rst``. It includes individual requirement
+files in chapter order while keeping the requirement files themselves in
+a single flat directory.
+
 Example filenames:
 
 - ``docs/requirements/ra-1000.rst``

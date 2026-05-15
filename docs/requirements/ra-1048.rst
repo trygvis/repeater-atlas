@@ -1,0 +1,29 @@
+.. requirement::
+   :id: RA-1048
+   :type: Functional
+   :status: Implemented
+   :verification: HTTP integration test
+
+RA-1048: Repeater Detail Related Repeaters
+------------------------------------------
+
+The repeater detail page shall show linked repeaters, a linked network map, and
+nearby repeaters when data is available.
+
+Rationale
+~~~~~~~~~
+
+Related repeaters help users understand network topology and nearby options.
+
+Acceptance Criteria
+~~~~~~~~~~~~~~~~~~~
+
+* Linked repeaters are listed when links exist.
+* The linked network map shows connected repeaters when appropriate.
+* Nearby repeaters within 50 km are shown and sorted by distance.
+* Nearby markers are labeled by call sign.
+
+Links
+~~~~~
+
+* Refines: ``docs/design/pages/repeater-detail.md``

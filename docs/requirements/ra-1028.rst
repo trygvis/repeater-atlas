@@ -1,0 +1,29 @@
+.. requirement::
+   :id: RA-1028
+   :type: Interface
+   :status: Implemented
+   :verification: Export golden-file test
+
+RA-1028: CHIRP Tone Field Mapping
+---------------------------------
+
+The CHIRP CSV exporter shall populate tone and cross-mode columns according to
+CHIRP import expectations.
+
+Rationale
+~~~~~~~~~
+
+CHIRP rejects rows when required tone-related fields are empty or inconsistent.
+
+Acceptance Criteria
+~~~~~~~~~~~~~~~~~~~
+
+* CTCSS-only services map to CHIRP tone fields correctly.
+* DCS-only services map to CHIRP DTCS fields correctly.
+* Mixed CTCSS and DCS services use CHIRP cross-mode values.
+* Required fallback values are emitted for unused CHIRP tone columns.
+
+Links
+~~~~~
+
+* Refines: ``docs/design/export.md``

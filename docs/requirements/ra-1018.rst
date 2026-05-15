@@ -1,0 +1,29 @@
+.. requirement::
+   :id: RA-1018
+   :type: Functional
+   :status: Implemented
+   :verification: Unit test
+
+RA-1018: Call Sign Search Matching
+----------------------------------
+
+Call sign search shall trim input, normalize it to uppercase, and match only
+call sign values.
+
+Rationale
+~~~~~~~~~
+
+The search surface is intentionally narrow and backed by the call sign registry.
+
+Acceptance Criteria
+~~~~~~~~~~~~~~~~~~~
+
+* Leading and trailing whitespace are ignored.
+* Matching is case-insensitive.
+* Results are sorted by call sign.
+* Non-call-sign fields are not searched.
+
+Links
+~~~~~
+
+* Refines: ``docs/design/search.md``

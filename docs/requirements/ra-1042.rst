@@ -1,0 +1,28 @@
+.. requirement::
+   :id: RA-1042
+   :type: Data
+   :status: Implemented
+   :verification: Service test
+
+RA-1042: Saved Location Resolution
+----------------------------------
+
+When a saved location is created or updated, the application shall resolve
+address, Maidenhead, and latitude/longitude from the provided inputs.
+
+Rationale
+~~~~~~~~~
+
+Users may know a location as coordinates, a grid locator, or an address.
+
+Acceptance Criteria
+~~~~~~~~~~~~~~~~~~~
+
+* Given latitude and longitude, the application derives Maidenhead.
+* Given Maidenhead, the application derives latitude and longitude.
+* Given address, the application can geocode coordinates and derive Maidenhead.
+
+Links
+~~~~~
+
+* Refines: ``docs/design/pages/my-page.md``

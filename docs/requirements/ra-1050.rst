@@ -1,0 +1,30 @@
+.. requirement::
+   :id: RA-1050
+   :type: Functional
+   :status: Implemented
+   :verification: HTTP integration test
+
+RA-1050: Admin Repeater Editing
+-------------------------------
+
+The application shall provide authenticated admin pages for listing, creating,
+and editing repeater entries.
+
+Rationale
+~~~~~~~~~
+
+Repeater owners and administrators need a protected interface for maintaining
+directory data.
+
+Acceptance Criteria
+~~~~~~~~~~~~~~~~~~~
+
+* Authenticated admins can access the repeater management list.
+* Authenticated admins can open a new repeater form.
+* Authenticated admins can open an edit form for an existing repeater.
+* Public users cannot access admin editing pages.
+
+Links
+~~~~~
+
+* Refines: ``docs/design/README.rst``

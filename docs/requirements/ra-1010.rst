@@ -1,0 +1,29 @@
+.. requirement::
+   :id: RA-1010
+   :type: Functional
+   :status: Implemented
+   :verification: Unit test
+
+RA-1010: JWT Claims and Expiration
+----------------------------------
+
+Authentication JWTs shall contain subject, issued-at, and expiration claims, and
+shall expire after seven days.
+
+Rationale
+~~~~~~~~~
+
+Short, fixed claims keep authentication behavior clear and auditable.
+
+Acceptance Criteria
+~~~~~~~~~~~~~~~~~~~
+
+* Issued JWTs include ``sub``.
+* Issued JWTs include ``iat``.
+* Issued JWTs include ``exp``.
+* Issued JWTs expire after seven days.
+
+Links
+~~~~~
+
+* Refines: ``docs/design/authentication.md``

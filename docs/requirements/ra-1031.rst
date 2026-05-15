@@ -1,0 +1,25 @@
+.. container:: requirement
+
+RA-1031: Full-Viewport Map Layout
+=================================
+
+The map page shall use a full-viewport layout where the map fills the
+available space beside the side pane.
+
+Rationale
+---------
+
+The map is the primary visual surface and should use the available
+screen area.
+
+Acceptance Criteria
+-------------------
+
+- The page body uses full viewport height.
+- The Leaflet map fills the remaining width beside the pane.
+- Leaflet bounds reflect the visible map area.
+
+Links
+-----
+
+- Refines: ``docs/design/pages/map.md``

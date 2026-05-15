@@ -1,0 +1,28 @@
+.. requirement::
+   :id: RA-1000
+   :type: Functional
+   :status: Implemented
+   :verification: HTTP integration test
+
+RA-1000: Public Read Access
+---------------------------
+
+The application shall allow public users to read repeater pages without logging
+in.
+
+Rationale
+~~~~~~~~~
+
+The service is a public repeater directory, so browsing must not require an
+account.
+
+Acceptance Criteria
+~~~~~~~~~~~~~~~~~~~
+
+* A public user can open public repeater pages without authentication.
+* Public pages do not redirect unauthenticated users to the login page.
+
+Links
+~~~~~
+
+* Refines: ``docs/design/README.rst``

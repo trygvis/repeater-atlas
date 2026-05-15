@@ -1,0 +1,26 @@
+.. container:: requirement
+
+RA-1009: Signed JWT Cookie Authentication
+=========================================
+
+The application shall authenticate users with a signed JWT stored in a
+cookie.
+
+Rationale
+---------
+
+The preferred authentication approach is stateless and avoids a
+server-side session store.
+
+Acceptance Criteria
+-------------------
+
+- Successful login issues an authentication cookie.
+- Authenticated requests validate the JWT cookie.
+- Invalid or missing JWT cookies are treated as unauthenticated
+  requests.
+
+Links
+-----
+
+- Refines: ``docs/design/authentication.md``

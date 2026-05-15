@@ -1,0 +1,29 @@
+.. requirement::
+   :id: RA-1032
+   :type: Functional
+   :status: Implemented
+   :verification: UI test
+
+RA-1032: Map Markers
+--------------------
+
+The map page shall render clustered markers for repeaters that have coordinates.
+
+Rationale
+~~~~~~~~~
+
+Map browsing depends on visible repeater locations, while repeaters without
+coordinates cannot be placed on the map.
+
+Acceptance Criteria
+~~~~~~~~~~~~~~~~~~~
+
+* Repeaters with coordinates are represented as markers.
+* Repeaters without coordinates are excluded from markers.
+* Marker labels show call signs.
+* Markers are clustered when appropriate.
+
+Links
+~~~~~
+
+* Refines: ``docs/design/pages/map.md``

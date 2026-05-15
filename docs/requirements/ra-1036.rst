@@ -1,0 +1,29 @@
+.. requirement::
+   :id: RA-1036
+   :type: UX
+   :status: Implemented
+   :verification: UI test
+
+RA-1036: In-Pane Repeater Details
+---------------------------------
+
+The map page shall show selected repeater details inside the side pane.
+
+Rationale
+~~~~~~~~~
+
+Visitors should be able to inspect a repeater without leaving the map page.
+
+Acceptance Criteria
+~~~~~~~~~~~~~~~~~~~
+
+* Selecting a marker opens repeater details.
+* Selecting a nearest-list item opens repeater details.
+* Details include call sign, status, and service summary.
+* Details include a link to the full repeater detail page.
+* Details can be dismissed.
+
+Links
+~~~~~
+
+* Refines: ``docs/design/pages/map.md``
