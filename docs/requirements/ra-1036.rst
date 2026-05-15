@@ -1,11 +1,9 @@
 .. requirement::
    :id: RA-1036
+   :title: In-Pane Repeater Details
    :type: UX
    :status: Implemented
    :verification: UI test
-
-RA-1036: In-Pane Repeater Details
----------------------------------
 
 The map page shall show selected repeater details inside the side pane.
 

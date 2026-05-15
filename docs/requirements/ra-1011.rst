@@ -1,24 +1,26 @@
-.. container:: requirement
-
-RA-1011: Logout Cookie Expiration
-=================================
+.. requirement::
+   :id: RA-1011
+   :title: Logout Cookie Expiration
+   :type: Functional
+   :status: Implemented
+   :verification: HTTP integration test
 
 The application shall log users out by expiring the authentication
 cookie on the client.
 
 Rationale
----------
+~~~~~~~~~
 
 Stateless JWT authentication does not maintain a server-side session to
 revoke.
 
 Acceptance Criteria
--------------------
+~~~~~~~~~~~~~~~~~~~
 
 - A logout request clears or expires the authentication cookie.
 - After logout, protected pages require authentication again.
 
 Links
------
+~~~~~
 
 - Refines: ``docs/design/authentication.md``

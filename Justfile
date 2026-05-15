@@ -90,14 +90,35 @@ docker-image:
   docker build -t repeater-atlas:latest .
 
 #    --lua-filter docs/lua/check-anchors.lua \
+# Validate and build the docs and requirements
 docs:
+  for requirement in docs/requirements/ra-*.rst; do \
+    pandoc "$requirement" \
+      --lua-filter docs/lua/validate-requirement.lua \
+      -t native \
+      -o /dev/null; \
+  done
+
   pandoc docs/requirements/README.rst \
     -t native \
     -o /dev/null
 
-  #  @rm -rf wiki; mkdir wiki/
+# Builds the GitHub wiki files
+wiki: docs
+  rm -rf target/requirements
+  mkdir -p target/requirements wiki
+  cp docs/requirements/README.rst target/requirements/README.rst
+  for requirement in docs/requirements/ra-*.rst; do \
+    pandoc "$requirement" \
+      --lua-filter docs/lua/requirement-table.lua \
+      -o "target/requirements/$(basename "$requirement")"; \
+  done
+
   pandoc \
-    docs/requirements/README.rst \
+    --resource-path target/requirements \
+    --standalone \
+    --toc \
+    target/requirements/README.rst \
     -o wiki/Home.rst
 
 #    --lua-filter docs/check-links.lua \

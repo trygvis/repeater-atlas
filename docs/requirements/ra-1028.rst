@@ -1,11 +1,9 @@
 .. requirement::
    :id: RA-1028
+   :title: CHIRP Tone Field Mapping
    :type: Interface
    :status: Implemented
    :verification: Export golden-file test
-
-RA-1028: CHIRP Tone Field Mapping
----------------------------------
 
 The CHIRP CSV exporter shall populate tone and cross-mode columns according to
 CHIRP import expectations.

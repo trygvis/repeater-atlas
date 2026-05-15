@@ -1,11 +1,9 @@
 .. requirement::
    :id: RA-1014
+   :title: Role Lookup for Protected Requests
    :type: Functional
    :status: Implemented
    :verification: HTTP integration test
-
-RA-1014: Role Lookup for Protected Requests
--------------------------------------------
 
 The application shall look up authorization roles when handling protected
 requests.

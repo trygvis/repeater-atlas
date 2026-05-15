@@ -1,11 +1,9 @@
 .. requirement::
    :id: RA-1017
+   :title: Search Result Content
    :type: Functional
    :status: Implemented
    :verification: HTTP integration test
-
-RA-1017: Search Result Content
-------------------------------
 
 Call sign search results shall show the call sign value and whether the result
 is a repeater or organization.

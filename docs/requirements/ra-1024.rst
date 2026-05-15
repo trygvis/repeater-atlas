@@ -1,19 +1,21 @@
-.. container:: requirement
-
-RA-1024: Linked Network Discovery
-=================================
+.. requirement::
+   :id: RA-1024
+   :title: Linked Network Discovery
+   :type: Functional
+   :status: Implemented
+   :verification: Service test
 
 The application shall discover a repeater's linked network by traversing
 repeater links in either direction.
 
 Rationale
----------
+~~~~~~~~~
 
 The detail page needs to show the full connected network, not only
 direct links.
 
 Acceptance Criteria
--------------------
+~~~~~~~~~~~~~~~~~~~
 
 - Traversal starts from the requested repeater.
 - Traversal follows links in both directions.
@@ -21,6 +23,6 @@ Acceptance Criteria
 - Results include depth or equivalent ordering information.
 
 Links
------
+~~~~~
 
 - Refines: ``docs/design/repeater.md``

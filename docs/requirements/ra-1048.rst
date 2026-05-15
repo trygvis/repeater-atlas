@@ -1,11 +1,9 @@
 .. requirement::
    :id: RA-1048
+   :title: Repeater Detail Related Repeaters
    :type: Functional
    :status: Implemented
    :verification: HTTP integration test
-
-RA-1048: Repeater Detail Related Repeaters
-------------------------------------------
 
 The repeater detail page shall show linked repeaters, a linked network map, and
 nearby repeaters when data is available.

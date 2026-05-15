@@ -1,11 +1,9 @@
 .. requirement::
    :id: RA-1050
+   :title: Admin Repeater Editing
    :type: Functional
    :status: Implemented
    :verification: HTTP integration test
-
-RA-1050: Admin Repeater Editing
--------------------------------
 
 The application shall provide authenticated admin pages for listing, creating,
 and editing repeater entries.

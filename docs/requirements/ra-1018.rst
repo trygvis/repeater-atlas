@@ -1,11 +1,9 @@
 .. requirement::
    :id: RA-1018
+   :title: Call Sign Search Matching
    :type: Functional
    :status: Implemented
    :verification: Unit test
-
-RA-1018: Call Sign Search Matching
-----------------------------------
 
 Call sign search shall trim input, normalize it to uppercase, and match only
 call sign values.

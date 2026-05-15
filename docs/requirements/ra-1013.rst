@@ -1,25 +1,27 @@
-.. container:: requirement
-
-RA-1013: Central User Validation
-================================
+.. requirement::
+   :id: RA-1013
+   :title: Central User Validation
+   :type: Functional
+   :status: Implemented
+   :verification: Service test
 
 User creation rules shall live in the user service so every entry point
 applies the same validation and duplicate-user handling.
 
 Rationale
----------
+~~~~~~~~~
 
 Validation in one service avoids inconsistent behavior between web
 handlers, tests, and data generation.
 
 Acceptance Criteria
--------------------
+~~~~~~~~~~~~~~~~~~~
 
 - Web signup uses the user service for account creation.
 - Duplicate-user handling is implemented by the user service.
 - Password validation can be enabled for web entry points.
 
 Links
------
+~~~~~
 
 - Refines: ``docs/design/authentication.md``

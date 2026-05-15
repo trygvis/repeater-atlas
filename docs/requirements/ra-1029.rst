@@ -1,11 +1,9 @@
 .. requirement::
    :id: RA-1029
+   :title: CHIRP RX Tone Option
    :type: Functional
    :status: Implemented
    :verification: Export option test
-
-RA-1029: CHIRP RX Tone Option
------------------------------
 
 The CHIRP CSV exporter shall support an option that controls whether RX tone
 data is included.

@@ -1,11 +1,9 @@
 .. requirement::
    :id: RA-1030
+   :title: Map Page Route
    :type: Functional
    :status: Implemented
    :verification: HTTP integration test
-
-RA-1030: Map Page Route
------------------------
 
 The application shall render the primary public map page at ``/``.
 

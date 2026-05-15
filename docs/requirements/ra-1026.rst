@@ -1,24 +1,26 @@
-.. container:: requirement
-
-RA-1026: CHIRP FM Service Export
-================================
+.. requirement::
+   :id: RA-1026
+   :title: CHIRP FM Service Export
+   :type: Functional
+   :status: Implemented
+   :verification: Export test
 
 The CHIRP CSV exporter shall export FM services and skip non-FM
 services.
 
 Rationale
----------
+~~~~~~~~~
 
 The implemented CHIRP export scope is limited to FM rows.
 
 Acceptance Criteria
--------------------
+~~~~~~~~~~~~~~~~~~~
 
 - FM services are included in CHIRP CSV output.
 - Non-FM services are omitted from CHIRP CSV output.
 - Location numbers start at zero.
 
 Links
------
+~~~~~
 
 - Refines: ``docs/design/export.md``

@@ -1,11 +1,9 @@
 .. requirement::
    :id: RA-1041
+   :title: Saved Location Management
    :type: Functional
    :status: Implemented
    :verification: HTTP integration test
-
-RA-1041: Saved Location Management
-----------------------------------
 
 The user account page shall let users list, add, edit, and delete saved QTH
 locations.

@@ -1,11 +1,9 @@
 .. requirement::
    :id: RA-1044
+   :title: Portable Logbook Generation
    :type: Functional
    :status: Implemented
    :verification: HTTP integration test
-
-RA-1044: Portable Logbook Generation
-------------------------------------
 
 The user account page shall let users generate a portable logbook PDF and the
 corresponding Typst source.

@@ -1,19 +1,21 @@
-.. container:: requirement
-
-RA-1035: Nearest Repeaters List
-===============================
+.. requirement::
+   :id: RA-1035
+   :title: Nearest Repeaters List
+   :type: Functional
+   :status: Implemented
+   :verification: UI test
 
 The map page shall show a nearest repeaters list when the map is zoomed
 in far enough.
 
 Rationale
----------
+~~~~~~~~~
 
 Nearby repeaters help users discover relevant systems in the current map
 area.
 
 Acceptance Criteria
--------------------
+~~~~~~~~~~~~~~~~~~~
 
 - A zoom hint is shown below the nearest-repeater zoom threshold.
 - Up to 20 visible repeaters are listed at or above the threshold.
@@ -21,6 +23,6 @@ Acceptance Criteria
 - The list updates after map movement.
 
 Links
------
+~~~~~
 
 - Refines: ``docs/design/pages/map.md``

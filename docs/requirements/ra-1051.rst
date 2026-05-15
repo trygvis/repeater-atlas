@@ -1,11 +1,9 @@
 .. requirement::
    :id: RA-1051
+   :title: Core Validation Rules
    :type: Data
    :status: Implemented
    :verification: Validation test
-
-RA-1051: Core Validation Rules
-------------------------------
 
 The application shall validate core repeater and user input fields before
 persistence.

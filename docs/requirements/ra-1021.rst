@@ -1,25 +1,27 @@
-.. container:: requirement
-
-RA-1021: Multiple Services per Repeater
-=======================================
+.. requirement::
+   :id: RA-1021
+   :title: Multiple Services per Repeater
+   :type: Data
+   :status: Implemented
+   :verification: Database and service test
 
 A repeater system shall be able to expose multiple services such as FM,
 DMR, D-STAR, C4FM, APRS, SSB, and AM.
 
 Rationale
----------
+~~~~~~~~~
 
 Real repeater systems often support several modes or features under one
 system identity.
 
 Acceptance Criteria
--------------------
+~~~~~~~~~~~~~~~~~~~
 
 - A repeater system can have more than one service row.
 - Services can share a label and frequency pair when appropriate.
 - Service kind is represented per service.
 
 Links
------
+~~~~~
 
 - Refines: ``docs/design/repeater.md``

@@ -1,11 +1,9 @@
 .. requirement::
    :id: RA-1042
+   :title: Saved Location Resolution
    :type: Data
    :status: Implemented
    :verification: Service test
-
-RA-1042: Saved Location Resolution
-----------------------------------
 
 When a saved location is created or updated, the application shall resolve
 address, Maidenhead, and latitude/longitude from the provided inputs.

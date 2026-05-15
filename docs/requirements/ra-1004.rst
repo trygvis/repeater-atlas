@@ -1,11 +1,9 @@
 .. requirement::
    :id: RA-1004
+   :title: Spatial Data Support
    :type: Data
    :status: Implemented
    :verification: Database migration test
-
-RA-1004: Spatial Data Support
------------------------------
 
 The application shall use PostgreSQL with PostGIS for spatial repeater queries.
 

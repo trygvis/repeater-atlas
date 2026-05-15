@@ -1,11 +1,9 @@
 .. requirement::
    :id: RA-1007
+   :title: Optional Address Geocoding
    :type: Data
    :status: Implemented
    :verification: Service test
-
-RA-1007: Optional Address Geocoding
------------------------------------
 
 The application shall be able to derive latitude, longitude, and Maidenhead
 locator from an address when geocoding is enabled.

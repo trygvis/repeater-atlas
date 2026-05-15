@@ -1,11 +1,9 @@
 .. requirement::
    :id: RA-1010
+   :title: JWT Claims and Expiration
    :type: Functional
    :status: Implemented
    :verification: Unit test
-
-RA-1010: JWT Claims and Expiration
-----------------------------------
 
 Authentication JWTs shall contain subject, issued-at, and expiration claims, and
 shall expire after seven days.

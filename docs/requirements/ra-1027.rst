@@ -1,19 +1,21 @@
-.. container:: requirement
-
-RA-1027: CHIRP CSV Field Mapping
-================================
+.. requirement::
+   :id: RA-1027
+   :title: CHIRP CSV Field Mapping
+   :type: Interface
+   :status: Implemented
+   :verification: Export golden-file test
 
 The CHIRP CSV exporter shall map repeater service data to
 CHIRP-compatible CSV columns.
 
 Rationale
----------
+~~~~~~~~~
 
 CHIRP expects specific column names and value formats when importing
 memory channels.
 
 Acceptance Criteria
--------------------
+~~~~~~~~~~~~~~~~~~~
 
 - The CSV header matches the expected CHIRP column set.
 - Frequency and offset values are formatted in MHz with six decimals.
@@ -21,6 +23,6 @@ Acceptance Criteria
 - Mode is emitted as ``FM`` or ``NFM``.
 
 Links
------
+~~~~~
 
 - Refines: ``docs/design/export.md``

@@ -1,11 +1,9 @@
 .. requirement::
    :id: RA-1022
+   :title: Mode-Specific Service Fields
    :type: Data
    :status: Implemented
    :verification: Database model review
-
-RA-1022: Mode-Specific Service Fields
--------------------------------------
 
 Mode-specific data shall live with the relevant service instead of on the
 general repeater system identity.

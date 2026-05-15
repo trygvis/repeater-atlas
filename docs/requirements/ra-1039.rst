@@ -1,11 +1,9 @@
 .. requirement::
    :id: RA-1039
+   :title: Map Login Access
    :type: Functional
    :status: Implemented
    :verification: UI test
-
-RA-1039: Map Login Access
--------------------------
 
 The map page shall provide quick access to the login flow.
 

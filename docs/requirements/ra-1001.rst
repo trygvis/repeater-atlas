@@ -1,11 +1,9 @@
 .. requirement::
    :id: RA-1001
+   :title: SEO-Friendly Public Pages
    :type: Non-Functional
    :status: Implemented
    :verification: Template rendering test
-
-RA-1001: SEO-Friendly Public Pages
-----------------------------------
 
 The application shall render public pages as server-side HTML suitable for
 search engine indexing.

@@ -1,11 +1,9 @@
 .. requirement::
    :id: RA-1015
+   :title: Map Search Entry Point
    :type: Functional
    :status: Implemented
    :verification: UI test
-
-RA-1015: Map Search Entry Point
--------------------------------
 
 The map page shall provide a search action near the login action.
 

@@ -1,24 +1,26 @@
-.. container:: requirement
-
-RA-1016: Call Sign Search Modal
-===============================
+.. requirement::
+   :id: RA-1016
+   :title: Call Sign Search Modal
+   :type: UX
+   :status: Implemented
+   :verification: UI test
 
 Selecting the search action shall open a large modal containing the call
 sign search field and results.
 
 Rationale
----------
+~~~~~~~~~
 
 A modal lets users search without leaving the map context.
 
 Acceptance Criteria
--------------------
+~~~~~~~~~~~~~~~~~~~
 
 - The search action opens a modal.
 - Typing in the modal search field updates the result list.
 - The modal remains open until closed or a result is selected.
 
 Links
------
+~~~~~
 
 - Refines: ``docs/design/search.md``

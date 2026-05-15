@@ -1,11 +1,9 @@
 .. requirement::
    :id: RA-1040
+   :title: Authenticated User Account Page
    :type: Functional
    :status: Implemented
    :verification: HTTP integration test
-
-RA-1040: Authenticated User Account Page
-----------------------------------------
 
 The application shall provide a personal account page at ``/-/my`` for logged-in
 users and redirect unauthenticated users to login.

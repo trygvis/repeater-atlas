@@ -1,24 +1,26 @@
-.. container:: requirement
-
-RA-1049: Missing Detail Fallback Values
-=======================================
+.. requirement::
+   :id: RA-1049
+   :title: Missing Detail Fallback Values
+   :type: UX
+   :status: Implemented
+   :verification: Template rendering test
 
 The repeater detail page shall show safe fallback values when optional
 description or location data is missing.
 
 Rationale
----------
+~~~~~~~~~
 
 Missing optional data should not produce blank or broken detail pages.
 
 Acceptance Criteria
--------------------
+~~~~~~~~~~~~~~~~~~~
 
 - Missing description displays ``-``.
 - Missing Maidenhead displays ``-``.
 - Missing latitude and longitude display ``-``.
 
 Links
------
+~~~~~
 
 - Refines: ``docs/design/pages/repeater-detail.md``

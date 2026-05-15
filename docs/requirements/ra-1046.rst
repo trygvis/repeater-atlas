@@ -1,11 +1,9 @@
 .. requirement::
    :id: RA-1046
+   :title: Repeater Detail Responsive Layout
    :type: UX
    :status: Implemented
    :verification: Manual responsive layout test
-
-RA-1046: Repeater Detail Responsive Layout
-------------------------------------------
 
 The repeater detail page shall use a two-column content and map layout on wide
 screens and a single-column layout on narrow screens.

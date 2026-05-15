@@ -1,11 +1,9 @@
 .. requirement::
    :id: RA-1002
+   :title: Mobile-Friendly Layout
    :type: UX
    :status: Implemented
    :verification: Manual responsive layout test
-
-RA-1002: Mobile-Friendly Layout
--------------------------------
 
 The application shall provide layouts that are usable on mobile screens without
 horizontal scrolling.

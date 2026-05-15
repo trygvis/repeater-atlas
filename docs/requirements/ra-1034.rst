@@ -1,25 +1,27 @@
-.. container:: requirement
-
-RA-1034: Always-Visible Icon Column
-===================================
+.. requirement::
+   :id: RA-1034
+   :title: Always-Visible Icon Column
+   :type: UX
+   :status: Implemented
+   :verification: UI test
 
 The map side pane shall include an always-visible icon column for
 primary map actions.
 
 Rationale
----------
+~~~~~~~~~
 
 Core map actions should remain available when the pane body is
 collapsed.
 
 Acceptance Criteria
--------------------
+~~~~~~~~~~~~~~~~~~~
 
 - The icon column remains visible when the pane body is hidden.
 - The icon column contains icon buttons only.
 - The pane toggle icon reflects the pane state.
 
 Links
------
+~~~~~
 
 - Refines: ``docs/design/pages/map.md``

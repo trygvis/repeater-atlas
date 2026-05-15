@@ -1,11 +1,9 @@
 .. requirement::
    :id: RA-1038
+   :title: Browser Position Action
    :type: Functional
    :status: Implemented
    :verification: Manual browser test
-
-RA-1038: Browser Position Action
---------------------------------
 
 The map page shall provide an action that asks the browser for the user's
 current location and centers the map there when permitted.

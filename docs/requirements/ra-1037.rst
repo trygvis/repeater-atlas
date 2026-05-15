@@ -1,11 +1,9 @@
 .. requirement::
    :id: RA-1037
+   :title: Map Viewport Persistence
    :type: Functional
    :status: Implemented
    :verification: UI test
-
-RA-1037: Map Viewport Persistence
----------------------------------
 
 The map page shall store the current viewport after movement and restore it on a
 later visit.

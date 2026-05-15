@@ -4,5 +4,11 @@ set -euo pipefail
 
 file=$1; shift
 
+# Pandoc expands reST includes and rewrites custom directives while formatting,
+# which would destroy assembly files and requirement metadata.
+if grep -Eq '^[[:space:]]*\.\. (include|requirement)::' "$file"; then
+  exit 0
+fi
+
 pandoc "$file" -t rst > "$file.tmp"
 mv "$file.tmp" "$file"

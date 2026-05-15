@@ -1,19 +1,21 @@
-.. container:: requirement
-
-RA-1047: Repeater Detail Sections
-=================================
+.. requirement::
+   :id: RA-1047
+   :title: Repeater Detail Sections
+   :type: Functional
+   :status: Implemented
+   :verification: Template rendering test
 
 The repeater detail page shall show identity, status, contacts,
 description, location, and service information for the repeater.
 
 Rationale
----------
+~~~~~~~~~
 
 Users need the repeater's operational and contact details in one public
 view.
 
 Acceptance Criteria
--------------------
+~~~~~~~~~~~~~~~~~~~
 
 - The page header shows the call sign.
 - Details include status and contacts when available.
@@ -21,6 +23,6 @@ Acceptance Criteria
 - Services are grouped by service kind.
 
 Links
------
+~~~~~
 
 - Refines: ``docs/design/pages/repeater-detail.md``

@@ -1,25 +1,27 @@
-.. container:: requirement
-
-RA-1006: Embeddable Club Views
-==============================
+.. requirement::
+   :id: RA-1006
+   :title: Embeddable Club Views
+   :type: UX
+   :status: Implemented
+   :verification: Template rendering test
 
 The application shall provide embeddable club-scoped views with minimal
 page chrome.
 
 Rationale
----------
+~~~~~~~~~
 
 Clubs should be able to embed repeater information in existing sites
 without duplicating the full application layout.
 
 Acceptance Criteria
--------------------
+~~~~~~~~~~~~~~~~~~~
 
 - Embedded views omit global navigation and footer chrome.
 - Embedded views render semantic HTML suitable for inclusion in other
   pages.
 
 Links
------
+~~~~~
 
 - Refines: ``docs/design/README.rst``

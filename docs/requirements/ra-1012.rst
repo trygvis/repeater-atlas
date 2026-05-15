@@ -1,11 +1,9 @@
 .. requirement::
    :id: RA-1012
+   :title: Signup Issues Auth Cookie
    :type: Functional
    :status: Implemented
    :verification: Service and HTTP integration test
-
-RA-1012: Signup Issues Auth Cookie
-----------------------------------
 
 The login page shall be able to create a user and immediately issue the normal
 authentication cookie on success.

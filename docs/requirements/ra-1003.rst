@@ -1,11 +1,9 @@
 .. requirement::
    :id: RA-1003
+   :title: Single-Instance Deployment
    :type: Constraint
    :status: Implemented
    :verification: Deployment review
-
-RA-1003: Single-Instance Deployment
------------------------------------
 
 The application shall be designed for a single running service instance in the
 initial release.

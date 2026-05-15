@@ -1,11 +1,9 @@
 .. requirement::
    :id: RA-1023
+   :title: Undirected Repeater Links
    :type: Data
    :status: Implemented
    :verification: Database constraint test
-
-RA-1023: Undirected Repeater Links
-----------------------------------
 
 Repeater links shall be stored as unique undirected relationships between two
 different repeater systems.

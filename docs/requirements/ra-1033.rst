@@ -1,11 +1,9 @@
 .. requirement::
    :id: RA-1033
+   :title: Map Side Pane
    :type: UX
    :status: Implemented
    :verification: UI test
-
-RA-1033: Map Side Pane
-----------------------
 
 The map page shall provide a side pane beside the map for header content,
 nearest repeaters, and repeater details.

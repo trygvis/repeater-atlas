@@ -1,11 +1,9 @@
 .. requirement::
    :id: RA-1032
+   :title: Map Markers
    :type: Functional
    :status: Implemented
    :verification: UI test
-
-RA-1032: Map Markers
---------------------
 
 The map page shall render clustered markers for repeaters that have coordinates.
 

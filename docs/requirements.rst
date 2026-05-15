@@ -99,6 +99,8 @@ The ``.. requirement::`` directive is intended for Pandoc and Lua
 filters:
 
 - ``id``: required stable identifier, for example ``RA-1000``.
+- ``title``: required human-readable title used with the ID to generate the
+  requirement heading.
 - ``type``: requirement type. Allowed values are ``Functional``,
   ``Non-Functional``, ``Constraint``, ``Interface``, ``Data``, and
   ``UX``.

@@ -1,11 +1,9 @@
 .. requirement::
    :id: RA-1008
+   :title: User Account Identity
    :type: Data
    :status: Implemented
    :verification: Database and service test
-
-RA-1008: User Account Identity
-------------------------------
 
 The application shall store user call sign, email address, and password hash for
 authenticated accounts.

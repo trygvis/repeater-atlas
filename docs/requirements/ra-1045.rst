@@ -1,11 +1,9 @@
 .. requirement::
    :id: RA-1045
+   :title: Repeater Detail Route
    :type: Functional
    :status: Implemented
    :verification: HTTP integration test
-
-RA-1045: Repeater Detail Route
-------------------------------
 
 The application shall render a public repeater detail page for a repeater call
 sign at ``/{call_sign}``.

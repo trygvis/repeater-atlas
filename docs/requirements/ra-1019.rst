@@ -1,11 +1,9 @@
 .. requirement::
    :id: RA-1019
+   :title: Repeater System Identity
    :type: Data
    :status: Implemented
    :verification: Database model review
-
-RA-1019: Repeater System Identity
----------------------------------
 
 One repeater record shall represent the physical repeater system identified by a
 call sign.
