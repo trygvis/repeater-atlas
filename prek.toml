@@ -36,5 +36,12 @@ hooks = [
     language = "system",
     entry = "bin/reformat-rst",
     files = '\.rst$'
+  },
+  {
+    id = "req-check",
+    name = "Check requirement rst format",
+    language = "system",
+    entry = "bin/req-check",
+    files = 'docs/requirements/ra-[0-9]{4}.rst$'
   }
 ]

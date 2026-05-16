@@ -5,10 +5,6 @@ This document assembles the implemented requirements extracted from the design
 documents. Each requirement is stored as a standalone file in this directory and
 included below in chapter order.
 
-.. contents:: Chapters
-   :local:
-   :depth: 2
-
 Application Scope
 -----------------
 

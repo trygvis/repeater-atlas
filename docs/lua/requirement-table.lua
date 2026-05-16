@@ -45,7 +45,7 @@ function Div(el)
 
   if el.attributes.id and el.attributes.title then
     blocks:insert(pandoc.Header(
-      3,
+      1,
       { pandoc.Str(el.attributes.id .. ": " .. el.attributes.title) },
       pandoc.Attr(el.attributes.id:lower(), {}, {})
     ))
@@ -59,12 +59,7 @@ end
 function Header(el)
   local text = pandoc.utils.stringify(el.content)
 
-  if text == "Rationale"
-    or text == "Acceptance Criteria"
-    or text == "Notes"
-    or text == "Links" then
-    el.level = 4
-  end
+  el.level = el.level + 1
 
   return el
 end

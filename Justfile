@@ -91,17 +91,16 @@ docker-image:
 
 #    --lua-filter docs/lua/check-anchors.lua \
 # Validate and build the docs and requirements
-docs:
-  for requirement in docs/requirements/ra-*.rst; do \
-    pandoc "$requirement" \
-      --lua-filter docs/lua/validate-requirement.lua \
-      -t native \
-      -o /dev/null; \
-  done
-
+docs: req-check
   pandoc docs/requirements/README.rst \
     -t native \
     -o /dev/null
+
+# Check that requirement docs are well formated
+req-check:
+  for f in docs/requirements/ra-*.rst; do \
+    bin/req-check "$f"; \
+  done
 
 # Builds the GitHub wiki files
 wiki: docs
@@ -111,14 +110,16 @@ wiki: docs
   for requirement in docs/requirements/ra-*.rst; do \
     pandoc "$requirement" \
       --lua-filter docs/lua/requirement-table.lua \
-      -o "target/requirements/$(basename "$requirement")"; \
+      --shift-heading-level-by=2 \
+      -o "target/requirements/${requirement##*/}"; \
   done
 
+  rm wiki/Home.rst
   pandoc \
-    --resource-path target/requirements \
+    target/requirements/README.rst \
     --standalone \
     --toc \
-    target/requirements/README.rst \
+    --toc-depth=2 \
     -o wiki/Home.rst
 
 #    --lua-filter docs/check-links.lua \
