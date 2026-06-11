@@ -2,7 +2,8 @@
 
 set -euo pipefail
 
-v=2.1.92
+# Find the one you want here: https://github.com/anthropics/claude-code/tags
+v=2.1.173
 
 # Claude is funny and insists on having its own installer. Instead of
 # duplicating it, just check if in the binary is present and assume that it
