@@ -58,12 +58,6 @@
       display: none;
     }
 
-    @media (max-width: 576px) { /* matches pico sm breakpoint */
-      #pane-body {
-        width: calc(100% - 60px);
-      }
-    }
-
     #icon-column {
       width: 60px;
       display: flex;
@@ -187,6 +181,47 @@
     .search-input-field {
       margin-top: 12px;
     }
+
+    /* Mobile overrides — must come after the base rules above so equal-
+       specificity selectors (e.g. #icon-column) resolve to these. */
+    @media (max-width: 576px) { /* matches pico sm breakpoint */
+      /* Mobile: full-screen map with floating controls; the side pane
+         (header + nearby list + details panel) is dropped entirely. */
+      #side-pane {
+        display: contents;
+      }
+
+      #pane-body {
+        display: none;
+      }
+
+      /* Controls float as a rounded bottom-right FAB stack (right-thumb
+         reach) instead of the fixed right-edge strip. */
+      #icon-column {
+        position: fixed;
+        right: 12px;
+        bottom: 20px; /*The leaflet "contributors" element is ~18 px */
+        width: auto;
+        padding: 8px;
+        gap: 8px;
+        flex-direction: column;
+        align-items: center;
+        border: none;
+        border-radius: 15px;
+        background: var(--pico-card-background-color);
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+        z-index: 1000;
+      }
+
+      #icon-column .icon-button {
+        margin-bottom: 0;
+      }
+
+      /* No pane to toggle on mobile. */
+      #pane-toggle {
+        display: none;
+      }
+    }
   </style>
 {% endblock %}
 
@@ -307,6 +342,11 @@
     const NEAREST_ZOOM_THRESHOLD = 10;
     const NEAREST_MAX = 20;
 
+    const mobileQuery = window.matchMedia("(max-width: 576px)");
+    function isMobile() {
+      return mobileQuery.matches;
+    }
+
     const map = buildLeafletMap(document.getElementById("repeater-map-host"));
     const leftPane = document.getElementById("pane-body");
     const paneToggle = document.getElementById("pane-toggle");
@@ -333,7 +373,7 @@
     // Skip persisting map moves until the initial page positioning is finished.
     let canPersistMyPosition = false;
 
-    // --- Side pane toggle ---
+    // --- Side pane toggle (desktop only; mobile drops the pane) ---
 
     function openPane() {
       leftPane.classList.remove("pane-collapsed");
@@ -357,9 +397,11 @@
       }
     });
 
-    // --- Nearest repeaters list ---
+    // --- Nearest repeaters list (desktop only) ---
 
     function updateNearestList() {
+      // The nearby list lives in the side pane, which is dropped on mobile.
+      if (isMobile()) return;
       if (repeaterDetailsFields && !repeaterDetailsFields.hidden) return;
 
       let zoom, center;
@@ -423,6 +465,12 @@
     }
 
     function updateRepeaterDetails(item) {
+      // No in-page details panel on mobile; go straight to the detail page.
+      if (isMobile()) {
+        window.location.href = `/${encodeURIComponent(item.call_sign)}`;
+        return;
+      }
+
       const callSign = leftPane.querySelector('[data-field="call-sign"]');
       const detailsLink = leftPane.querySelector('[data-field="details-link"]');
       const status = leftPane.querySelector('[data-field="status"]');
@@ -637,6 +685,15 @@
     } else {
       map.fitBounds(bounds, {padding: [20, 20]});
     }
+
+    // When crossing the breakpoint the map gains/loses the side-pane width, so
+    // recompute its size and refresh the (desktop-only) nearby list.
+    mobileQuery.addEventListener("change", () => {
+      leftPane.classList.remove("pane-collapsed");
+      if (!isMobile()) setToggleIcon("chevron-right");
+      map.invalidateSize();
+      updateNearestList();
+    });
 
     map.on("moveend", () => {
       updateNearestList();

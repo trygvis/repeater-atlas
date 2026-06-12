@@ -19,56 +19,99 @@
 
 ## Layout
 
+The page has exactly two layouts, **desktop** and **mobile**, selected by the
+**breakpoint** below. CSS media queries and a JS
+`window.matchMedia("(max-width: 576px)")` mirror each other, so styling and
+behavior always agree on which layout is active.
+
+### Sizes and terms
+
+Defined once here and referenced by name throughout the rest of this document;
+do not restate the literal values elsewhere.
+
+| Term                       | Value                         | Meaning                                                                                                                      |
+| -------------------------- | ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| **breakpoint**             | pico `sm`, 576 px             | Boundary between the two layouts.                                                                                            |
+| **desktop**                | viewport width > breakpoint   | Side-by-side layout (map + side pane).                                                                                       |
+| **mobile**                 | viewport width ≤ breakpoint   | Full-screen-map layout with floating controls.                                                                               |
+| **pane width**             | 300 px                        | Width of the desktop side pane body.                                                                                         |
+| **icon strip width**       | 60 px                         | Width of the desktop icon column.                                                                                            |
+| **FAB inset**              | 12 px right, 20 px bottom     | Gap from the viewport edges to the mobile floating controls; the larger bottom value clears the Leaflet attribution control. |
+| **nearest-zoom threshold** | `NEAREST_ZOOM_THRESHOLD` = 10 | Minimum map zoom at which the nearby-repeaters list shows.                                                                   |
+| **nearest-list cap**       | `NEAREST_MAX` = 20            | Maximum number of entries in the nearby-repeaters list.                                                                      |
+
+### Desktop layout
+
 - `body` is a full-viewport flex row (`height: 100vh`).
-- Leaflet map (`#repeater-map-host`) fills the remaining width (`flex: 1`).
-- Side pane sits beside the map (not over it), so Leaflet's viewport and
-  `getBounds()` reflect only the visible map area.
-- Large modal for search results.
+- The Leaflet map (`#repeater-map-host`) fills the remaining width (`flex: 1`).
+- The side pane sits beside the map (not over it), so Leaflet's viewport and
+  `getBounds()` reflect only the visible map area. It is the pane width wide,
+  plus the icon strip width.
+- Search results open in a large modal.
+
+### Mobile layout
+
+- The map fills the whole viewport.
+- The side pane is dropped entirely (`#pane-body` is `display: none`): no site
+  header, no nearby-repeaters list, no in-page details panel.
+- The icon column (`#icon-column`) floats as a rounded bottom-right FAB stack,
+  the FAB inset from the edges (within right-thumb reach), instead of the fixed
+  right-edge strip. The pane toggle button is hidden (there is no pane to
+  toggle).
+- Tapping a map marker navigates straight to the repeater detail page
+  (`/{call_sign}`) instead of opening an in-page panel. Marker call-sign
+  tooltips and the search modal remain available.
 
 ## Page sections
 
 - Map: marker cluster for repeaters with coordinates; marker labels show call
   sign.
-- Side pane (`#side-pane`): fixed flex container on the right edge. Contains:
+- Side pane (`#side-pane`): on desktop, a fixed flex container on the right
+  edge; dropped on mobile. Contains:
   - Pane body (`#pane-body`): collapsible content area. Contains a Pico
     `article` with the site header, nearest repeaters list, and repeater details
     section (see below).
-  - Icon column (`#icon-column`): fixed 60 px strip. Contains icon buttons only.
+  - Icon column (`#icon-column`): icon buttons only — a right-edge strip (icon
+    strip width) on desktop, a floating bottom-right FAB stack on mobile.
 - Search results modal: call sign search field and results list; each result
   links to `/{call_sign}`.
 
 ## Icon column
 
-Always visible. 60 px wide. Uses `background: var(--pico-card-background-color)`
-and a left border. Buttons use the `.icon-button` utility class (zeroes pico
-form spacing) with `class="outline secondary"` for coloring.
+Always visible. On desktop it is a strip on the right edge (the icon strip
+width) using `background: var(--pico-card-background-color)` and a left border.
+On mobile it floats as a rounded bottom-right FAB stack, the FAB inset from the
+edges (the pane toggle is hidden there). Buttons use the `.icon-button` utility
+class (zeroes pico form spacing) with `class="outline secondary"` for coloring.
 
 Icons are rendered via Lucide. Only the icons in use are imported from
 `/static/vendor/lucide/icons/` — not the full icon set.
 
 ## Pane body
 
-On desktop the pane body is 300 px wide. On mobile (≤ 576 px, matching pico's
-`sm` breakpoint) it spans the full width minus the 60 px icon column. Toggled
-via `display: none` — no animation. Starts open on page load.
+On desktop the pane body is a column beside the map (the pane width). It is
+toggled via `display: none` — no animation — and starts open on page load. The
+toggle button shows a `chevron-right` icon (Lucide) when the pane is open and
+`chevron-left` when closed.
 
-The toggle button shows a `chevron-right` icon (Lucide) when the pane is open
-and `chevron-left` when closed.
+On mobile the pane body is hidden entirely (`display: none`); the nearby list
+and details panel below are desktop-only. Crossing the breakpoint recomputes the
+map size (`map.invalidateSize()`) and refreshes the list.
 
 ## Nearest repeaters list
 
-Lives inside the left pane below the header. Driven by the current zoom level
+Desktop only — it lives inside the side pane, which is dropped on mobile
+(`updateNearestList()` returns early there). Driven by the current zoom level
 and map center. Two states:
 
-- **Zoom hint** (`#nearest-zoom-hint`): shown when zoom < 10. Text: "Zoom in to
-  see nearby repeaters." (exact wording subject to change).
-- **List** (`#nearest-list`): shown when zoom >= 10. Up to 20 repeaters visible
-  in the current viewport, sorted ascending by distance from the map center.
-  Each entry shows the call sign and distance in metres or kilometres. Clicking
-  an entry opens the repeater details section (same as clicking a map marker).
-  Recomputed on every `moveend` event (pan or zoom).
-
-The zoom threshold is a JS constant (`NEAREST_ZOOM_THRESHOLD = 10`).
+- **Zoom hint** (`#nearest-zoom-hint`): shown below the nearest-zoom threshold.
+  Text: "Zoom in to see nearby repeaters." (exact wording subject to change).
+- **List** (`#nearest-list`): shown at or above the nearest-zoom threshold. Up
+  to the nearest-list cap of repeaters visible in the current viewport, sorted
+  ascending by distance from the map center. Each entry shows the call sign and
+  distance in metres or kilometres. Clicking an entry opens the repeater details
+  section (same as clicking a map marker). Recomputed on every `moveend` event
+  (pan or zoom).
 
 Visible repeaters are determined using `map.getBounds().contains()`. Distance is
 computed using `map.distance()` (Haversine). Both operate client-side against
@@ -76,8 +119,10 @@ the already loaded `data` array. No backend request is made.
 
 ## Repeater details section
 
-Lives inside the left pane, overlaid on top of the nearest-repeaters list when
-active. Three states:
+Desktop only. On mobile there is no in-page details panel — tapping a marker
+navigates directly to the detail page (see "Mobile layout"). On desktop it lives
+inside the left pane, overlaid on top of the nearest-repeaters list when active.
+Three states:
 
 - **Hidden:** nearest-repeaters list is shown instead.
 - **Populated:** shown on marker click or nearest-list item click. Displays call
